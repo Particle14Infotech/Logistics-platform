@@ -8,6 +8,8 @@ const bcrypt = require('bcryptjs');
 const connectDB = require('../src/config/db');
 const User = require('../src/models/user.model');
 const Enterprise = require('../src/models/enterprise.model');
+const Driver = require('../src/models/driver.model');
+const Order = require('../src/models/order.model');
 
 const ADMIN_EMAIL = 'admin@particle14.com';
 const ADMIN_PASSWORD = 'Admin@12345';
@@ -64,6 +66,75 @@ async function seed() {
     console.log(`✅ Enterprise account created: Vertex Pharma`);
   } else {
     console.log('ℹ️  Enterprise account already exists');
+  }
+
+  // --- Sample Drivers (for the admin Orders/Drivers pages to have real data) ---
+  const SAMPLE_DRIVERS = [
+    { name: 'Ramesh Yadav', phone: '9810000001', vehicleType: 'mini_truck', vehicleNumber: 'DL 01 AB 4521', isApproved: true, isAvailable: true },
+    { name: 'Suresh Patil', phone: '9810000002', vehicleType: 'medium_truck', vehicleNumber: 'MH 04 CD 7789', isApproved: true, isAvailable: false },
+    { name: 'Arjun Reddy', phone: '9810000003', vehicleType: 'auto', vehicleNumber: 'KA 03 EF 1290', isApproved: true, isAvailable: true },
+    { name: 'Vikram Singh', phone: '9810000004', vehicleType: 'large_truck', vehicleNumber: 'TN 09 GH 3345', isApproved: false, isAvailable: false },
+  ];
+
+  const driverDocs = [];
+  for (const d of SAMPLE_DRIVERS) {
+    let driverUser = await User.findOne({ phone: d.phone });
+    if (!driverUser) {
+      driverUser = await User.create({ name: d.name, phone: d.phone, role: 'driver', isVerified: true });
+    }
+    let driver = await Driver.findOne({ userId: driverUser._id });
+    if (!driver) {
+      driver = await Driver.create({
+        userId: driverUser._id,
+        vehicleType: d.vehicleType,
+        vehicleNumber: d.vehicleNumber,
+        licenseNumber: `DL-${d.phone.slice(-6)}`,
+        isApproved: d.isApproved,
+        isAvailable: d.isAvailable,
+        rating: 4 + Math.random(),
+        currentLocation: { type: 'Point', coordinates: [77.1 + Math.random(), 28.6 + Math.random()] },
+      });
+    }
+    driverDocs.push(driver);
+  }
+  console.log(`✅ ${SAMPLE_DRIVERS.length} sample drivers ready`);
+
+  // --- Sample Customer + Orders ---
+  let sampleCustomer = await User.findOne({ phone: '9820000001' });
+  if (!sampleCustomer) {
+    sampleCustomer = await User.create({ name: 'Rohan Textiles', phone: '9820000001', role: 'customer', isVerified: true });
+  }
+
+  const existingOrderCount = await Order.countDocuments({ customerId: sampleCustomer._id });
+  if (existingOrderCount === 0) {
+    const SAMPLE_ORDERS = [
+      { pickup: 'Delhi', drop: 'Gurugram', vehicleType: 'mini_truck', status: 'in_transit', price: 1240, driver: driverDocs[0] },
+      { pickup: 'Pune', drop: 'Mumbai', vehicleType: 'medium_truck', status: 'accepted', price: 6850, driver: driverDocs[1] },
+      { pickup: 'Bengaluru', drop: 'Hosur', vehicleType: 'auto', status: 'delivered', price: 420, driver: driverDocs[2] },
+      { pickup: 'Chennai', drop: 'Vellore', vehicleType: 'large_truck', status: 'in_transit', price: 12300, driver: driverDocs[3] },
+      { pickup: 'Noida', drop: 'Agra', vehicleType: 'medium_truck', status: 'pending', price: 4100, driver: null },
+      { pickup: 'Jaipur', drop: 'Kota', vehicleType: 'mini_truck', status: 'cancelled', price: 2050, driver: null },
+    ];
+
+    for (const o of SAMPLE_ORDERS) {
+      await Order.create({
+        customerId: sampleCustomer._id,
+        driverId: o.driver?._id ?? null,
+        pickupLocation: { type: 'Point', coordinates: [77.1, 28.6], address: o.pickup },
+        dropLocation: { type: 'Point', coordinates: [77.3, 28.4], address: o.drop },
+        vehicleType: o.vehicleType,
+        goodsType: 'General cargo',
+        weightKg: 500,
+        distanceKm: 45,
+        price: o.price,
+        status: o.status,
+        paymentStatus: o.status === 'delivered' ? 'paid' : 'unpaid',
+        timeline: [{ status: o.status, note: 'Seeded sample order' }],
+      });
+    }
+    console.log(`✅ ${SAMPLE_ORDERS.length} sample orders created`);
+  } else {
+    console.log('ℹ️  Sample orders already exist');
   }
 
   console.log('\nSeed complete. Log in at:');

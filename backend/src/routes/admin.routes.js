@@ -5,6 +5,7 @@ const { protect, authorize } = require('../middlewares/auth.middleware');
 router.use(protect, authorize('admin'));
 
 router.get('/orders', ctrl.listOrders);
+router.get('/orders/:id', ctrl.getOrderById);
 router.put('/orders/:id/assign', ctrl.assignDriver);
 router.get('/drivers', ctrl.listDrivers);
 router.put('/drivers/:id', ctrl.updateDriverStatus);

@@ -1,7 +1,7 @@
 /**
  * Generic table. `columns` = [{ key, label, render? }]. `rows` = array of objects.
  */
-export default function DataTable({ columns, rows, keyField = 'id' }) {
+export default function DataTable({ columns, rows, keyField = 'id', onRowClick }) {
   return (
     <div className="border border-line rounded-lg overflow-hidden">
       <table className="w-full text-sm">
@@ -16,7 +16,11 @@ export default function DataTable({ columns, rows, keyField = 'id' }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row[keyField]} className="border-b border-line last:border-b-0 hover:bg-panel2/60 transition-colors">
+            <tr
+              key={row[keyField]}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              className={`border-b border-line last:border-b-0 hover:bg-panel2/60 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+            >
               {columns.map((col) => (
                 <td key={col.key} className="px-4 py-3 align-middle">
                   {col.render ? col.render(row) : row[col.key]}

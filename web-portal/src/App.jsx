@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AdminLoginPage from './admin/dashboard/AdminLoginPage.jsx';
 import AdminDashboardPage from './admin/dashboard/AdminDashboardPage.jsx';
+import AdminOrdersPage from './admin/orders/AdminOrdersPage.jsx';
+import AdminOrderDetailPage from './admin/orders/AdminOrderDetailPage.jsx';
 import EnterpriseLoginPage from './enterprise/dashboard/EnterpriseLoginPage.jsx';
 import EnterpriseDashboardPage from './enterprise/dashboard/EnterpriseDashboardPage.jsx';
 import ConsoleShell from './shared/layouts/ConsoleShell.jsx';
@@ -38,7 +40,8 @@ export default function App() {
 
         {/* --- Admin (protected, role: admin) --- */}
         <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDashboardPage /></ProtectedRoute>} />
-        <Route path="/admin/orders" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Order management" note="Full orders table with filters, manual driver reassignment. Wire to GET /admin/orders." /></ProtectedRoute>} />
+        <Route path="/admin/orders" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminOrdersPage /></ProtectedRoute>} />
+        <Route path="/admin/orders/:id" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminOrderDetailPage /></ProtectedRoute>} />
         <Route path="/admin/drivers" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Driver management" note="Onboard/suspend drivers, live location, performance scores. Wire to GET /admin/drivers." /></ProtectedRoute>} />
         <Route path="/admin/vehicles" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Vehicle management" note="Vehicle inventory by type, availability, maintenance alerts." /></ProtectedRoute>} />
         <Route path="/admin/pricing" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Pricing engine" note="Base fares, per-km rates, surge pricing per city/vehicle. Wire to PUT /admin/pricing." /></ProtectedRoute>} />
