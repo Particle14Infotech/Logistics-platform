@@ -7,6 +7,7 @@ import { useAuthStore } from '../../shared/store/authStore.js';
 export default function EnterpriseLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,10 +17,17 @@ export default function EnterpriseLoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('[EnterpriseLoginPage] submit fired', { email, passwordLength: password.length });
+
+    if (!email.trim() || !password) {
+      setError('Enter both email and password.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
-      const { data } = await axiosClient.post('/auth/login', { email, password });
+      const { data } = await axiosClient.post('/auth/login', { email: email.trim(), password });
       const { user, accessToken, refreshToken } = data.data;
 
       if (!['enterprise_admin', 'enterprise_user'].includes(user.role)) {
@@ -32,6 +40,7 @@ export default function EnterpriseLoginPage() {
       const redirectTo = location.state?.from?.pathname ?? '/enterprise/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (err) {
+      console.error('[EnterpriseLoginPage] login failed', err);
       const message = err.response?.data?.message;
       setError(message || 'Invalid credentials. Check your email and password.');
     } finally {
@@ -77,6 +86,8 @@ export default function EnterpriseLoginPage() {
           <label className="block text-xs eyebrow mb-1.5">Email</label>
           <input
             type="email"
+            name="email"
+            autoComplete="username"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -85,14 +96,25 @@ export default function EnterpriseLoginPage() {
           />
 
           <label className="block text-xs eyebrow mb-1.5">Password</label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-2 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
-          />
+          <div className="relative mb-2">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-panel border border-line rounded-md px-3 py-2.5 pr-16 text-sm placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-mist hover:text-signal transition-colors"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
 
           <div className="flex justify-end mb-6">
             <button type="button" className="text-xs text-mist hover:text-signal transition-colors">
@@ -120,6 +142,18 @@ export default function EnterpriseLoginPage() {
           <p className="text-xs text-mist/60 mt-8 text-center font-mono">
             Dev credentials: priya@vertexpharma.com / Enterprise@12345 (run <code>npm run seed</code>)
           </p>
+          <div className="text-center mt-3">
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('priya@vertexpharma.com');
+                setPassword('Enterprise@12345');
+              }}
+              className="text-xs text-signal hover:underline"
+            >
+              Fill dev credentials
+            </button>
+          </div>
         </form>
       </div>
     </div>

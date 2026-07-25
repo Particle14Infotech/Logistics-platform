@@ -23,6 +23,15 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
+    if (!error.response) {
+      // Network-level failure - wrong port, backend down, CORS block, etc.
+      console.error('[axiosClient] Network error - no response received.', {
+        url: originalRequest?.url,
+        baseURL: originalRequest?.baseURL,
+        message: error.message,
+      });
+    }
+
     if (status !== 401 || originalRequest._retry || originalRequest.url?.includes('/auth/')) {
       return Promise.reject(error);
     }
