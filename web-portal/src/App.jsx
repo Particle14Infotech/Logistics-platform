@@ -3,6 +3,8 @@ import AdminLoginPage from './admin/dashboard/AdminLoginPage.jsx';
 import AdminDashboardPage from './admin/dashboard/AdminDashboardPage.jsx';
 import AdminOrdersPage from './admin/orders/AdminOrdersPage.jsx';
 import AdminOrderDetailPage from './admin/orders/AdminOrderDetailPage.jsx';
+import AdminDriversPage from './admin/drivers/AdminDriversPage.jsx';
+import AdminDriverDetailPage from './admin/drivers/AdminDriverDetailPage.jsx';
 import EnterpriseLoginPage from './enterprise/dashboard/EnterpriseLoginPage.jsx';
 import EnterpriseDashboardPage from './enterprise/dashboard/EnterpriseDashboardPage.jsx';
 import ConsoleShell from './shared/layouts/ConsoleShell.jsx';
@@ -42,7 +44,8 @@ export default function App() {
         <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDashboardPage /></ProtectedRoute>} />
         <Route path="/admin/orders" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminOrdersPage /></ProtectedRoute>} />
         <Route path="/admin/orders/:id" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminOrderDetailPage /></ProtectedRoute>} />
-        <Route path="/admin/drivers" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Driver management" note="Onboard/suspend drivers, live location, performance scores. Wire to GET /admin/drivers." /></ProtectedRoute>} />
+        <Route path="/admin/drivers" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDriversPage /></ProtectedRoute>} />
+        <Route path="/admin/drivers/:id" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDriverDetailPage /></ProtectedRoute>} />
         <Route path="/admin/vehicles" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Vehicle management" note="Vehicle inventory by type, availability, maintenance alerts." /></ProtectedRoute>} />
         <Route path="/admin/pricing" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Pricing engine" note="Base fares, per-km rates, surge pricing per city/vehicle. Wire to PUT /admin/pricing." /></ProtectedRoute>} />
         <Route path="/admin/payments" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Payment management" note="Transaction monitoring, refund processing, wallet management." /></ProtectedRoute>} />

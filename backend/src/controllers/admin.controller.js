@@ -116,14 +116,35 @@ exports.listDrivers = catchAsync(async (req, res) => {
 
 // PUT /api/v1/admin/drivers/:id  { isApproved?, isBlocked? } - approve/suspend a driver
 exports.updateDriverStatus = catchAsync(async (req, res) => {
-  const { isApproved } = req.body;
+  const { isApproved, isBlocked } = req.body;
   const driver = await Driver.findById(req.params.id);
   if (!driver) throw new AppError('Driver not found', 404);
 
-  if (isApproved !== undefined) driver.isApproved = isApproved;
-  await driver.save();
+  if (isApproved !== undefined) {
+    driver.isApproved = isApproved;
+    if (!isApproved) driver.isAvailable = false; // pull an unapproved driver off the road
+    await driver.save();
+  }
 
-  return success(res, { driver }, 'Driver status updated');
+  if (isBlocked !== undefined) {
+    await User.findByIdAndUpdate(driver.userId, { isBlocked });
+  }
+
+  const updated = await Driver.findById(driver._id).populate('userId', 'name phone email isBlocked');
+  return success(res, { driver: updated }, 'Driver status updated');
+});
+
+// GET /api/v1/admin/drivers/:id - full detail incl. documents, for KYC review
+exports.getDriverById = catchAsync(async (req, res) => {
+  const driver = await Driver.findById(req.params.id).populate('userId', 'name phone email isBlocked createdAt');
+  if (!driver) throw new AppError('Driver not found', 404);
+
+  const [totalOrders, deliveredOrders] = await Promise.all([
+    Order.countDocuments({ driverId: driver._id }),
+    Order.countDocuments({ driverId: driver._id, status: 'delivered' }),
+  ]);
+
+  return success(res, { driver, stats: { totalOrders, deliveredOrders } });
 });
 
 // GET /api/v1/admin/analytics - KPI + revenue snapshot for the dashboard

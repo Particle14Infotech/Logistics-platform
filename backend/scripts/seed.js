@@ -70,10 +70,10 @@ async function seed() {
 
   // --- Sample Drivers (for the admin Orders/Drivers pages to have real data) ---
   const SAMPLE_DRIVERS = [
-    { name: 'Ramesh Yadav', phone: '9810000001', vehicleType: 'mini_truck', vehicleNumber: 'DL 01 AB 4521', isApproved: true, isAvailable: true },
-    { name: 'Suresh Patil', phone: '9810000002', vehicleType: 'medium_truck', vehicleNumber: 'MH 04 CD 7789', isApproved: true, isAvailable: false },
-    { name: 'Arjun Reddy', phone: '9810000003', vehicleType: 'auto', vehicleNumber: 'KA 03 EF 1290', isApproved: true, isAvailable: true },
-    { name: 'Vikram Singh', phone: '9810000004', vehicleType: 'large_truck', vehicleNumber: 'TN 09 GH 3345', isApproved: false, isAvailable: false },
+    { name: 'Ramesh Yadav', phone: '9810000001', vehicleType: 'mini_truck', vehicleNumber: 'DL 01 AB 4521', isApproved: true, isAvailable: true, documents: { licenseUrl: 'https://example.com/docs/ramesh-license.pdf', rcUrl: 'https://example.com/docs/ramesh-rc.pdf', aadhaarUrl: 'https://example.com/docs/ramesh-aadhaar.pdf' } },
+    { name: 'Suresh Patil', phone: '9810000002', vehicleType: 'medium_truck', vehicleNumber: 'MH 04 CD 7789', isApproved: true, isAvailable: false, documents: { licenseUrl: 'https://example.com/docs/suresh-license.pdf', rcUrl: 'https://example.com/docs/suresh-rc.pdf' } },
+    { name: 'Arjun Reddy', phone: '9810000003', vehicleType: 'auto', vehicleNumber: 'KA 03 EF 1290', isApproved: true, isAvailable: true, documents: { licenseUrl: 'https://example.com/docs/arjun-license.pdf' } },
+    { name: 'Vikram Singh', phone: '9810000004', vehicleType: 'large_truck', vehicleNumber: 'TN 09 GH 3345', isApproved: false, isAvailable: false, documents: { licenseUrl: 'https://example.com/docs/vikram-license.pdf', rcUrl: 'https://example.com/docs/vikram-rc.pdf', aadhaarUrl: 'https://example.com/docs/vikram-aadhaar.pdf', panCardUrl: 'https://example.com/docs/vikram-pan.pdf' } },
   ];
 
   const driverDocs = [];
@@ -92,6 +92,7 @@ async function seed() {
         isApproved: d.isApproved,
         isAvailable: d.isAvailable,
         rating: 4 + Math.random(),
+        documents: d.documents ?? {},
         currentLocation: { type: 'Point', coordinates: [77.1 + Math.random(), 28.6 + Math.random()] },
       });
     }
