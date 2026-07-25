@@ -21,9 +21,8 @@ export default function AdminDashboardPage() {
     <ConsoleShell
       navItems={ADMIN_NAV}
       brandSuffix="ADMIN"
-      footerLabel="Neeraj Kumar · Ops Admin"
-      userName="Neeraj Kumar"
-      userRole="Operations Admin"
+      footerLabel="Ops Admin"
+      loginPath="/admin/login"
       dateLabel="25 JUL 2026"
     >
       <div>

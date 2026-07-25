@@ -23,9 +23,8 @@ export default function EnterpriseDashboardPage() {
     <ConsoleShell
       navItems={ENTERPRISE_NAV}
       brandSuffix="ENTERPRISE"
-      footerLabel="Vertex Pharma · Enterprise Admin"
-      userName="Priya Sharma"
-      userRole="Enterprise Admin"
+      footerLabel="Vertex Pharma"
+      loginPath="/enterprise/login"
       dateLabel="25 JUL 2026"
     >
       <div className="flex items-center justify-between">

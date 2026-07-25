@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { useAuthStore } from '../../shared/store/authStore.js';
 
-// Admin login screen - calls POST /api/v1/auth/login
-export default function AdminLoginPage() {
+// Enterprise login screen - calls POST /api/v1/auth/login
+export default function EnterpriseLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,14 +22,14 @@ export default function AdminLoginPage() {
       const { data } = await axiosClient.post('/auth/login', { email, password });
       const { user, accessToken, refreshToken } = data.data;
 
-      if (user.role !== 'admin') {
-        setError('This account is not an admin account. Use the enterprise portal instead.');
+      if (!['enterprise_admin', 'enterprise_user'].includes(user.role)) {
+        setError('This account is not an enterprise account. Use the admin portal instead.');
         setLoading(false);
         return;
       }
 
       setAuth({ accessToken, refreshToken, user });
-      const redirectTo = location.state?.from?.pathname ?? '/admin/dashboard';
+      const redirectTo = location.state?.from?.pathname ?? '/enterprise/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (err) {
       const message = err.response?.data?.message;
@@ -51,28 +51,28 @@ export default function AdminLoginPage() {
         </div>
 
         <div>
-          <span className="eyebrow">Dispatch console</span>
+          <span className="eyebrow">Enterprise portal</span>
           <h1 className="font-display text-4xl font-semibold leading-tight mt-3 max-w-md">
-            Every truck, every order, one screen.
+            Your shipments, invoices, and team — in one account.
           </h1>
           <p className="text-mist mt-4 max-w-sm text-sm leading-relaxed">
-            Monitor bookings, assign drivers, and control pricing across the Pan-India
-            network in real time.
+            Bulk-book deliveries, track spend, and manage your team's access across the
+            Pan-India network.
           </p>
         </div>
 
         <div className="flex gap-8 font-mono text-xs text-mist">
-          <div><span className="text-paper text-lg font-display block">10K+</span>concurrent bookings</div>
-          <div><span className="text-paper text-lg font-display block">99.5%</span>API uptime</div>
-          <div><span className="text-paper text-lg font-display block">&lt;5s</span>tracking latency</div>
+          <div><span className="text-paper text-lg font-display block">GST</span>compliant billing</div>
+          <div><span className="text-paper text-lg font-display block">CSV</span>bulk booking</div>
+          <div><span className="text-paper text-lg font-display block">API</span>direct integration</div>
         </div>
       </div>
 
       {/* Right: form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <form onSubmit={handleSubmit} className="w-full max-w-sm">
-          <h2 className="font-display text-2xl font-semibold mb-1">Admin sign in</h2>
-          <p className="text-mist text-sm mb-8">Ops team access only.</p>
+          <h2 className="font-display text-2xl font-semibold mb-1">Enterprise sign in</h2>
+          <p className="text-mist text-sm mb-8">For registered business accounts.</p>
 
           <label className="block text-xs eyebrow mb-1.5">Email</label>
           <input
@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@particle14.com"
+            placeholder="you@yourcompany.com"
             className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-4 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
           />
 
@@ -111,14 +111,14 @@ export default function AdminLoginPage() {
           </button>
 
           <p className="text-xs text-mist mt-6 text-center">
-            Enterprise client?{' '}
-            <a href="/enterprise/login" className="text-signal hover:underline">
-              Go to enterprise portal
+            Ops team member?{' '}
+            <a href="/admin/login" className="text-signal hover:underline">
+              Go to admin console
             </a>
           </p>
 
           <p className="text-xs text-mist/60 mt-8 text-center font-mono">
-            Dev credentials: admin@particle14.com / Admin@12345 (run <code>npm run seed</code>)
+            Dev credentials: priya@vertexpharma.com / Enterprise@12345 (run <code>npm run seed</code>)
           </p>
         </form>
       </div>

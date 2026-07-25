@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
  * Left dispatch-console navigation. `items` = [{ to, label, icon }]
  * `footerLabel` shows the signed-in identity above the sign-out control.
  */
-export default function Sidebar({ items, footerLabel, brandSuffix }) {
+export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut }) {
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col bg-panel border-r border-line shrink-0">
       <div className="h-16 flex items-center gap-2 px-5 border-b border-line">
@@ -38,7 +38,10 @@ export default function Sidebar({ items, footerLabel, brandSuffix }) {
 
       <div className="p-3 border-t border-line">
         <div className="px-3 py-2 text-xs text-mist truncate">{footerLabel}</div>
-        <button className="w-full text-left px-3 py-2 rounded-md text-sm text-mist hover:text-stop hover:bg-panel2 transition-colors">
+        <button
+          onClick={onSignOut}
+          className="w-full text-left px-3 py-2 rounded-md text-sm text-mist hover:text-stop hover:bg-panel2 transition-colors"
+        >
           Sign out
         </button>
       </div>
