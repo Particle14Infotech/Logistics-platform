@@ -10,6 +10,9 @@ const User = require('../src/models/user.model');
 const Enterprise = require('../src/models/enterprise.model');
 const Driver = require('../src/models/driver.model');
 const Order = require('../src/models/order.model');
+const Payment = require('../src/models/payment.model');
+const PricingConfig = require('../src/models/pricingConfig.model');
+const Dispute = require('../src/models/dispute.model');
 
 const ADMIN_EMAIL = 'admin@particle14.com';
 const ADMIN_PASSWORD = 'Admin@12345';
@@ -107,6 +110,7 @@ async function seed() {
   }
 
   const existingOrderCount = await Order.countDocuments({ customerId: sampleCustomer._id });
+  let seededOrders = [];
   if (existingOrderCount === 0) {
     const SAMPLE_ORDERS = [
       { pickup: 'Delhi', drop: 'Gurugram', vehicleType: 'mini_truck', status: 'in_transit', price: 1240, driver: driverDocs[0] },
@@ -118,7 +122,7 @@ async function seed() {
     ];
 
     for (const o of SAMPLE_ORDERS) {
-      await Order.create({
+      const order = await Order.create({
         customerId: sampleCustomer._id,
         driverId: o.driver?._id ?? null,
         pickupLocation: { type: 'Point', coordinates: [77.1, 28.6], address: o.pickup },
@@ -132,10 +136,87 @@ async function seed() {
         paymentStatus: o.status === 'delivered' ? 'paid' : 'unpaid',
         timeline: [{ status: o.status, note: 'Seeded sample order' }],
       });
+      seededOrders.push(order);
     }
     console.log(`✅ ${SAMPLE_ORDERS.length} sample orders created`);
   } else {
     console.log('ℹ️  Sample orders already exist');
+    seededOrders = await Order.find({ customerId: sampleCustomer._id });
+  }
+
+  // --- Pricing Config (one rate card per vehicle type) ---
+  const DEFAULT_PRICING = [
+    { vehicleType: 'bike', baseFare: 25, perKmRate: 6 },
+    { vehicleType: 'auto', baseFare: 40, perKmRate: 9 },
+    { vehicleType: 'mini_truck', baseFare: 80, perKmRate: 15, perKgRate: 0.5 },
+    { vehicleType: 'medium_truck', baseFare: 150, perKmRate: 22, perKgRate: 0.8 },
+    { vehicleType: 'large_truck', baseFare: 300, perKmRate: 35, perKgRate: 1.2 },
+  ];
+  let pricingCreated = 0;
+  for (const p of DEFAULT_PRICING) {
+    const existing = await PricingConfig.findOne({ vehicleType: p.vehicleType });
+    if (!existing) {
+      await PricingConfig.create(p);
+      pricingCreated++;
+    }
+  }
+  console.log(pricingCreated > 0 ? `✅ ${pricingCreated} pricing configs created` : 'ℹ️  Pricing configs already exist');
+
+  // --- Sample Payments (tied to the delivered order) ---
+  const deliveredOrder = seededOrders.find((o) => o.status === 'delivered');
+  if (deliveredOrder) {
+    const existingPayment = await Payment.findOne({ orderId: deliveredOrder._id });
+    if (!existingPayment) {
+      await Payment.create({
+        orderId: deliveredOrder._id,
+        userId: sampleCustomer._id,
+        razorpayOrderId: 'order_seeddata001',
+        razorpayPaymentId: 'pay_seeddata001',
+        razorpaySignature: 'seed_signature_not_real',
+        amount: deliveredOrder.price * 100, // paise
+        status: 'captured',
+      });
+      console.log('✅ 1 sample payment created (captured)');
+    } else {
+      console.log('ℹ️  Sample payment already exists');
+    }
+  }
+  // A second, already-refunded payment for a cancelled order, for filter testing
+  const cancelledOrder = seededOrders.find((o) => o.status === 'cancelled');
+  if (cancelledOrder) {
+    const existingRefund = await Payment.findOne({ orderId: cancelledOrder._id });
+    if (!existingRefund) {
+      await Payment.create({
+        orderId: cancelledOrder._id,
+        userId: sampleCustomer._id,
+        razorpayOrderId: 'order_seeddata002',
+        razorpayPaymentId: 'pay_seeddata002',
+        razorpaySignature: 'seed_signature_not_real',
+        amount: cancelledOrder.price * 100,
+        status: 'refunded',
+        refundId: 'rfnd_seeddata002',
+      });
+      console.log('✅ 1 sample refunded payment created');
+    }
+  }
+
+  // --- Sample Disputes ---
+  const inTransitOrder = seededOrders.find((o) => o.status === 'in_transit');
+  if (inTransitOrder) {
+    const existingDispute = await Dispute.findOne({ orderId: inTransitOrder._id });
+    if (!existingDispute) {
+      await Dispute.create({
+        orderId: inTransitOrder._id,
+        raisedBy: sampleCustomer._id,
+        raisedByRole: 'customer',
+        category: 'delay',
+        description: 'Shipment has been "in transit" for much longer than the original ETA suggested.',
+        status: 'open',
+      });
+      console.log('✅ 1 sample dispute created (open)');
+    } else {
+      console.log('ℹ️  Sample dispute already exists');
+    }
   }
 
   console.log('\nSeed complete. Log in at:');

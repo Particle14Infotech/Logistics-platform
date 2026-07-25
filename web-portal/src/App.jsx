@@ -5,6 +5,10 @@ import AdminOrdersPage from './admin/orders/AdminOrdersPage.jsx';
 import AdminOrderDetailPage from './admin/orders/AdminOrderDetailPage.jsx';
 import AdminDriversPage from './admin/drivers/AdminDriversPage.jsx';
 import AdminDriverDetailPage from './admin/drivers/AdminDriverDetailPage.jsx';
+import AdminVehiclesPage from './admin/vehicles/AdminVehiclesPage.jsx';
+import AdminPricingPage from './admin/pricing/AdminPricingPage.jsx';
+import AdminPaymentsPage from './admin/payments/AdminPaymentsPage.jsx';
+import AdminDisputesPage from './admin/disputes/AdminDisputesPage.jsx';
 import EnterpriseLoginPage from './enterprise/dashboard/EnterpriseLoginPage.jsx';
 import EnterpriseDashboardPage from './enterprise/dashboard/EnterpriseDashboardPage.jsx';
 import ConsoleShell from './shared/layouts/ConsoleShell.jsx';
@@ -46,10 +50,10 @@ export default function App() {
         <Route path="/admin/orders/:id" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminOrderDetailPage /></ProtectedRoute>} />
         <Route path="/admin/drivers" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDriversPage /></ProtectedRoute>} />
         <Route path="/admin/drivers/:id" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDriverDetailPage /></ProtectedRoute>} />
-        <Route path="/admin/vehicles" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Vehicle management" note="Vehicle inventory by type, availability, maintenance alerts." /></ProtectedRoute>} />
-        <Route path="/admin/pricing" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Pricing engine" note="Base fares, per-km rates, surge pricing per city/vehicle. Wire to PUT /admin/pricing." /></ProtectedRoute>} />
-        <Route path="/admin/payments" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Payment management" note="Transaction monitoring, refund processing, wallet management." /></ProtectedRoute>} />
-        <Route path="/admin/disputes" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Dispute management" note="Raise, track, and resolve customer/driver disputes." /></ProtectedRoute>} />
+        <Route path="/admin/vehicles" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminVehiclesPage /></ProtectedRoute>} />
+        <Route path="/admin/pricing" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPricingPage /></ProtectedRoute>} />
+        <Route path="/admin/payments" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPaymentsPage /></ProtectedRoute>} />
+        <Route path="/admin/disputes" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminDisputesPage /></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute roles={['admin']} loginPath="/admin/login"><AdminPlaceholder title="Content management" note="Promo banners, FAQs, in-app notification copy." /></ProtectedRoute>} />
 
         {/* --- Enterprise (protected, role: enterprise_admin | enterprise_user) --- */}

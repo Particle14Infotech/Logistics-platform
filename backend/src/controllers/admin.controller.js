@@ -2,6 +2,9 @@ const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
 const User = require('../models/user.model');
+const Payment = require('../models/payment.model');
+const PricingConfig = require('../models/pricingConfig.model');
+const Dispute = require('../models/dispute.model');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
 exports.listOrders = catchAsync(async (req, res) => {
@@ -174,9 +177,164 @@ exports.analytics = catchAsync(async (req, res) => {
   });
 });
 
-// PUT /api/v1/admin/pricing - base fare / per-km / surge config
-// TODO: back this with a dedicated PricingConfig collection (per city/vehicle type).
-// Stubbed as a no-op success until that collection + admin UI form exist.
+// GET /api/v1/admin/vehicles?vehicleType=&isAvailable=&search=
+// Vehicles are derived from Driver records (one vehicle per driver in this
+// model) rather than a separate collection, since that's how the data is
+// actually captured today. "Needs attention" flags drivers missing key
+// compliance documents (RC, insurance, pollution cert).
+exports.listVehicles = catchAsync(async (req, res) => {
+  const { vehicleType, isAvailable, search, page = 1, limit = 20 } = req.query;
+
+  const filter = {};
+  if (vehicleType) filter.vehicleType = vehicleType;
+  if (isAvailable !== undefined) filter.isAvailable = isAvailable === 'true';
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+  if (search) filter.vehicleNumber = { $regex: search, $options: 'i' };
+
+  const [drivers, total] = await Promise.all([
+    Driver.find(filter)
+      .populate('userId', 'name phone')
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean(),
+    Driver.countDocuments(filter),
+  ]);
+
+  const vehicles = drivers.map((d) => {
+    const missingCompliance = ['rcUrl', 'insuranceUrl', 'pollutionCertUrl'].filter((k) => !d.documents?.[k]);
+    return {
+      _id: d._id,
+      vehicleNumber: d.vehicleNumber,
+      vehicleType: d.vehicleType,
+      isAvailable: d.isAvailable,
+      isApproved: d.isApproved,
+      owner: d.userId,
+      needsAttention: missingCompliance.length > 0,
+      missingCompliance,
+    };
+  });
+
+  return success(res, { vehicles, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } });
+});
+
+// GET /api/v1/admin/pricing - current rate card for every vehicle type
+exports.getPricing = catchAsync(async (req, res) => {
+  const configs = await PricingConfig.find().sort({ vehicleType: 1 });
+  return success(res, { pricing: configs });
+});
+
+// PUT /api/v1/admin/pricing  { vehicleType, baseFare, perKmRate, perKgRate?, surgeMultiplier?, isSurgeActive? }
 exports.updatePricing = catchAsync(async (req, res) => {
-  return success(res, { received: req.body }, 'Pricing config received (persistence not yet implemented)', 200);
+  const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive } = req.body;
+  if (!vehicleType) throw new AppError('vehicleType is required', 400);
+
+  const config = await PricingConfig.findOneAndUpdate(
+    { vehicleType },
+    {
+      $set: {
+        ...(baseFare !== undefined && { baseFare }),
+        ...(perKmRate !== undefined && { perKmRate }),
+        ...(perKgRate !== undefined && { perKgRate }),
+        ...(surgeMultiplier !== undefined && { surgeMultiplier }),
+        ...(isSurgeActive !== undefined && { isSurgeActive }),
+        updatedBy: req.user.id,
+      },
+    },
+    { new: true, upsert: true }
+  );
+
+  return success(res, { pricing: config }, 'Pricing updated');
+});
+
+// GET /api/v1/admin/payments?status=&search=&page=&limit=
+exports.listPayments = catchAsync(async (req, res) => {
+  const { status, search, page = 1, limit = 20 } = req.query;
+
+  const filter = {};
+  if (status) filter.status = status;
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+  let query = Payment.find(filter).populate('userId', 'name email phone').populate('orderId', 'pickupLocation dropLocation');
+  if (search) {
+    query = query.populate({ path: 'userId', match: { name: { $regex: search, $options: 'i' } }, select: 'name email phone' });
+  }
+
+  const [payments, total] = await Promise.all([
+    query.sort({ createdAt: -1 }).skip((pageNum - 1) * limitNum).limit(limitNum).lean(),
+    Payment.countDocuments(filter),
+  ]);
+
+  return success(res, {
+    payments: search ? payments.filter((p) => p.userId) : payments,
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) },
+  });
+});
+
+// PUT /api/v1/admin/payments/:id/refund  { reason? }
+// NOTE: this marks the payment refunded in our DB. It does not yet call the
+// real Razorpay refund API (payment.service.js / payment.controller.js own
+// that integration) - wiring this to a real gateway call is a follow-up.
+exports.refundPayment = catchAsync(async (req, res) => {
+  const payment = await Payment.findById(req.params.id);
+  if (!payment) throw new AppError('Payment not found', 404);
+  if (payment.status !== 'captured') throw new AppError(`Cannot refund a payment with status "${payment.status}"`, 400);
+
+  payment.status = 'refunded';
+  await payment.save();
+
+  await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'refunded' });
+
+  return success(res, { payment }, 'Payment marked as refunded');
+});
+
+// GET /api/v1/admin/disputes?status=&category=&page=&limit=
+exports.listDisputes = catchAsync(async (req, res) => {
+  const { status, category, page = 1, limit = 20 } = req.query;
+
+  const filter = {};
+  if (status) filter.status = status;
+  if (category) filter.category = category;
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+  const [disputes, total] = await Promise.all([
+    Dispute.find(filter)
+      .populate('raisedBy', 'name phone role')
+      .populate('orderId', 'pickupLocation dropLocation price status')
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean(),
+    Dispute.countDocuments(filter),
+  ]);
+
+  return success(res, { disputes, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } });
+});
+
+// PUT /api/v1/admin/disputes/:id/resolve  { status, resolutionNote }
+exports.resolveDispute = catchAsync(async (req, res) => {
+  const { status, resolutionNote } = req.body;
+  if (!['resolved', 'rejected', 'investigating'].includes(status)) {
+    throw new AppError('status must be one of: investigating, resolved, rejected', 400);
+  }
+
+  const dispute = await Dispute.findById(req.params.id);
+  if (!dispute) throw new AppError('Dispute not found', 404);
+
+  dispute.status = status;
+  dispute.resolutionNote = resolutionNote;
+  if (status === 'resolved' || status === 'rejected') {
+    dispute.resolvedBy = req.user.id;
+    dispute.resolvedAt = new Date();
+  }
+  await dispute.save();
+
+  return success(res, { dispute }, 'Dispute updated');
 });

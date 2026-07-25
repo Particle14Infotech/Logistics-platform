@@ -11,6 +11,14 @@ const STATUS_STYLES = {
   overdue: 'bg-stop/10 text-stop',
   draft: 'bg-mist/10 text-mist',
   sent: 'bg-hold/10 text-hold',
+  created: 'bg-mist/10 text-mist',
+  captured: 'bg-go/10 text-go',
+  failed: 'bg-stop/10 text-stop',
+  refunded: 'bg-hold/10 text-hold',
+  open: 'bg-hold/10 text-hold',
+  investigating: 'bg-signal/10 text-signal',
+  resolved: 'bg-go/10 text-go',
+  rejected: 'bg-stop/10 text-stop',
 };
 
 const STATUS_LABELS = {
@@ -26,6 +34,14 @@ const STATUS_LABELS = {
   overdue: 'Overdue',
   draft: 'Draft',
   sent: 'Sent',
+  created: 'Created',
+  captured: 'Captured',
+  failed: 'Failed',
+  refunded: 'Refunded',
+  open: 'Open',
+  investigating: 'Investigating',
+  resolved: 'Resolved',
+  rejected: 'Rejected',
 };
 
 export default function StatusBadge({ status }) {
