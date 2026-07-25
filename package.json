@@ -1,0 +1,13 @@
+{
+  "name": "pan-india-logistics-platform",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -n BACKEND,WEB -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix web-portal\"",
+    "install:all": "npm install --prefix backend && npm install --prefix web-portal",
+    "seed": "npm run seed --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}
