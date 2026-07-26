@@ -25,4 +25,17 @@ router.put('/disputes/:id/resolve', ctrl.resolveDispute);
 
 router.get('/analytics', ctrl.analytics);
 
+router.get('/banners', ctrl.listBanners);
+router.post('/banners', ctrl.createBanner);
+router.put('/banners/:id', ctrl.updateBanner);
+router.delete('/banners/:id', ctrl.deleteBanner);
+
+router.get('/faqs', ctrl.listFaqs);
+router.post('/faqs', ctrl.createFaq);
+router.put('/faqs/:id', ctrl.updateFaq);
+router.delete('/faqs/:id', ctrl.deleteFaq);
+
+router.get('/notifications', ctrl.listNotifications);
+router.post('/notifications', ctrl.sendNotification);
+
 module.exports = router;

@@ -5,6 +5,9 @@ const User = require('../models/user.model');
 const Payment = require('../models/payment.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const Dispute = require('../models/dispute.model');
+const Banner = require('../models/banner.model');
+const Faq = require('../models/faq.model');
+const Notification = require('../models/notification.model');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
 exports.listOrders = catchAsync(async (req, res) => {
@@ -337,4 +340,95 @@ exports.resolveDispute = catchAsync(async (req, res) => {
   await dispute.save();
 
   return success(res, { dispute }, 'Dispute updated');
+});
+
+// --- Content: Banners ---
+
+// GET /api/v1/admin/banners
+exports.listBanners = catchAsync(async (req, res) => {
+  const banners = await Banner.find().sort({ sortOrder: 1, createdAt: -1 });
+  return success(res, { banners });
+});
+
+// POST /api/v1/admin/banners  { title, imageUrl, linkUrl?, sortOrder? }
+exports.createBanner = catchAsync(async (req, res) => {
+  const { title, imageUrl, linkUrl, sortOrder } = req.body;
+  if (!title || !imageUrl) throw new AppError('title and imageUrl are required', 400);
+  const banner = await Banner.create({ title, imageUrl, linkUrl, sortOrder: sortOrder ?? 0 });
+  return success(res, { banner }, 'Banner created', 201);
+});
+
+// PUT /api/v1/admin/banners/:id  { title?, imageUrl?, linkUrl?, isActive?, sortOrder? }
+exports.updateBanner = catchAsync(async (req, res) => {
+  const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!banner) throw new AppError('Banner not found', 404);
+  return success(res, { banner }, 'Banner updated');
+});
+
+// DELETE /api/v1/admin/banners/:id
+exports.deleteBanner = catchAsync(async (req, res) => {
+  const banner = await Banner.findByIdAndDelete(req.params.id);
+  if (!banner) throw new AppError('Banner not found', 404);
+  return success(res, null, 'Banner deleted');
+});
+
+// --- Content: FAQs ---
+
+// GET /api/v1/admin/faqs
+exports.listFaqs = catchAsync(async (req, res) => {
+  const faqs = await Faq.find().sort({ sortOrder: 1, createdAt: -1 });
+  return success(res, { faqs });
+});
+
+// POST /api/v1/admin/faqs  { question, answer, category?, sortOrder? }
+exports.createFaq = catchAsync(async (req, res) => {
+  const { question, answer, category, sortOrder } = req.body;
+  if (!question || !answer) throw new AppError('question and answer are required', 400);
+  const faq = await Faq.create({ question, answer, category: category || 'general', sortOrder: sortOrder ?? 0 });
+  return success(res, { faq }, 'FAQ created', 201);
+});
+
+// PUT /api/v1/admin/faqs/:id
+exports.updateFaq = catchAsync(async (req, res) => {
+  const faq = await Faq.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!faq) throw new AppError('FAQ not found', 404);
+  return success(res, { faq }, 'FAQ updated');
+});
+
+// DELETE /api/v1/admin/faqs/:id
+exports.deleteFaq = catchAsync(async (req, res) => {
+  const faq = await Faq.findByIdAndDelete(req.params.id);
+  if (!faq) throw new AppError('FAQ not found', 404);
+  return success(res, null, 'FAQ deleted');
+});
+
+// --- Content: Notification Blasts ---
+
+// GET /api/v1/admin/notifications
+exports.listNotifications = catchAsync(async (req, res) => {
+  const notifications = await Notification.find().populate('sentBy', 'name').sort({ createdAt: -1 }).limit(50);
+  return success(res, { notifications });
+});
+
+// POST /api/v1/admin/notifications  { title, body, audience }
+// NOTE: this records the announcement and marks it 'queued'. Actual FCM
+// delivery requires Firebase Admin SDK credentials (see backend/.env.example
+// FIREBASE_* vars) wired into a notification.service.js - that's a follow-up.
+exports.sendNotification = catchAsync(async (req, res) => {
+  const { title, body, audience } = req.body;
+  if (!title || !body) throw new AppError('title and body are required', 400);
+
+  const recipientFilter = audience && audience !== 'all' ? { role: audience } : { role: { $in: ['customer', 'driver'] } };
+  const recipientCount = await User.countDocuments(recipientFilter);
+
+  const notification = await Notification.create({
+    title,
+    body,
+    audience: audience || 'all',
+    sentBy: req.user.id,
+    status: 'queued',
+    recipientCount,
+  });
+
+  return success(res, { notification }, `Announcement queued for ${recipientCount} recipient(s)`, 201);
 });

@@ -14,6 +14,8 @@ const Payment = require('../src/models/payment.model');
 const PricingConfig = require('../src/models/pricingConfig.model');
 const Dispute = require('../src/models/dispute.model');
 const Invoice = require('../src/models/invoice.model');
+const Banner = require('../src/models/banner.model');
+const Faq = require('../src/models/faq.model');
 
 const ADMIN_EMAIL = 'admin@particle14.com';
 const ADMIN_PASSWORD = 'Admin@12345';
@@ -289,6 +291,30 @@ async function seed() {
     console.log('✅ 2 sample invoices created (1 paid, 1 draft)');
   } else {
     console.log('ℹ️  Sample invoices already exist');
+  }
+
+  // --- Content: Banners + FAQs ---
+  const bannerCount = await Banner.countDocuments();
+  if (bannerCount === 0) {
+    await Banner.insertMany([
+      { title: 'Monsoon Special: 15% off intercity bookings', imageUrl: 'https://example.com/banners/monsoon-promo.jpg', linkUrl: '/promo/monsoon', sortOrder: 1 },
+      { title: 'Refer a business, earn ₹500 wallet credit', imageUrl: 'https://example.com/banners/referral.jpg', linkUrl: '/promo/referral', sortOrder: 2 },
+    ]);
+    console.log('✅ 2 sample banners created');
+  } else {
+    console.log('ℹ️  Banners already exist');
+  }
+
+  const faqCount = await Faq.countDocuments();
+  if (faqCount === 0) {
+    await Faq.insertMany([
+      { question: 'How is the fare calculated?', answer: 'Fare is based on a base fare plus a per-kilometer rate for your selected vehicle type, with an optional per-kg charge for heavier loads. Surge pricing may apply during high demand.', category: 'pricing', sortOrder: 1 },
+      { question: 'Can I cancel a booking after a driver is assigned?', answer: 'Yes, you can cancel from the booking details screen. A cancellation fee may apply if the driver has already started toward pickup.', category: 'booking', sortOrder: 2 },
+      { question: 'How do I track my shipment in real time?', answer: 'Once a driver is assigned, open the booking to see a live map with the vehicle position, updated every few seconds, along with an ETA.', category: 'tracking', sortOrder: 3 },
+    ]);
+    console.log('✅ 3 sample FAQs created');
+  } else {
+    console.log('ℹ️  FAQs already exist');
   }
 
   console.log('\nSeed complete. Log in at:');
