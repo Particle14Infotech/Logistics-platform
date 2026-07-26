@@ -17,7 +17,22 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: [process.env.CLIENT_ORIGIN, process.env.ADMIN_ORIGIN].filter(Boolean),
+    origin: (origin, callback) => {
+      // Requests with no Origin header (native mobile apps, curl, server-to-
+      // server) aren't subject to CORS at all - always allow those through.
+      if (!origin) return callback(null, true);
+
+      const allowlist = [process.env.CLIENT_ORIGIN, process.env.ADMIN_ORIGIN].filter(Boolean);
+      if (allowlist.includes(origin)) return callback(null, true);
+
+      // In development, also allow any localhost:<port> origin - covers
+      // Flutter's web dev server, which picks a random port every run, and
+      // any other local tooling, without needing to pin/whitelist each one.
+      const isLocalDev = process.env.NODE_ENV !== 'production' && /^http:\/\/localhost:\d+$/.test(origin);
+      if (isLocalDev) return callback(null, true);
+
+      return callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   })
 );
