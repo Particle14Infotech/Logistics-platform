@@ -13,6 +13,7 @@ const Order = require('../src/models/order.model');
 const Payment = require('../src/models/payment.model');
 const PricingConfig = require('../src/models/pricingConfig.model');
 const Dispute = require('../src/models/dispute.model');
+const Invoice = require('../src/models/invoice.model');
 
 const ADMIN_EMAIL = 'admin@particle14.com';
 const ADMIN_PASSWORD = 'Admin@12345';
@@ -55,9 +56,9 @@ async function seed() {
     console.log(`ℹ️  Enterprise admin already exists: ${ENTERPRISE_EMAIL}`);
   }
 
-  const existingEnterprise = await Enterprise.findOne({ adminUserId: enterpriseUser._id });
-  if (!existingEnterprise) {
-    const enterprise = await Enterprise.create({
+  let enterprise = await Enterprise.findOne({ adminUserId: enterpriseUser._id });
+  if (!enterprise) {
+    enterprise = await Enterprise.create({
       companyName: 'Vertex Pharma',
       gstin: '27ABCDE1234F1Z5',
       adminUserId: enterpriseUser._id,
@@ -217,6 +218,77 @@ async function seed() {
     } else {
       console.log('ℹ️  Sample dispute already exists');
     }
+  }
+
+  // --- Enterprise Orders + Invoices (for Vertex Pharma's portal pages) ---
+  const existingEnterpriseOrders = await Order.countDocuments({ enterpriseId: enterprise._id });
+  let enterpriseOrders = [];
+  if (existingEnterpriseOrders === 0) {
+    const ENTERPRISE_ORDERS = [
+      { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Distribution Center, Pune', vehicleType: 'medium_truck', price: 6200, status: 'delivered' },
+      { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Regional Hub, Ahmedabad', vehicleType: 'large_truck', price: 14500, status: 'in_transit' },
+      { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Distribution Center, Pune', vehicleType: 'mini_truck', price: 2100, status: 'delivered' },
+      { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Regional Hub, Surat', vehicleType: 'medium_truck', price: 5400, status: 'pending' },
+    ];
+    for (const o of ENTERPRISE_ORDERS) {
+      const order = await Order.create({
+        customerId: enterpriseUser._id,
+        enterpriseId: enterprise._id,
+        pickupLocation: { type: 'Point', coordinates: [72.8, 19.0], address: o.pickup },
+        dropLocation: { type: 'Point', coordinates: [73.8, 18.5], address: o.drop },
+        vehicleType: o.vehicleType,
+        goodsType: 'Pharmaceutical supplies',
+        weightKg: 800,
+        distanceKm: 150,
+        price: o.price,
+        status: o.status,
+        paymentStatus: o.status === 'delivered' ? 'paid' : 'unpaid',
+        timeline: [{ status: o.status, note: 'Seeded enterprise order' }],
+      });
+      enterpriseOrders.push(order);
+    }
+    console.log(`✅ ${ENTERPRISE_ORDERS.length} enterprise orders created`);
+  } else {
+    console.log('ℹ️  Enterprise orders already exist');
+    enterpriseOrders = await Order.find({ enterpriseId: enterprise._id });
+  }
+
+  const existingInvoiceCount = await Invoice.countDocuments({ enterpriseId: enterprise._id });
+  if (existingInvoiceCount === 0 && enterpriseOrders.length > 0) {
+    const deliveredEnterpriseOrders = enterpriseOrders.filter((o) => o.status === 'delivered');
+    const subtotal = deliveredEnterpriseOrders.reduce((sum, o) => sum + o.price, 0);
+    const gstAmount = Math.round(subtotal * 0.18);
+
+    const lastMonthStart = new Date();
+    lastMonthStart.setMonth(lastMonthStart.getMonth() - 1, 1);
+    const lastMonthEnd = new Date();
+    lastMonthEnd.setDate(0);
+
+    await Invoice.create({
+      enterpriseId: enterprise._id,
+      orderIds: deliveredEnterpriseOrders.map((o) => o._id),
+      periodStart: lastMonthStart,
+      periodEnd: lastMonthEnd,
+      subtotal,
+      gstAmount,
+      totalAmount: subtotal + gstAmount,
+      status: 'paid',
+    });
+
+    await Invoice.create({
+      enterpriseId: enterprise._id,
+      orderIds: [],
+      periodStart: new Date(new Date().setDate(1)),
+      periodEnd: new Date(),
+      subtotal: 0,
+      gstAmount: 0,
+      totalAmount: 0,
+      status: 'draft',
+    });
+
+    console.log('✅ 2 sample invoices created (1 paid, 1 draft)');
+  } else {
+    console.log('ℹ️  Sample invoices already exist');
   }
 
   console.log('\nSeed complete. Log in at:');

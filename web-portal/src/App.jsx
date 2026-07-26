@@ -11,24 +11,21 @@ import AdminPaymentsPage from './admin/payments/AdminPaymentsPage.jsx';
 import AdminDisputesPage from './admin/disputes/AdminDisputesPage.jsx';
 import EnterpriseLoginPage from './enterprise/dashboard/EnterpriseLoginPage.jsx';
 import EnterpriseDashboardPage from './enterprise/dashboard/EnterpriseDashboardPage.jsx';
+import EnterpriseBulkBookingPage from './enterprise/bulk-booking/EnterpriseBulkBookingPage.jsx';
+import EnterpriseOrderTrackingPage from './enterprise/order-tracking/EnterpriseOrderTrackingPage.jsx';
+import EnterpriseUsersPage from './enterprise/users/EnterpriseUsersPage.jsx';
+import EnterpriseInvoicesPage from './enterprise/invoices/EnterpriseInvoicesPage.jsx';
+import EnterpriseContractsPage from './enterprise/contracts/EnterpriseContractsPage.jsx';
+import EnterpriseApiKeysPage from './enterprise/api-keys/EnterpriseApiKeysPage.jsx';
 import ConsoleShell from './shared/layouts/ConsoleShell.jsx';
 import ComingSoonPage from './shared/components/ComingSoonPage.jsx';
 import ProtectedRoute from './shared/routes/ProtectedRoute.jsx';
 import { ADMIN_NAV } from './admin/adminNav.js';
-import { ENTERPRISE_NAV } from './enterprise/enterpriseNav.js';
 
 // Wraps an unbuilt module in the console shell so nav links never 404.
 function AdminPlaceholder({ title, note }) {
   return (
     <ConsoleShell navItems={ADMIN_NAV} brandSuffix="ADMIN" footerLabel="Ops Admin" loginPath="/admin/login" dateLabel="25 JUL 2026">
-      <ComingSoonPage title={title} note={note} />
-    </ConsoleShell>
-  );
-}
-
-function EnterprisePlaceholder({ title, note }) {
-  return (
-    <ConsoleShell navItems={ENTERPRISE_NAV} brandSuffix="ENTERPRISE" footerLabel="Vertex Pharma" loginPath="/enterprise/login" dateLabel="25 JUL 2026">
       <ComingSoonPage title={title} note={note} />
     </ConsoleShell>
   );
@@ -58,12 +55,12 @@ export default function App() {
 
         {/* --- Enterprise (protected, role: enterprise_admin | enterprise_user) --- */}
         <Route path="/enterprise/dashboard" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterpriseDashboardPage /></ProtectedRoute>} />
-        <Route path="/enterprise/bulk-booking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterprisePlaceholder title="Bulk booking" note="CSV upload or manual multi-row form. Wire to POST /enterprise/bulk-booking." /></ProtectedRoute>} />
-        <Route path="/enterprise/order-tracking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterprisePlaceholder title="Order tracking" note="Track all company orders in one view, filter by user/status/date." /></ProtectedRoute>} />
-        <Route path="/enterprise/users" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/enterprise/login"><EnterprisePlaceholder title="Team & roles" note="Invite sub-users, assign viewer/booker/admin roles, spending limits." /></ProtectedRoute>} />
-        <Route path="/enterprise/invoices" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterprisePlaceholder title="Invoices" note="Full invoice history with itemized PDF downloads." /></ProtectedRoute>} />
-        <Route path="/enterprise/contracts" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/enterprise/login"><EnterprisePlaceholder title="Contract pricing" note="Custom negotiated rate cards per vehicle type/route." /></ProtectedRoute>} />
-        <Route path="/enterprise/api-keys" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/enterprise/login"><EnterprisePlaceholder title="API access" note="Enterprise API key management for direct system integration." /></ProtectedRoute>} />
+        <Route path="/enterprise/bulk-booking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterpriseBulkBookingPage /></ProtectedRoute>} />
+        <Route path="/enterprise/order-tracking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterpriseOrderTrackingPage /></ProtectedRoute>} />
+        <Route path="/enterprise/users" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/enterprise/login"><EnterpriseUsersPage /></ProtectedRoute>} />
+        <Route path="/enterprise/invoices" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/enterprise/login"><EnterpriseInvoicesPage /></ProtectedRoute>} />
+        <Route path="/enterprise/contracts" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/enterprise/login"><EnterpriseContractsPage /></ProtectedRoute>} />
+        <Route path="/enterprise/api-keys" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/enterprise/login"><EnterpriseApiKeysPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
