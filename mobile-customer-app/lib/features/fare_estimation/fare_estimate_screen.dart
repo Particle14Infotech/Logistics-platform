@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
 
 // Step 4 of booking: fare breakdown + confirm (SRS 3.1.7 Fare Estimation).
+// Matches the reference design's 'Price Summary' screen: order info rows
+// (Vehicle/Distance/Goods Type/Weight) followed by the fare breakdown.
 class FareEstimateScreen extends ConsumerStatefulWidget {
   const FareEstimateScreen({super.key});
 
@@ -46,11 +50,6 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
     }
   }
 
-  // Posts the booking open for driver bids instead of locking in the fixed
-  // estimate - drivers matching this vehicle type can then submit competing
-  // offers, and the customer picks one on BidsScreen. The estimate shown on
-  // this screen still applies as a starting reference price on the order,
-  // but bids aren't required to match it.
   Future<void> _postForBidding() async {
     final draft = ref.read(bookingDraftProvider);
     if (draft.estimate == null) return;
@@ -88,7 +87,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
 
     if (estimate == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Fare estimate')),
+        appBar: AppBar(title: const Text('Price Summary')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -97,10 +96,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
               children: [
                 const Text('No estimate found for this booking.', textAlign: TextAlign.center),
                 const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => context.go('/booking/locations'),
-                  child: const Text('Start a new booking'),
-                ),
+                FilledButton(onPressed: () => context.go('/booking/locations'), child: const Text('Start a new booking')),
               ],
             ),
           ),
@@ -111,7 +107,8 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
     final breakdown = estimate.breakdown;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Fare estimate')),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: const Text('Price Summary')),
       body: SafeArea(
         child: Column(
           children: [
@@ -119,46 +116,44 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _RouteRow(icon: Icons.trip_origin, color: Colors.green, label: draft.pickup!.address),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 11),
-                            child: SizedBox(height: 20, child: VerticalDivider(thickness: 2)),
-                          ),
-                          _RouteRow(icon: Icons.location_on, color: Colors.red, label: draft.drop!.address),
-                        ],
-                      ),
+                  _InfoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _DetailRow(label: 'Vehicle', value: draft.vehicleType?.replaceAll('_', ' ') ?? '—'),
+                        _DetailRow(label: 'Distance', value: '${estimate.distanceKm} km'),
+                        if (draft.goodsType.isNotEmpty) _DetailRow(label: 'Goods Type', value: draft.goodsType),
+                        if (draft.weightKg != null) _DetailRow(label: 'Weight', value: '${draft.weightKg} kg'),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Fare breakdown', style: Theme.of(context).textTheme.titleMedium),
-                          const SizedBox(height: 12),
-                          _FareRow(label: 'Base fare', value: breakdown['baseFare']),
-                          _FareRow(label: 'Distance charge (${estimate.distanceKm} km)', value: breakdown['distanceCharge']),
-                          if ((breakdown['weightCharge'] as num? ?? 0) > 0)
-                            _FareRow(label: 'Weight charge', value: breakdown['weightCharge']),
-                          if (breakdown['surgeApplied'] == true)
-                            _FareRow(label: 'Surge (${breakdown['surgeMultiplier']}x)', value: null, highlight: true),
-                          const Divider(height: 24),
-                          _FareRow(label: 'Total', value: estimate.estimatedPrice, isTotal: true),
-                        ],
-                      ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Fare Breakdown', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+                        const SizedBox(height: 12),
+                        _FareRow(label: 'Base Fare', value: breakdown['baseFare']),
+                        _FareRow(label: 'Distance Charge', value: breakdown['distanceCharge']),
+                        if ((breakdown['weightCharge'] as num? ?? 0) > 0) _FareRow(label: 'Weight Charge', value: breakdown['weightCharge']),
+                        if (breakdown['surgeApplied'] == true) _FareRow(label: 'Surge (${breakdown['surgeMultiplier']}x)', value: null, highlight: true),
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Total Amount', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
+                            Text('₹${estimate.estimatedPrice}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.primary)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text('Final amount may vary slightly', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                      ],
                     ),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error)),
                   ],
                 ],
               ),
@@ -172,7 +167,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                     onPressed: (_confirming || _postingBid) ? null : _confirmBooking,
                     child: _confirming
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('Confirm booking · ₹${estimate.estimatedPrice}'),
+                        : const Text('Confirm Booking'),
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton(
@@ -191,20 +186,36 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
   }
 }
 
-class _RouteRow extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  const _RouteRow({required this.icon, required this.color, required this.label});
+class _InfoCard extends StatelessWidget {
+  final Widget child;
+  const _InfoCard({required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 22),
-        const SizedBox(width: 12),
-        Expanded(child: Text(label)),
-      ],
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
+          Text(value, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }
@@ -212,22 +223,19 @@ class _RouteRow extends StatelessWidget {
 class _FareRow extends StatelessWidget {
   final String label;
   final num? value;
-  final bool isTotal;
   final bool highlight;
-  const _FareRow({required this.label, required this.value, this.isTotal = false, this.highlight = false});
+  const _FareRow({required this.label, required this.value, this.highlight = false});
 
   @override
   Widget build(BuildContext context) {
-    final style = isTotal
-        ? const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
-        : TextStyle(color: highlight ? Colors.orange.shade800 : null);
+    final color = highlight ? Colors.orange.shade800 : null;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: style),
-          if (value != null) Text('₹$value', style: style),
+          Text(label, style: GoogleFonts.poppins(fontSize: 13, color: color ?? Colors.grey.shade600)),
+          if (value != null) Text('₹$value', style: GoogleFonts.poppins(fontSize: 13, color: color)),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,14 +8,20 @@ import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_textfield.dart';
-import '../../widgets/feature_item.dart';
+import '../../widgets/otp_box_input.dart';
+import '../../widgets/numeric_keypad.dart';
 
 enum _Step { phone, otp, name }
 
-// OTP-based login with auto-resend countdown (SRS 3.1.2).
-// UI layout matches the reference RaahMitr customer app's login_screen.dart:
-// big bold "Welcome Back!" heading, plain background, pill text field,
-// solid purple button, feature-icon row.
+// OTP-based login with auto-resend countdown (SRS 3.1.2). Matches the
+// provided reference design: phone field with country code, boxed-digit
+// OTP driven by a custom on-screen keypad, and styled (non-functional)
+// social sign-in buttons.
+//
+// Two deliberate departures, same as the driver app's equivalent screen:
+// - Google/Apple buttons are visual only - wired to a 'not available yet'
+//   message rather than faking real OAuth.
+// - Shows 6 OTP boxes, not 4 - backend generates 6-digit codes.
 class OtpLoginScreen extends ConsumerStatefulWidget {
   const OtpLoginScreen({super.key});
 
@@ -25,8 +32,8 @@ class OtpLoginScreen extends ConsumerStatefulWidget {
 class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
   final _authService = AuthService();
   final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
   final _nameController = TextEditingController();
+  String _otp = '';
 
   _Step _step = _Step.phone;
   bool _loading = false;
@@ -39,7 +46,6 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
   void dispose() {
     _resendTimer?.cancel();
     _phoneController.dispose();
-    _otpController.dispose();
     _nameController.dispose();
     super.dispose();
   }
@@ -69,7 +75,10 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     });
     try {
       await _authService.sendOtp(phone);
-      setState(() => _step = _Step.otp);
+      setState(() {
+        _step = _Step.otp;
+        _otp = '';
+      });
       _startResendTimer();
     } catch (e) {
       setState(() => _error = 'Could not send OTP. Check your connection and try again.');
@@ -79,8 +88,7 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
   }
 
   Future<void> _verifyOtp() async {
-    final otp = _otpController.text.trim();
-    if (otp.length != 6) {
+    if (_otp.length != 6) {
       setState(() => _error = 'Enter the 6-digit code.');
       return;
     }
@@ -89,14 +97,8 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
       _error = null;
     });
     try {
-      final result = await _authService.verifyOtp(_phoneController.text.trim(), otp);
+      final result = await _authService.verifyOtp(_phoneController.text.trim(), _otp);
       if (result.isNewUser) {
-        // Don't call setSession() here - it updates global auth state, which
-        // the router watches, and would immediately redirect to /home
-        // (since 'logged in + on an auth route' triggers a redirect) before
-        // this person ever reaches the name step below - meaning they'd
-        // land on Home having never actually set their name.
-        // completeProfile() below is what finally calls setSession().
         _pendingUserId = result.user.id;
         setState(() => _step = _Step.name);
       } else {
@@ -112,6 +114,20 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     } finally {
       setState(() => _loading = false);
     }
+  }
+
+  void _onKeypadDigit(String digit) {
+    if (_otp.length >= 6) return;
+    setState(() {
+      _otp += digit;
+      _error = null;
+    });
+    if (_otp.length == 6) _verifyOtp();
+  }
+
+  void _onKeypadBackspace() {
+    if (_otp.isEmpty) return;
+    setState(() => _otp = _otp.substring(0, _otp.length - 1));
   }
 
   Future<void> _completeProfile() async {
@@ -139,6 +155,12 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     }
   }
 
+  void _showNotAvailable(String provider) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$provider sign-in is not available yet - use your phone number for now.')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,14 +184,14 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
               ],
               Text(
                 _titleFor(_step),
-                style: GoogleFonts.poppins(fontSize: 36, fontWeight: FontWeight.w700, color: AppTheme.textDark),
+                style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: AppTheme.textDark),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 _subtitleFor(_step),
-                style: GoogleFonts.poppins(fontSize: 18, height: 1.5, color: Colors.grey.shade500),
+                style: GoogleFonts.poppins(fontSize: 15, height: 1.5, color: Colors.grey.shade500),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               if (_step == _Step.phone) _buildPhoneStep(),
               if (_step == _Step.otp) _buildOtpStep(),
@@ -177,7 +199,7 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
 
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: GoogleFonts.poppins(color: AppTheme.primary.withOpacity(0.9), fontSize: 13)),
+                Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error, fontSize: 13)),
               ],
             ],
           ),
@@ -188,26 +210,26 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
 
   String _titleFor(_Step step) => switch (step) {
         _Step.phone => 'Welcome Back!',
-        _Step.otp => 'Verify your number',
+        _Step.otp => 'Verify OTP',
         _Step.name => 'What should we call you?',
       };
 
   String _subtitleFor(_Step step) => switch (step) {
-        _Step.phone => 'Login to continue your\nshipping journey',
+        _Step.phone => 'Enter your mobile number to continue',
         _Step.otp => 'Enter the 6-digit code sent to\n+91 ${_phoneController.text}',
         _Step.name => 'This is how drivers and support\nwill address you.',
       };
 
   Widget _buildPrimaryButton(String label, VoidCallback onPressed) {
     return SizedBox(
-      height: 62,
+      height: 58,
       width: double.infinity,
       child: FilledButton(
         onPressed: _loading ? null : onPressed,
-        style: FilledButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))),
+        style: FilledButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
         child: _loading
             ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : Text(label, style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
+            : Text(label, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
       ),
     );
   }
@@ -216,16 +238,57 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CustomTextField(controller: _phoneController, hintText: 'Phone Number', prefixIcon: Icons.phone_outlined, keyboardType: TextInputType.phone, maxLength: 10),
-        const SizedBox(height: 35),
+        // Single rounded field: flag + country code + number. Country is
+        // fixed to India (+91) - not a real interactive picker, since the
+        // rest of this platform assumes Indian 10-digit numbers throughout.
+        Container(
+          height: 58,
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.borderColor)),
+          child: Row(
+            children: [
+              const SizedBox(width: 16),
+              const Text('🇮🇳', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 6),
+              Text('+91', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+              const SizedBox(width: 8),
+              Container(width: 1, height: 24, color: AppTheme.borderColor),
+              Expanded(
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  style: GoogleFonts.poppins(fontSize: 15, color: AppTheme.textDark),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    hintText: '98765 43210',
+                    hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
         _buildPrimaryButton('Send OTP', _sendOtp),
-        const SizedBox(height: 20),
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        const SizedBox(height: 28),
+        Row(
           children: [
-            FeatureItem(icon: Icons.shield_outlined, text: 'Secure & Safe'),
-            FeatureItem(icon: Icons.inventory_2_outlined, text: 'Fast Delivery'),
-            FeatureItem(icon: Icons.support_agent_outlined, text: '24/7 Support'),
+            const Expanded(child: Divider()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('Or continue with', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+            ),
+            const Expanded(child: Divider()),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(child: _SocialButton(label: 'Google', icon: Icons.g_mobiledata, onTap: () => _showNotAvailable('Google'))),
+            const SizedBox(width: 12),
+            Expanded(child: _SocialButton(label: 'Apple', icon: Icons.apple, onTap: () => _showNotAvailable('Apple'))),
           ],
         ),
       ],
@@ -236,19 +299,22 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CustomTextField(controller: _otpController, hintText: '6-digit code', prefixIcon: Icons.lock_outline, keyboardType: TextInputType.number, maxLength: 6),
-        const SizedBox(height: 35),
-        _buildPrimaryButton('Verify & Continue', _verifyOtp),
+        OtpBoxInput(value: _otp),
         const SizedBox(height: 12),
         Center(
           child: TextButton(
             onPressed: _resendSeconds > 0 ? null : _sendOtp,
             child: Text(
-              _resendSeconds > 0 ? 'Resend code in ${_resendSeconds}s' : 'Resend code',
+              _resendSeconds > 0 ? 'Resend OTP in ${_resendSeconds.toString().padLeft(2, '0')}s' : 'Resend OTP',
               style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
             ),
           ),
         ),
+        const SizedBox(height: 16),
+        if (_loading)
+          const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
+        else
+          NumericKeypad(onDigit: _onKeypadDigit, onBackspace: _onKeypadBackspace),
       ],
     );
   }
@@ -258,9 +324,34 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CustomTextField(controller: _nameController, hintText: 'Full name', prefixIcon: Icons.person_outline),
-        const SizedBox(height: 35),
+        const SizedBox(height: 32),
         _buildPrimaryButton('Continue', _completeProfile),
       ],
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _SocialButton({required this.label, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        side: const BorderSide(color: AppTheme.borderColor),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      icon: Icon(icon, color: AppTheme.textDark, size: 20),
+      label: Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
     );
   }
 }

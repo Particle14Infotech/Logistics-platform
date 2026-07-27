@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/driver_provider.dart';
 import '../../models/trip_model.dart';
 import '../../core/constants/vehicle_types.dart';
+import '../../widgets/status_pill.dart';
 
 const _kActiveStatuses = ['accepted', 'picked_up', 'in_transit'];
 
@@ -58,7 +61,8 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Trip history')),
+      backgroundColor: AppTheme.cream,
+      appBar: AppBar(title: const Text('Trip History')),
       body: Column(
         children: [
           SizedBox(
@@ -73,6 +77,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                 return ChoiceChip(
                   label: Text(_kFilters[i].label),
                   selected: selected,
+                  selectedColor: AppTheme.amber.withOpacity(0.25),
                   onSelected: (_) => setState(() => _filterIndex = i),
                 );
               },
@@ -92,15 +97,43 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                             final trip = _filtered[i];
                             final isActive = _kActiveStatuses.contains(trip.status);
                             return Card(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              child: ListTile(
+                              elevation: 0,
+                              margin: const EdgeInsets.only(bottom: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+                              child: InkWell(
                                 onTap: isActive ? () => context.push('/trip/${trip.id}') : null,
-                                leading: CircleAvatar(child: Icon(vehicleIcon(trip.vehicleType))),
-                                title: Text('${trip.pickupLocation.address} → ${trip.dropLocation.address}', maxLines: 1, overflow: TextOverflow.ellipsis),
-                                subtitle: Text('${trip.status.replaceAll('_', ' ').toUpperCase()} · ${trip.customerName ?? 'Customer'} · ${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}'),
-                                trailing: isActive
-                                    ? const Icon(Icons.chevron_right)
-                                    : Text('₹${trip.price}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(color: AppTheme.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                                        child: Icon(vehicleIcon(trip.vehicleType), color: const Color(0xFF8A6200)),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(child: Text('${trip.pickupLocation.address} → ${trip.dropLocation.address}', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600))),
+                                                StatusPill(status: trip.status),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text('${trip.customerName ?? 'Customer'} · ${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}', style: GoogleFonts.poppins(fontSize: 11, color: AppTheme.textGrey)),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text('₹${trip.price}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
+                                    ],
+                                  ),
+                                ),
                               ),
                             );
                           },

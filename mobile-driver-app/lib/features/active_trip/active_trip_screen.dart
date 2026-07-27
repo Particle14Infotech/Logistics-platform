@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/driver_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/trip_model.dart';
 import '../../services/socket_service.dart';
+import '../../widgets/status_pill.dart';
 
 // Active trip: navigation, status updates, trip completion (SRS 3.2.5).
 // Also broadcasts this driver's live GPS position over Socket.IO while the
@@ -150,71 +152,70 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   Widget build(BuildContext context) {
     final trip = _trip;
     return Scaffold(
-      appBar: AppBar(title: const Text('Active trip')),
+      backgroundColor: AppTheme.cream,
+      appBar: AppBar(title: const Text('Active Trip')),
       body: trip == null
           ? Center(child: _error != null ? Text(_error!) : const CircularProgressIndicator())
           : SafeArea(
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Card(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(trip.status.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    ),
-                  ),
+                  Row(children: [StatusPill(status: trip.status)]),
                   const SizedBox(height: 8),
                   if (_locationError != null)
-                    Text(_locationError!, style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12))
+                    Text(_locationError!, style: TextStyle(color: AppTheme.error, fontSize: 12))
                   else
                     Row(
                       children: [
-                        Icon(Icons.gps_fixed, size: 14, color: Colors.green.shade700),
+                        Icon(Icons.gps_fixed, size: 14, color: AppTheme.success),
                         const SizedBox(width: 6),
-                        Text('Sharing your live location with the customer', style: TextStyle(color: Colors.green.shade700, fontSize: 12)),
+                        Text('Sharing your live location with the customer', style: TextStyle(color: AppTheme.success, fontSize: 12)),
                       ],
                     ),
                   const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 20), const SizedBox(width: 8), Expanded(child: Text(trip.pickupLocation.address))]),
-                          const SizedBox(height: 8),
-                          Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 20), const SizedBox(width: 8), Expanded(child: Text(trip.dropLocation.address))]),
-                        ],
-                      ),
+                  _InfoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 10), Expanded(child: Text(trip.pickupLocation.address))]),
+                        const SizedBox(height: 10),
+                        Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 10), Expanded(child: Text(trip.dropLocation.address))]),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   if (trip.customerName != null)
-                    Card(
-                      child: ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.person)),
-                        title: Text(trip.customerName!),
-                        subtitle: trip.customerPhone != null ? Text(trip.customerPhone!) : null,
-                        trailing: trip.customerPhone != null ? const Icon(Icons.call) : null,
-                      ),
-                    ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    _InfoCard(
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Fare', style: TextStyle(fontWeight: FontWeight.w600)),
-                          Text('₹${trip.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          CircleAvatar(backgroundColor: AppTheme.amber.withOpacity(0.15), child: const Icon(Icons.person, color: AppTheme.amber)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(trip.customerName!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                if (trip.customerPhone != null) Text(trip.customerPhone!, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          if (trip.customerPhone != null) _CircleIconButton(icon: Icons.call_outlined, onTap: () {}),
                         ],
                       ),
+                    ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Fare', style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text('₹${trip.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      ],
                     ),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    Text(_error!, style: TextStyle(color: AppTheme.error)),
                   ],
                   const SizedBox(height: 24),
                   _buildActionArea(trip),
@@ -275,6 +276,39 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       default:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final Widget child;
+  const _InfoCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _CircleIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppTheme.amber.withOpacity(0.15),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(padding: const EdgeInsets.all(8), child: Icon(icon, size: 18, color: AppTheme.amber)),
+      ),
+    );
   }
 }
 

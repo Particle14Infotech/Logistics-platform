@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../models/order_model.dart';
+import '../../widgets/status_pill.dart';
 
-// Home dashboard: active shipments, truck categories, recent bookings (SRS 3.1.3).
+// Home dashboard, matching the reference design: avatar + greeting + bell,
+// search bar, highlighted 'Book a New Shipment' banner, 4 quick-action
+// icons, recent-orders list with status pills (SRS 3.1.3).
 // When embedded in MainScreen's tab shell, onNavigateToTab switches tabs in
-// place (e.g. 'View all' -> Orders tab) instead of pushing a new route.
+// place instead of pushing a new route.
 class HomeScreen extends ConsumerStatefulWidget {
   final ValueChanged<int>? onNavigateToTab;
   const HomeScreen({super.key, this.onNavigateToTab});
@@ -42,94 +47,198 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     context.push('/booking/locations');
   }
 
+  void _goToOrders() => widget.onNavigateToTab?.call(1);
+
+  void _comingSoon() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon')));
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
-    final activeBookings = _bookings?.where((b) => !['delivered', 'cancelled'].contains(b.status)).toList() ?? [];
     final recentBookings = _bookings?.take(5).toList() ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: Text('Hi, ${user?.name?.split(' ').first ?? 'there'}')),
-      body: RefreshIndicator(
-        onRefresh: _loadBookings,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Card(
-              child: InkWell(
-                onTap: _startNewBooking,
-                borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Icon(Icons.add_circle, size: 32),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Book a truck', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                            Text('Get an instant fare estimate'),
-                          ],
+      backgroundColor: AppTheme.background,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadBookings,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: AppTheme.primary,
+                    child: Text(
+                      (user?.name?.isNotEmpty ?? false) ? user!.name![0].toUpperCase() : '?',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Hey ${user?.name?.split(' ').first ?? 'there'}', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                        Text('Welcome back', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+                      ],
+                    ),
+                  ),
+                  IconButton(onPressed: _comingSoon, icon: const Icon(Icons.notifications_none)),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              Container(
+                height: 46,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.borderColor)),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Colors.grey.shade500, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text('Search shipments', style: GoogleFonts.poppins(color: Colors.grey.shade500, fontSize: 13))),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              Material(
+                color: AppTheme.primary,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  onTap: _startNewBooking,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Book a New Shipment', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                              const SizedBox(height: 4),
+                              Text('Get instant price and book your delivery', style: GoogleFonts.poppins(fontSize: 12, color: Colors.white.withOpacity(0.85))),
+                            ],
+                          ),
                         ),
-                      ),
-                      Icon(Icons.chevron_right),
-                    ],
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                          child: const Icon(Icons.local_shipping, color: AppTheme.primary),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            if (activeBookings.isNotEmpty) ...[
-              Text('Active shipments', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              ...activeBookings.map((b) => _BookingTile(order: b)),
               const SizedBox(height: 24),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _QuickAction(icon: Icons.location_searching, label: 'Track Order', onTap: _goToOrders),
+                  _QuickAction(icon: Icons.calculate_outlined, label: 'Price Calculator', onTap: _startNewBooking),
+                  _QuickAction(icon: Icons.receipt_long_outlined, label: 'My Orders', onTap: _goToOrders),
+                  _QuickAction(icon: Icons.support_agent_outlined, label: 'Support', onTap: _comingSoon),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Recent Orders', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                  TextButton(
+                    onPressed: _goToOrders,
+                    child: Text('View All', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+              if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              if (_bookings == null && _error == null) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+              if (_bookings != null && recentBookings.isEmpty)
+                Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: Text('No bookings yet - your first one is just a tap away.', style: GoogleFonts.poppins(color: Colors.grey.shade500))),
+              ...recentBookings.map((b) => _BookingCard(order: b)),
             ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Recent bookings', style: Theme.of(context).textTheme.titleMedium),
-                TextButton(
-                  onPressed: () => widget.onNavigateToTab?.call(1),
-                  child: const Text('View all'),
-                ),
-              ],
-            ),
-            if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            if (_bookings == null && _error == null) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-            if (_bookings != null && recentBookings.isEmpty) const Padding(padding: EdgeInsets.all(16), child: Text('No bookings yet - your first one is just a tap away.')),
-            ...recentBookings.map((b) => _BookingTile(order: b)),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _BookingTile extends StatelessWidget {
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _QuickAction({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(color: AppTheme.primarySurface, borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: AppTheme.primary),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 68,
+            child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 11, color: AppTheme.textDark)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
   final OrderModel order;
-  const _BookingTile({required this.order});
+  const _BookingCard({required this.order});
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+      child: InkWell(
         onTap: () => context.push('/booking/detail/${order.id}'),
-        leading: CircleAvatar(child: Icon(_iconFor(order.vehicleType))),
-        title: Text('${order.pickupLocation.address} → ${order.dropLocation.address}', maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(order.status.replaceAll('_', ' ').toUpperCase()),
-        trailing: Text('₹${order.price}'),
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text('#${order.id.substring(order.id.length - 8).toUpperCase()}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark))),
+                        StatusPill(status: order.status),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(order.pickupLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(order.dropLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('₹${order.price}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+            ],
+          ),
+        ),
       ),
     );
   }
-
-  IconData _iconFor(String vehicleType) => switch (vehicleType) {
-        'bike' => Icons.two_wheeler,
-        'auto' => Icons.electric_rickshaw,
-        'large_truck' => Icons.fire_truck,
-        _ => Icons.local_shipping,
-      };
 }

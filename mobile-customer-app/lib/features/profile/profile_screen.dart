@@ -126,7 +126,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          _ProfileRow(icon: Icons.person_outline, label: 'Personal Information', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.location_on_outlined, label: 'Addresses', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.payment_outlined, label: 'Payment Methods', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.folder_shared_outlined, label: 'My Documents', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => _comingSoon(context)),
+          const SizedBox(height: 16),
           Card(
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -138,6 +146,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _comingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon')));
+  }
+}
+
+class _ProfileRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _ProfileRow({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(label),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }
