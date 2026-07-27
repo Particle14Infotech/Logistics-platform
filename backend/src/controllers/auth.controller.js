@@ -44,6 +44,16 @@ exports.verifyOtp = catchAsync(async (req, res) => {
 });
 
 // POST /api/v1/auth/register  (complete profile after OTP verification)
+// Issues fresh tokens reflecting any role change, not just the profile
+// update - a role is baked into the JWT payload at sign time (see
+// signAccessToken above), so if this only updated the DB and kept handing
+// back the original OTP-verify token, every subsequent request would still
+// authorize against the stale pre-registration role until that token
+// naturally expired. This bit the driver app's new-driver signup flow
+// specifically: the OTP-verify step always creates new users as
+// role:'customer' by default, and this endpoint is what promotes them to
+// 'driver' - without a fresh token, every /driver/* call after signup
+// would 403 even though the database was already correct.
 exports.register = catchAsync(async (req, res) => {
   const { userId, name, email, role } = req.body;
   const user = await User.findByIdAndUpdate(
@@ -52,7 +62,11 @@ exports.register = catchAsync(async (req, res) => {
     { new: true }
   );
   if (!user) throw new AppError('User not found', 404);
-  return success(res, { user }, 'Profile updated');
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+
+  return success(res, { user, accessToken, refreshToken }, 'Profile updated');
 });
 
 // POST /api/v1/auth/login (email/password - used by Admin/Enterprise)
@@ -99,4 +113,15 @@ exports.refreshToken = catchAsync(async (req, res) => {
 exports.logout = catchAsync(async (req, res) => {
   // Stateless JWT: client discards tokens. If using a refresh-token blacklist/store, invalidate it here.
   return success(res, null, 'Logged out');
+});
+
+// POST /api/v1/auth/fcm-token  { token } - registers this device's push
+// notification token against the logged-in user. Called by both mobile
+// apps on login and whenever Firebase issues a fresh token.
+exports.registerFcmToken = catchAsync(async (req, res) => {
+  const { token } = req.body;
+  if (!token) throw new AppError('token is required', 400);
+
+  await User.findByIdAndUpdate(req.user.id, { fcmToken: token });
+  return success(res, null, 'Push token registered');
 });

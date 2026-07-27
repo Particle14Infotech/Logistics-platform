@@ -29,6 +29,20 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
     if (draft.weightKg != null) _weightController.text = draft.weightKg!.toStringAsFixed(0);
     _isFragile = draft.isFragile;
     _insuranceOpted = draft.insuranceOpted;
+
+    // Defensive guard: _getEstimate() below force-unwraps pickup/drop/
+    // vehicleType - this is the actual crash point if reached with an
+    // incomplete draft (browser back/forward, direct URL on web). Redirect
+    // to wherever the flow is actually missing a step.
+    if (draft.pickup == null || draft.drop == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/booking/locations');
+      });
+    } else if (draft.vehicleType == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/booking/vehicle');
+      });
+    }
   }
 
   @override
@@ -78,7 +92,7 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             DropdownButtonFormField<String>(
-              value: _goodsType,
+              initialValue: _goodsType,
               decoration: const InputDecoration(labelText: 'Goods type', border: OutlineInputBorder()),
               items: _kGoodsTypes.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
               onChanged: (v) => setState(() => _goodsType = v ?? _goodsType),

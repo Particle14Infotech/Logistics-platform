@@ -18,7 +18,18 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
   @override
   void initState() {
     super.initState();
-    _selected = ref.read(bookingDraftProvider).vehicleType;
+    final draft = ref.read(bookingDraftProvider);
+    _selected = draft.vehicleType;
+    // Defensive guard: this screen requires pickup/drop to already be set.
+    // Normally unreachable any other way, but browser back/forward or a
+    // direct URL (this app also runs on web) can land here with an empty
+    // draft - redirect to the start of the flow instead of letting a later
+    // screen crash on a force-unwrapped null.
+    if (draft.pickup == null || draft.drop == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/booking/locations');
+      });
+    }
   }
 
   void _continue() {

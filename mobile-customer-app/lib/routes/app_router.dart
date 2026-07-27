@@ -4,13 +4,16 @@ import '../providers/auth_provider.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/auth/otp_login_screen.dart';
-import '../features/home/home_screen.dart';
+import '../features/main/main_screen.dart';
 import '../features/booking/locations_screen.dart';
 import '../features/truck_selection/vehicle_selection_screen.dart';
 import '../features/load_details/load_details_screen.dart';
 import '../features/fare_estimation/fare_estimate_screen.dart';
 import '../features/booking/booking_confirmation_screen.dart';
 import '../features/booking_history/booking_detail_screen.dart';
+import '../features/booking_history/orders_screen.dart';
+import '../features/bidding/bids_screen.dart';
+import '../features/profile/profile_screen.dart';
 
 // Router is a provider so it can react to auth state changes (login/logout)
 // via the redirect callback below - Riverpod recreates the GoRouter whenever
@@ -42,7 +45,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: '/login', builder: (context, state) => const OtpLoginScreen()),
-      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      // /home now renders the bottom-tab shell (Home/Orders/Profile as
+      // IndexedStack tabs) - see features/main/main_screen.dart. The two
+      // routes below stay registered as standalone fallbacks (deep-linking,
+      // or if HomeScreen's onNavigateToTab callback is unavailable).
+      GoRoute(path: '/home', builder: (context, state) => const MainScreen()),
+      GoRoute(path: '/orders', builder: (context, state) => const OrdersScreen()),
+      GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+      GoRoute(
+        path: '/bidding/:orderId',
+        builder: (context, state) => BidsScreen(orderId: state.pathParameters['orderId']!),
+      ),
 
       // Booking flow - each step reads/writes bookingDraftProvider
       GoRoute(path: '/booking/locations', builder: (context, state) => const LocationsScreen()),

@@ -15,6 +15,8 @@ class OrderModel {
   final String? driverPhone;
   final String? vehicleNumber;
   final double? driverRating;
+  final String? deliveryOtp;
+  final String pricingMode;
   final DateTime createdAt;
 
   OrderModel({
@@ -32,6 +34,8 @@ class OrderModel {
     this.driverPhone,
     this.vehicleNumber,
     this.driverRating,
+    this.deliveryOtp,
+    this.pricingMode = 'fixed',
     required this.createdAt,
   });
 
@@ -54,6 +58,8 @@ class OrderModel {
       driverPhone: driverUser is Map<String, dynamic> ? driverUser['phone'] as String? : null,
       vehicleNumber: driver is Map<String, dynamic> ? driver['vehicleNumber'] as String? : null,
       driverRating: driver is Map<String, dynamic> ? (driver['rating'] as num?)?.toDouble() : null,
+      deliveryOtp: json['deliveryOtp'] as String?,
+      pricingMode: json['pricingMode'] as String? ?? 'fixed',
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

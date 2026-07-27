@@ -6,7 +6,7 @@ import '../constants/api_constants.dart';
 // across every screen, rather than each screen accidentally racing its own
 // refresh call.
 class DioClient {
-  static final _storage = const FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage();
   static Dio? _instance;
   static Future<Response>? _refreshFuture;
 

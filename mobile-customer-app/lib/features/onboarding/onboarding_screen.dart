@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 
-// 3-step animated onboarding screens (SRS 3.1.1).
-// Kept as a single static screen with a PageView for now - swap in real
-// illustrations/copy per step later; the navigation wiring is the real work here.
+// 3-step onboarding (SRS 3.1.1). Layout matches the reference RaahMitr
+// customer app's onboarding: full-bleed rounded-bottom hero area on top,
+// a colored content section below with a dot indicator and a pill CTA
+// button with a circular icon badge. Uses an icon-based hero (gradient +
+// large icon) rather than photography, since we don't have the reference
+// app's actual image assets.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -16,66 +21,130 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _page = 0;
 
   static const _slides = [
-    (title: 'Book any truck, instantly', body: 'From a two-wheeler to a large truck, book the right vehicle for your shipment in seconds.'),
-    (title: 'Track live, door to door', body: 'Watch your driver approach on the map with real-time ETA updates.'),
-    (title: 'Pay your way', body: 'UPI, cards, net banking, or wallet - your choice, every time.'),
+    (icon: Icons.local_shipping, title: 'Easy Shipping,\nSmarter Business', body: 'Smart shipping saves time, cuts costs\nand grows businesses faster.'),
+    (icon: Icons.map, title: 'Track Live,\nDoor to Door', body: 'Watch your driver approach on the map\nwith real-time ETA updates.'),
+    (icon: Icons.payments, title: 'Pay Your Way,\nEvery Time', body: 'UPI, cards, net banking, or wallet -\nyour choice, every booking.'),
   ];
+
+  void _next() {
+    if (_page == _slides.length - 1) {
+      context.go('/login');
+    } else {
+      _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: _slides.length,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (context, i) {
-                  final slide = _slides[i];
-                  return Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.local_shipping_outlined, size: 96, color: Theme.of(context).colorScheme.primary),
-                        const SizedBox(height: 32),
-                        Text(slide.title, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
-                        const SizedBox(height: 12),
-                        Text(slide.body, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
-                      ],
+      backgroundColor: AppTheme.primary,
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: _slides.length,
+              onPageChanged: (i) => setState(() => _page = i),
+              itemBuilder: (context, i) => _HeroSection(icon: _slides[i].icon),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: AppTheme.primary,
+            ),
+            padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: List.generate(
+                      _slides.length,
+                      (i) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.only(right: 6),
+                        width: i == _page ? 28 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: i == _page ? Colors.white : Colors.white.withOpacity(0.35),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                     ),
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _slides.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: i == _page ? 20 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: i == _page ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _slides[_page].title,
+                    style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white, height: 1.25),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _slides[_page].body,
+                    style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.85), height: 1.5),
+                  ),
+                  const SizedBox(height: 28),
+                  _GetStartedButton(isLast: _page == _slides.length - 1, onTap: _next),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => context.go('/login'),
-                  child: const Text('Get started'),
-                ),
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroSection extends StatelessWidget {
+  final IconData icon;
+  const _HeroSection({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(36), bottomRight: Radius.circular(36)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppTheme.primaryMedium, AppTheme.primary],
+          ),
+        ),
+        child: Center(child: Icon(icon, size: 140, color: Colors.white.withOpacity(0.9))),
+      ),
+    );
+  }
+}
+
+class _GetStartedButton extends StatelessWidget {
+  final bool isLast;
+  final VoidCallback onTap;
+  const _GetStartedButton({required this.isLast, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 60,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+              child: const Icon(Icons.local_shipping, color: Colors.white, size: 20),
             ),
+            const SizedBox(width: 14),
+            Text(isLast ? 'Get Started' : 'Next', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+            const SizedBox(width: 8),
+            Icon(Icons.keyboard_double_arrow_right, color: AppTheme.primary, size: 20),
+            const SizedBox(width: 8),
           ],
         ),
       ),

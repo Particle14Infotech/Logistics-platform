@@ -13,6 +13,7 @@ class FareEstimateScreen extends ConsumerStatefulWidget {
 
 class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
   bool _confirming = false;
+  bool _postingBid = false;
   String? _error;
 
   Future<void> _confirmBooking() async {
@@ -34,6 +35,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
             isFragile: draft.isFragile,
             insuranceOpted: draft.insuranceOpted,
             distanceKm: draft.estimate!.distanceKm,
+            pricingMode: 'fixed',
           );
       ref.read(bookingDraftProvider.notifier).reset();
       if (mounted) context.go('/booking/confirmation/${order.id}');
@@ -44,13 +46,66 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
     }
   }
 
+  // Posts the booking open for driver bids instead of locking in the fixed
+  // estimate - drivers matching this vehicle type can then submit competing
+  // offers, and the customer picks one on BidsScreen. The estimate shown on
+  // this screen still applies as a starting reference price on the order,
+  // but bids aren't required to match it.
+  Future<void> _postForBidding() async {
+    final draft = ref.read(bookingDraftProvider);
+    if (draft.estimate == null) return;
+
+    setState(() {
+      _postingBid = true;
+      _error = null;
+    });
+
+    try {
+      final order = await ref.read(bookingServiceProvider).createBooking(
+            pickup: draft.pickup!,
+            drop: draft.drop!,
+            vehicleType: draft.vehicleType!,
+            goodsType: draft.goodsType,
+            weightKg: draft.weightKg,
+            isFragile: draft.isFragile,
+            insuranceOpted: draft.insuranceOpted,
+            distanceKm: draft.estimate!.distanceKm,
+            pricingMode: 'bidding',
+          );
+      ref.read(bookingDraftProvider.notifier).reset();
+      if (mounted) context.push('/bidding/${order.id}');
+    } catch (e) {
+      setState(() => _error = 'Could not post this booking for bidding. Try again.');
+    } finally {
+      if (mounted) setState(() => _postingBid = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
     final estimate = draft.estimate;
 
     if (estimate == null) {
-      return const Scaffold(body: Center(child: Text('No estimate available.')));
+      return Scaffold(
+        appBar: AppBar(title: const Text('Fare estimate')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('No estimate found for this booking.', textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => context.go('/booking/locations'),
+                  child: const Text('Start a new booking'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     final breakdown = estimate.breakdown;
@@ -110,14 +165,23 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _confirming ? null : _confirmBooking,
-                  child: _confirming
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text('Confirm booking · ₹${estimate.estimatedPrice}'),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton(
+                    onPressed: (_confirming || _postingBid) ? null : _confirmBooking,
+                    child: _confirming
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text('Confirm booking · ₹${estimate.estimatedPrice}'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: (_confirming || _postingBid) ? null : _postForBidding,
+                    child: _postingBid
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('Post for bidding instead'),
+                  ),
+                ],
               ),
             ),
           ],

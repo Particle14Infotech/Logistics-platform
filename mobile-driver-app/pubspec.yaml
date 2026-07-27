@@ -20,7 +20,11 @@ dependencies:
 
   google_maps_flutter: ^2.7.0
   geolocator: ^12.0.0
-  background_locator_2: ^2.0.6
+  # background_locator_2 removed: unused (we broadcast location via plain
+  # geolocator + a foreground Timer in active_trip_screen.dart) and its
+  # Android build.gradle depends on jcenter(), a repository shut down years
+  # ago - incompatible with current Android Gradle Plugin/Gradle versions
+  # and breaks the build outright.
 
   flutter_secure_storage: ^9.2.2
   shared_preferences: ^2.2.3
@@ -29,18 +33,40 @@ dependencies:
   firebase_messaging: ^15.0.3
 
   intl: ^0.19.0
+  # Poppins typography, matching the reference app's brand identity
+  google_fonts: ^6.2.1
   pretty_dio_logger: ^1.3.1
   cached_network_image: ^3.3.1
   image_picker: ^1.1.2
-  file_picker: ^8.0.6
+  # file_picker removed: unused (only image_picker's camera capture is
+  # actually used, for selfies) and its flutter_plugin_android_lifecycle
+  # dependency requires compileSdk 36, which the generated project doesn't
+  # have yet - broke the Android build outright.
+  # Barcode/QR scanning for proof-of-pickup confirmation
+  mobile_scanner: ^5.2.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  # Generates the actual app launcher icon set (all Android densities, iOS,
+  # web) from assets/images/logo.png - run `dart run
+  # flutter_launcher_icons` once after `flutter pub get` to apply it.
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_square.png" # fallback (legacy Android, iOS, web) - full amber square as shipped
+  adaptive_icon_background: "#F7B500" # brand amber - matches AppTheme.amber
+  adaptive_icon_foreground: "assets/images/icon_foreground.png" # icon mark only (no wordmark - illegible at launcher sizes), padded to Android's adaptive-icon safe zone
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/images/logo_square.png"
 
 flutter:
   uses-material-design: true
-  # assets:
-  #   - assets/images/
+  assets:
+    - assets/images/
   #   - assets/icons/

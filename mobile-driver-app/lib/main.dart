@@ -7,16 +7,17 @@ void main() {
   runApp(const ProviderScope(child: DriverApp()));
 }
 
-class DriverApp extends StatelessWidget {
+class DriverApp extends ConsumerWidget {
   const DriverApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Logistics - Driver',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      routerConfig: AppRouter.router,
+      routerConfig: router,
     );
   }
 }

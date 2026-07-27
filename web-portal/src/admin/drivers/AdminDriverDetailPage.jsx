@@ -15,6 +15,16 @@ const DOCUMENT_LABELS = {
   panCardUrl: 'PAN card',
 };
 
+// Uploaded documents (e.g. a driver's selfie from the mobile app) are stored
+// as relative paths like '/uploads/xyz.jpg', served by the backend, not this
+// web app - so they need the backend's origin prepended. Seed/demo documents
+// are already-absolute https:// URLs and pass through unchanged.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
+function resolveDocUrl(url) {
+  return url.startsWith('/') ? `${BACKEND_ORIGIN}${url}` : url;
+}
+
 export default function AdminDriverDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -166,7 +176,7 @@ export default function AdminDriverDetailPage() {
               {documentEntries.map(([key, label]) => (
                 <a
                   key={key}
-                  href={driver.documents[key]}
+                  href={resolveDocUrl(driver.documents[key])}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-between px-3 py-2.5 border border-line rounded-md hover:border-signal transition-colors text-sm"

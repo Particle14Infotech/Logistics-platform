@@ -6,8 +6,11 @@ import '../../providers/booking_provider.dart';
 import '../../models/order_model.dart';
 
 // Home dashboard: active shipments, truck categories, recent bookings (SRS 3.1.3).
+// When embedded in MainScreen's tab shell, onNavigateToTab switches tabs in
+// place (e.g. 'View all' -> Orders tab) instead of pushing a new route.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  final ValueChanged<int>? onNavigateToTab;
+  const HomeScreen({super.key, this.onNavigateToTab});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -46,19 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final recentBookings = _bookings?.take(5).toList() ?? [];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Hi, ${user?.name?.split(' ').first ?? 'there'}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text('Hi, ${user?.name?.split(' ').first ?? 'there'}')),
       body: RefreshIndicator(
         onRefresh: _loadBookings,
         child: ListView(
@@ -96,8 +87,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ...activeBookings.map((b) => _BookingTile(order: b)),
               const SizedBox(height: 24),
             ],
-            Text('Recent bookings', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Recent bookings', style: Theme.of(context).textTheme.titleMedium),
+                TextButton(
+                  onPressed: () => widget.onNavigateToTab?.call(1),
+                  child: const Text('View all'),
+                ),
+              ],
+            ),
             if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             if (_bookings == null && _error == null) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
             if (_bookings != null && recentBookings.isEmpty) const Padding(padding: EdgeInsets.all(16), child: Text('No bookings yet - your first one is just a tap away.')),

@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/booking_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/order_model.dart';
+import '../../services/socket_service.dart';
 
-// Booking detail / tracking placeholder screen (SRS 3.1.9 Live Tracking covers
-// the live map version of this - that needs Socket.IO + Google Maps wired in,
-// which is a follow-up. This screen shows the same data via polling instead.)
+const _kLiveStatuses = ['accepted', 'picked_up', 'in_transit'];
+
+// Booking detail with live tracking (SRS 3.1.9 Live GPS Tracking). Connects
+// to the backend's Socket.IO tracking room for this booking while it's
+// active, rendering the driver's live position on an OpenStreetMap-tiled
+// map (no API key needed, unlike Google Maps) and live status updates.
 class BookingDetailScreen extends ConsumerStatefulWidget {
   final String orderId;
   const BookingDetailScreen({super.key, required this.orderId});
@@ -19,19 +27,65 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   String? _error;
   bool _cancelling = false;
 
+  final _socketService = SocketService();
+  LatLng? _driverPosition;
+  final _mapController = MapController();
+
   @override
   void initState() {
     super.initState();
     _load();
   }
 
+  @override
+  void dispose() {
+    _socketService.leaveBookingRoom(widget.orderId);
+    _socketService.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     try {
       final order = await ref.read(bookingServiceProvider).getBooking(widget.orderId);
-      if (mounted) setState(() => _order = order);
+      if (!mounted) return;
+      setState(() => _order = order);
+      // Connect regardless of current status, not just when already live -
+      // otherwise a customer watching a still-'pending' booking would never
+      // learn a driver just accepted it without manually pulling to refresh.
+      // Terminal states (delivered/cancelled) skip this since there's
+      // nothing further to listen for.
+      if (!['delivered', 'cancelled'].contains(order.status)) {
+        _connectLiveTracking();
+      }
     } catch (e) {
       if (mounted) setState(() => _error = 'Could not load this booking.');
     }
+  }
+
+  void _connectLiveTracking() {
+    if (_socketService.isConnected) return;
+    final accessToken = ref.read(authProvider).accessToken;
+    if (accessToken == null) return;
+
+    _socketService.connect(accessToken);
+    _socketService.joinBookingRoom(widget.orderId);
+
+    _socketService.onLocationBroadcast((data) {
+      final lat = (data['lat'] as num?)?.toDouble();
+      final lng = (data['lng'] as num?)?.toDouble();
+      if (lat == null || lng == null || !mounted) return;
+      setState(() => _driverPosition = LatLng(lat, lng));
+      _mapController.move(_driverPosition!, _mapController.camera.zoom);
+    });
+
+    _socketService.onStatusBroadcast((data) {
+      final status = data['status'] as String?;
+      if (status == null || !mounted) return;
+      if (!_kLiveStatuses.contains(status)) {
+        _socketService.leaveBookingRoom(widget.orderId);
+      }
+      _load(); // re-fetch full order so driver info / deliveryOtp / status all stay in sync
+    });
   }
 
   Future<void> _cancel() async {
@@ -62,6 +116,8 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final order = _order;
+    final showLiveMap = order != null && _kLiveStatuses.contains(order.status);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Booking details')),
       body: SafeArea(
@@ -86,6 +142,10 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         ),
                       ),
                     ),
+                    if (showLiveMap) ...[
+                      const SizedBox(height: 16),
+                      _LiveMapCard(driverPosition: _driverPosition, mapController: _mapController),
+                    ],
                     const SizedBox(height: 16),
                     Card(
                       child: Padding(
@@ -117,6 +177,36 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           title: Text('Finding a driver…'),
                         ),
                       ),
+                    if (order.pricingMode == 'bidding' && order.status == 'pending') ...[
+                      const SizedBox(height: 8),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.gavel),
+                          title: const Text('View bids'),
+                          subtitle: const Text('See offers from drivers and pick one'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => context.push('/bidding/${order.id}'),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    if (order.deliveryOtp != null)
+                      Card(
+                        color: Colors.amber.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              const Text('Give this code to your driver at drop-off', textAlign: TextAlign.center),
+                              const SizedBox(height: 8),
+                              Text(
+                                order.deliveryOtp!,
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 8),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     Card(
                       child: Padding(
@@ -145,6 +235,59 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                   ],
                 ),
               ),
+      ),
+    );
+  }
+}
+
+class _LiveMapCard extends StatelessWidget {
+  final LatLng? driverPosition;
+  final MapController mapController;
+  const _LiveMapCard({required this.driverPosition, required this.mapController});
+
+  @override
+  Widget build(BuildContext context) {
+    if (driverPosition == null) {
+      return Card(
+        child: Container(
+          height: 180,
+          alignment: Alignment.center,
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 8, width: 200, child: LinearProgressIndicator()),
+              SizedBox(height: 12),
+              Text('Waiting for your driver\'s GPS signal…'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 220,
+        child: FlutterMap(
+          mapController: mapController,
+          options: MapOptions(initialCenter: driverPosition!, initialZoom: 14),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.logistics.customer_app',
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: driverPosition!,
+                  width: 40,
+                  height: 40,
+                  child: const Icon(Icons.local_shipping, color: Colors.deepOrange, size: 32),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

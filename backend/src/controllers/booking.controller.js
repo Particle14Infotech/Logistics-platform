@@ -2,6 +2,8 @@ const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
 const PricingConfig = require('../models/pricingConfig.model');
+const { getRoadDistanceKm } = require('../services/maps.service');
+const { sendToUser, sendToUsers } = require('../services/notification.service');
 
 // Haversine distance in km between two [lng, lat] points. Used as a stand-in
 // for a real routing distance until Google Distance Matrix API is wired in
@@ -48,12 +50,20 @@ exports.estimate = catchAsync(async (req, res) => {
 
   let distanceKm;
   if (pickupLocation.lat != null && dropLocation.lat != null) {
-    distanceKm = Math.max(
-      1,
-      Math.round(
-        haversineKm([pickupLocation.lng, pickupLocation.lat], [dropLocation.lng, dropLocation.lat]) * 10
-      ) / 10
-    );
+    // Try the real road distance first (needs GOOGLE_MAPS_API_KEY configured
+    // - see backend/.env.example). Falls back to a straight-line haversine
+    // estimate if no key is set or the API call fails, so booking still
+    // works end to end either way.
+    const roadDistanceKm = await getRoadDistanceKm({
+      originLat: pickupLocation.lat,
+      originLng: pickupLocation.lng,
+      destLat: dropLocation.lat,
+      destLng: dropLocation.lng,
+    });
+
+    distanceKm =
+      roadDistanceKm ??
+      Math.max(1, Math.round(haversineKm([pickupLocation.lng, pickupLocation.lat], [dropLocation.lng, dropLocation.lat]) * 10) / 10);
   } else {
     // No coordinates available yet (Maps/Places not wired) - use a flat
     // placeholder distance so the flow is still testable end to end.
@@ -113,6 +123,21 @@ exports.create = catchAsync(async (req, res) => {
     timeline: [{ status: 'pending', note: 'Booking created' }],
   });
 
+  // Best-effort "new job available" push to online, approved drivers with
+  // a matching vehicle type - doesn't block the response if it's slow or
+  // Firebase isn't configured, and never throws back to the customer.
+  Driver.find({ vehicleType, isAvailable: true, isApproved: true })
+    .select('userId')
+    .then((eligibleDrivers) => {
+      const userIds = eligibleDrivers.map((d) => d.userId);
+      sendToUsers(userIds, {
+        title: 'New job available',
+        body: `${pickupLocation.address} → ${dropLocation.address}`,
+        data: { bookingId: String(order._id) },
+      });
+    })
+    .catch(() => {});
+
   return success(res, { order }, 'Booking created', 201);
 });
 
@@ -128,7 +153,15 @@ exports.getById = catchAsync(async (req, res) => {
   const isOwner = String(order.customerId) === String(req.user.id);
   if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to view this booking', 403);
 
-  return success(res, { order });
+  // Delivery OTP is only meaningful (and only shown) once the driver has
+  // picked up - it's how the customer proves receipt at drop-off, standing
+  // in for a real SMS-delivered code since no SMS gateway is wired here.
+  const orderObj = order.toObject();
+  if (!['picked_up', 'in_transit'].includes(order.status)) {
+    delete orderObj.deliveryOtp;
+  }
+
+  return success(res, { order: orderObj });
 });
 
 // GET /api/v1/booking/user/:userId?status=&page=&limit=

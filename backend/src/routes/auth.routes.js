@@ -10,5 +10,6 @@ router.get('/profile', protect, ctrl.getProfile);
 router.put('/profile', protect, ctrl.updateProfile);
 router.post('/refresh-token', ctrl.refreshToken);
 router.post('/logout', protect, ctrl.logout);
+router.post('/fcm-token', protect, ctrl.registerFcmToken);
 
 module.exports = router;

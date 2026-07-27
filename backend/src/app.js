@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -13,7 +14,16 @@ const app = express();
 // Security & parsing middleware
 app.use(helmet());
 app.use(compression());
-app.use(express.json({ limit: '10mb' }));
+app.use(
+  express.json({
+    limit: '10mb',
+    // Razorpay webhook signature verification needs the exact raw bytes -
+    // a re-serialized parsed body isn't guaranteed to match byte-for-byte.
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
@@ -52,6 +62,19 @@ app.use('/api', globalLimiter);
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
+
+// Serves driver-uploaded files (KYC docs, selfies) saved by multer to
+// backend/uploads/ - see driver.controller.js's uploadSelfie. Local disk
+// storage for dev; swap for S3 in production (AWS_* vars already exist in
+// .env.example for that migration).
+app.use(
+  '/uploads',
+  (req, res, next) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  },
+  express.static(path.join(__dirname, '../uploads'))
+);
 
 // API routes (versioned)
 app.use('/api/v1', routes);

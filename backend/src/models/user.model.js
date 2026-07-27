@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, select: false },
     role: {
       type: String,
-      enum: ['customer', 'driver', 'admin', 'enterprise_admin', 'enterprise_user'],
+      enum: ['customer', 'driver', 'fleet_owner', 'admin', 'enterprise_admin', 'enterprise_user'],
       default: 'customer',
     },
     isVerified: { type: Boolean, default: false },

@@ -280,20 +280,36 @@ exports.listPayments = catchAsync(async (req, res) => {
 });
 
 // PUT /api/v1/admin/payments/:id/refund  { reason? }
-// NOTE: this marks the payment refunded in our DB. It does not yet call the
-// real Razorpay refund API (payment.service.js / payment.controller.js own
-// that integration) - wiring this to a real gateway call is a follow-up.
 exports.refundPayment = catchAsync(async (req, res) => {
   const payment = await Payment.findById(req.params.id);
   if (!payment) throw new AppError('Payment not found', 404);
   if (payment.status !== 'captured') throw new AppError(`Cannot refund a payment with status "${payment.status}"`, 400);
+
+  const razorpayConfigured = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+
+  if (razorpayConfigured) {
+    try {
+      const refund = await razorpayService.refundPayment(payment.razorpayPaymentId);
+      payment.refundId = refund.id;
+    } catch (err) {
+      throw new AppError('Razorpay refund failed. Check that this payment exists in your Razorpay dashboard.', 502);
+    }
+  }
+  // Razorpay not configured yet -> fall back to a DB-only refund so this
+  // stays testable without real credentials, same as before Razorpay was
+  // wired in. Once RAZORPAY_KEY_ID/SECRET are set, this automatically
+  // starts hitting the real refund API instead.
 
   payment.status = 'refunded';
   await payment.save();
 
   await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'refunded' });
 
-  return success(res, { payment }, 'Payment marked as refunded');
+  return success(
+    res,
+    { payment },
+    razorpayConfigured ? 'Payment refunded' : 'Payment marked as refunded (Razorpay not configured - simulated)'
+  );
 });
 
 // GET /api/v1/admin/disputes?status=&category=&page=&limit=

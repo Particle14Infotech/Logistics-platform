@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const driverSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    fleetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fleet', default: null }, // null = independent driver, set = fleet-owned vehicle
     vehicleType: {
       type: String,
       enum: ['bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'],

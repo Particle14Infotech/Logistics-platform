@@ -28,8 +28,25 @@ class AuthService {
     );
   }
 
-  Future<UserModel> completeProfile({required String userId, required String name}) async {
+  // Returns fresh tokens (backend now reissues them on every /auth/register
+  // call, not just role changes) - needed because we no longer pre-set a
+  // session before this call completes, see otp_login_screen.dart.
+  Future<AuthResult> completeProfile({required String userId, required String name}) async {
     final response = await _dio.post('/auth/register', data: {'userId': userId, 'name': name});
+    final data = response.data['data'];
+    return AuthResult(
+      accessToken: data['accessToken'] as String,
+      refreshToken: data['refreshToken'] as String,
+      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
+      isNewUser: false,
+    );
+  }
+
+  Future<UserModel> updateProfile({String? name, String? email}) async {
+    final response = await _dio.put('/auth/profile', data: {
+      if (name != null) 'name': name,
+      if (email != null) 'email': email,
+    });
     return UserModel.fromJson(response.data['data']['user'] as Map<String, dynamic>);
   }
 }

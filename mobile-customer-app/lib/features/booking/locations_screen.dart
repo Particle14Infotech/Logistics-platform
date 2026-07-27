@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../models/location_model.dart';
 import '../../providers/booking_provider.dart';
+import '../../widgets/places_autocomplete_field.dart';
+import '../../services/places_service.dart';
+import '../../core/constants/maps_config.dart';
 
 // Step 1 of booking: pickup + drop location (SRS 3.1.3 Book a Truck).
-//
-// NOTE: this uses plain address text fields rather than Google Places
-// Autocomplete + a live map. Wiring that in needs a GOOGLE_MAPS_API_KEY
-// (see backend/.env.example and https://pub.dev/packages/google_maps_flutter),
-// which isn't configured in this environment. The booking flow and backend
-// fare calculation both work correctly with just addresses - lat/lng are
-// optional and only improve fare-estimate accuracy when present.
+// Uses real Google Places Autocomplete (services/places_service.dart) once
+// MapsConfig.apiKey is set - falls back to plain text entry with no
+// suggestions/map preview otherwise, so the flow still works either way.
 class LocationsScreen extends ConsumerStatefulWidget {
   const LocationsScreen({super.key});
 
@@ -24,10 +24,16 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
   final _dropController = TextEditingController();
   String? _error;
 
+  LocationModel? _pickup;
+  LocationModel? _drop;
+  GoogleMapController? _mapController;
+
   @override
   void initState() {
     super.initState();
     final draft = ref.read(bookingDraftProvider);
+    _pickup = draft.pickup;
+    _drop = draft.drop;
     _pickupController.text = draft.pickup?.address ?? '';
     _dropController.text = draft.drop?.address ?? '';
   }
@@ -39,48 +45,99 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
     super.dispose();
   }
 
+  void _onPickupSelected(PlaceDetails details) {
+    setState(() => _pickup = LocationModel(address: details.address, lat: details.lat, lng: details.lng));
+    _fitMapToMarkers();
+  }
+
+  void _onDropSelected(PlaceDetails details) {
+    setState(() => _drop = LocationModel(address: details.address, lat: details.lat, lng: details.lng));
+    _fitMapToMarkers();
+  }
+
+  void _fitMapToMarkers() {
+    if (_mapController == null || _pickup?.lat == null || _drop?.lat == null) return;
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        _pickup!.lat! < _drop!.lat! ? _pickup!.lat! : _drop!.lat!,
+        _pickup!.lng! < _drop!.lng! ? _pickup!.lng! : _drop!.lng!,
+      ),
+      northeast: LatLng(
+        _pickup!.lat! > _drop!.lat! ? _pickup!.lat! : _drop!.lat!,
+        _pickup!.lng! > _drop!.lng! ? _pickup!.lng! : _drop!.lng!,
+      ),
+    );
+    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+  }
+
   void _continue() {
-    final pickup = _pickupController.text.trim();
-    final drop = _dropController.text.trim();
-    if (pickup.isEmpty || drop.isEmpty) {
+    final pickupAddress = _pickupController.text.trim();
+    final dropAddress = _dropController.text.trim();
+    if (pickupAddress.isEmpty || dropAddress.isEmpty) {
       setState(() => _error = 'Enter both a pickup and drop location.');
       return;
     }
-    if (pickup.toLowerCase() == drop.toLowerCase()) {
+    if (pickupAddress.toLowerCase() == dropAddress.toLowerCase()) {
       setState(() => _error = 'Pickup and drop can\'t be the same place.');
       return;
     }
 
-    ref.read(bookingDraftProvider.notifier).setLocations(
-          pickup: LocationModel(address: pickup),
-          drop: LocationModel(address: drop),
-        );
+    // Use the geocoded LocationModel (with lat/lng) if the person picked a
+    // suggestion; otherwise fall back to whatever they typed as plain text.
+    final pickup = (_pickup != null && _pickup!.address == pickupAddress) ? _pickup! : LocationModel(address: pickupAddress);
+    final drop = (_drop != null && _drop!.address == dropAddress) ? _drop! : LocationModel(address: dropAddress);
+
+    ref.read(bookingDraftProvider.notifier).setLocations(pickup: pickup, drop: drop);
     context.push('/booking/vehicle');
   }
 
   @override
   Widget build(BuildContext context) {
+    final showMap = MapsConfig.isConfigured && _pickup?.lat != null && _drop?.lat != null;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Where to?')),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _LocationField(
+              PlacesAutocompleteField(
                 controller: _pickupController,
                 label: 'Pickup location',
                 icon: Icons.trip_origin,
                 iconColor: Colors.green,
+                onPlaceSelected: _onPickupSelected,
               ),
               const SizedBox(height: 12),
-              _LocationField(
+              PlacesAutocompleteField(
                 controller: _dropController,
                 label: 'Drop location',
                 icon: Icons.location_on,
                 iconColor: Colors.red,
+                onPlaceSelected: _onDropSelected,
               ),
+              if (showMap) ...[
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 220,
+                    child: GoogleMap(
+                      initialCameraPosition: CameraPosition(target: LatLng(_pickup!.lat!, _pickup!.lng!), zoom: 12),
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        _fitMapToMarkers();
+                      },
+                      markers: {
+                        Marker(markerId: const MarkerId('pickup'), position: LatLng(_pickup!.lat!, _pickup!.lng!), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen)),
+                        Marker(markerId: const MarkerId('drop'), position: LatLng(_drop!.lat!, _drop!.lng!), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
+                      },
+                    ),
+                  ),
+                ),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
@@ -90,28 +147,6 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _LocationField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final Color iconColor;
-
-  const _LocationField({required this.controller, required this.label, required this.icon, required this.iconColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      textCapitalization: TextCapitalization.sentences,
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: iconColor),
-        labelText: label,
-        border: const OutlineInputBorder(),
       ),
     );
   }

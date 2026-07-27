@@ -5,7 +5,22 @@ const registerTrackingHandlers = require('./tracking.socket');
 module.exports = function initSocket(server) {
   const io = new Server(server, {
     cors: {
-      origin: [process.env.CLIENT_ORIGIN, process.env.ADMIN_ORIGIN].filter(Boolean),
+      origin: (origin, callback) => {
+        // Native mobile apps (and server-to-server socket clients) don't
+        // send an Origin header - always allow those through.
+        if (!origin) return callback(null, true);
+
+        const allowlist = [process.env.CLIENT_ORIGIN, process.env.ADMIN_ORIGIN].filter(Boolean);
+        if (allowlist.includes(origin)) return callback(null, true);
+
+        // Same dev-only localhost:* allowance as the Express CORS config in
+        // app.js - covers Flutter's web dev server, which picks a random
+        // port every run.
+        const isLocalDev = process.env.NODE_ENV !== 'production' && /^http:\/\/localhost:\d+$/.test(origin);
+        if (isLocalDev) return callback(null, true);
+
+        return callback(new Error(`Socket.IO CORS: origin ${origin} not allowed`));
+      },
       credentials: true,
     },
   });
