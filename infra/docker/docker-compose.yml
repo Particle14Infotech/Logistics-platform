@@ -1,32 +1,46 @@
 version: '3.8'
 
+# Production compose file. Two fixes from the original scaffold:
+# 1. Port alignment - backend/.env's PORT must be 5000 to match this file's
+#    mapping and the Dockerfile's EXPOSE 5000 (the dev .env had PORT=5050,
+#    which only matched local-machine testing, not this container setup).
+# 2. MONGO_URI must use the service name 'mongo' as the hostname, not
+#    'localhost' - inside a docker-compose network, containers reach each
+#    other by service name. 'localhost' inside the backend container would
+#    refer to the container itself, not the mongo container, and the
+#    connection would fail.
+# Also removed the dev-only bind-mount volumes (../../backend:/app) - those
+# override the image's built code with whatever's on the host disk, which
+# is meant for hot-reload during development, not production. This runs
+# whatever was actually baked into the image at build time.
+
 services:
   backend:
     build:
       context: ../../backend
       dockerfile: ../infra/docker/Dockerfile.backend
+    restart: unless-stopped
     ports:
-      - '5000:5000'
+      - '127.0.0.1:5000:5000' # bound to localhost only - nginx proxies to it, not exposed directly to the internet
     env_file:
       - ../../backend/.env
     depends_on:
       - mongo
       - redis
-    volumes:
-      - ../../backend:/app
-      - /app/node_modules
 
   mongo:
     image: mongo:7
+    restart: unless-stopped
     ports:
-      - '27017:27017'
+      - '127.0.0.1:27017:27017'
     volumes:
       - mongo_data:/data/db
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
 
 volumes:
   mongo_data:
