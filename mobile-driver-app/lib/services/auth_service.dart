@@ -54,4 +54,8 @@ class AuthService {
     });
     return UserModel.fromJson(response.data['data']['user'] as Map<String, dynamic>);
   }
+
+  Future<void> registerFcmToken(String token) async {
+    await _dio.post('/auth/fcm-token', data: {'token': token});
+  }
 }

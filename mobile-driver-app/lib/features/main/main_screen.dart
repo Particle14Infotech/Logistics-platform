@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../services/push_notification_service.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../job_requests/job_requests_screen.dart';
 import '../trip_history/trip_history_screen.dart';
@@ -20,6 +22,26 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set up once the shell is reached (i.e. definitely logged in with an
+    // approved-or-pending Driver profile) - registers the FCM token and
+    // routes notification taps. 'New job available' alerts (no status in
+    // the payload) go to the Jobs tab; everything else has a bookingId for
+    // an already-accepted trip, so it goes straight to that trip.
+    PushNotificationService().initialize(
+      onBookingTap: (bookingId, status) {
+        if (!mounted) return;
+        if (status == null) {
+          setState(() => _selectedIndex = 1);
+        } else {
+          context.push('/trip/$bookingId');
+        }
+      },
+    );
+  }
 
   void _onNavigateToTab(int index) => setState(() => _selectedIndex = index);
 

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "768140781082",
+    "project_id": "rahmitra-40638",
+    "storage_bucket": "rahmitra-40638.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:768140781082:android:f0aa7a9718b20a28d053a3",
+        "android_client_info": {
+          "package_name": "com.example.logistics_customer_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:768140781082:android:ccceebddd6e173f2d053a3",
+        "android_client_info": {
+          "package_name": "com.example.logistics_driver_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

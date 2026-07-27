@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../services/push_notification_service.dart';
 import '../home/home_screen.dart';
 import '../booking_history/orders_screen.dart';
 import '../profile/profile_screen.dart';
@@ -17,6 +19,20 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Registers the FCM token and routes notification taps (driver
+    // assigned, status updates, new bid received - all already sent from
+    // the backend) straight to that booking's detail/tracking screen.
+    PushNotificationService().initialize(
+      onBookingTap: (bookingId) {
+        if (!mounted) return;
+        context.push('/booking/detail/$bookingId');
+      },
+    );
+  }
 
   void _onNavigateToTab(int index) => setState(() => _selectedIndex = index);
 
