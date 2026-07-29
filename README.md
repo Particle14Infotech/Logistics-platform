@@ -7,7 +7,8 @@ A hybrid B2C + B2B truck booking & logistics marketplace — **MERN** backend/we
 ```
 pan-india-logistics-platform/
 ├── backend/                # Node.js + Express + MongoDB + Socket.IO REST API
-├── web-portal/             # React (Vite) — Admin panel + Enterprise portal
+├── web-portal-admin/       # React (Vite) — Admin panel, deployed separately at raahmitr.com
+├── web-portal-enterprise/  # React (Vite) — Enterprise portal, deployed separately at enterprise.raahmitr.com
 ├── mobile-customer-app/    # Flutter — Customer (Shipper) app
 ├── mobile-driver-app/      # Flutter — Driver / Fleet Owner app
 ├── docs/                   # SRS, API contracts, architecture, workflow docs
@@ -21,7 +22,8 @@ pan-india-logistics-platform/
 |---|---|
 | Customer App | Flutter (Android/iOS) |
 | Driver App | Flutter (Android/iOS) |
-| Admin & Enterprise Web Portal | React 18 + Vite + TailwindCSS |
+| Admin Web Portal | React 18 + Vite + TailwindCSS |
+| Enterprise Web Portal | React 18 + Vite + TailwindCSS |
 | Backend API | Node.js + Express |
 | Real-time | Socket.IO (GPS tracking, order status) |
 | Database | MongoDB (Atlas) |
@@ -55,11 +57,18 @@ npm install
 npm run dev             # nodemon, http://localhost:5000
 ```
 
-### Web Portal (Admin + Enterprise)
+### Web Portal — Admin
 ```bash
-cd web-portal
+cd web-portal-admin
 npm install
 npm run dev              # http://localhost:5174
+```
+
+### Web Portal — Enterprise
+```bash
+cd web-portal-enterprise
+npm install
+npm run dev              # http://localhost:5176
 ```
 
 ### Mobile Apps (Flutter)

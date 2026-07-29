@@ -3,8 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently -n BACKEND,WEB -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix web-portal\"",
-    "install:all": "npm install --prefix backend && npm install --prefix web-portal",
+    "dev": "concurrently -n BACKEND,ADMIN,ENTERPRISE -c blue,green,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix web-portal-admin\" \"npm run dev --prefix web-portal-enterprise\"",
+    "install:all": "npm install --prefix backend && npm install --prefix web-portal-admin && npm install --prefix web-portal-enterprise",
     "seed": "npm run seed --prefix backend"
   },
   "devDependencies": {
