@@ -17,7 +17,9 @@ const userSchema = new mongoose.Schema(
     name: { type: String, trim: true },
     phone: { type: String, unique: true, sparse: true, index: true },
     email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
+    dob: Date,
     passwordHash: { type: String, select: false },
+    firebaseUid: { type: String, unique: true, sparse: true, index: true },
     role: {
       type: String,
       enum: ['customer', 'driver', 'fleet_owner', 'admin', 'enterprise_admin', 'enterprise_user'],
@@ -26,6 +28,7 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     fcmToken: String,
+    notificationsEnabled: { type: Boolean, default: true },
     savedAddresses: [addressSchema],
     enterpriseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enterprise', default: null },
   },

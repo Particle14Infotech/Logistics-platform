@@ -1,40 +1,10 @@
-const admin = require('firebase-admin');
+const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const User = require('../models/user.model');
 
-// Initializes lazily and only if all three FIREBASE_* vars are present (see
-// backend/.env.example) - every send function below no-ops quietly if not
-// configured, so the rest of the app works normally without a Firebase
-// project set up. This mirrors the same graceful-degradation pattern used
-// for Google Maps (services/maps.service.js).
-let initialized = false;
-let initFailed = false;
-
-function ensureInitialized() {
-  if (initialized || initFailed) return initialized;
-
-  const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } = process.env;
-  if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
-    initFailed = true;
-    return false;
-  }
-
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: FIREBASE_PROJECT_ID,
-        clientEmail: FIREBASE_CLIENT_EMAIL,
-        // .env files can't hold real newlines - the private key is stored
-        // with literal \n escape sequences and needs converting back.
-        privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      }),
-    });
-    initialized = true;
-  } catch (err) {
-    console.error('[notification.service] Firebase Admin init failed:', err.message);
-    initFailed = true;
-  }
-  return initialized;
-}
+// Every send function below no-ops quietly if Firebase isn't configured, so
+// the rest of the app works normally without a Firebase project set up.
+// This mirrors the same graceful-degradation pattern used for Google Maps
+// (services/maps.service.js).
 
 // Sends to a single user's stored FCM token (User.fcmToken). Silently does
 // nothing if Firebase isn't configured, the user has no token, or the send
@@ -45,8 +15,8 @@ async function sendToUser(userId, { title, body, data = {} }) {
   if (!ensureInitialized()) return;
 
   try {
-    const user = await User.findById(userId).select('fcmToken');
-    if (!user?.fcmToken) return;
+    const user = await User.findById(userId).select('fcmToken notificationsEnabled');
+    if (!user?.fcmToken || user.notificationsEnabled === false) return;
 
     await admin.messaging().send({
       token: user.fcmToken,
@@ -64,7 +34,11 @@ async function sendToUser(userId, { title, body, data = {} }) {
 async function sendToUsers(userIds, { title, body, data = {} }) {
   if (!ensureInitialized() || userIds.length === 0) return;
 
-  const users = await User.find({ _id: { $in: userIds }, fcmToken: { $exists: true, $ne: null } }).select('fcmToken');
+  const users = await User.find({
+    _id: { $in: userIds },
+    fcmToken: { $exists: true, $ne: null },
+    notificationsEnabled: { $ne: false },
+  }).select('fcmToken');
   const tokens = users.map((u) => u.fcmToken);
   if (tokens.length === 0) return;
 

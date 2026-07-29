@@ -4,6 +4,14 @@ const Driver = require('../models/driver.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
 const { sendToUser, sendToUsers } = require('../services/notification.service');
+const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
+
+function assertWeightWithinCapacity(vehicleType, weightKg) {
+  const maxWeight = VEHICLE_MAX_WEIGHT_KG[vehicleType];
+  if (maxWeight != null && weightKg > maxWeight) {
+    throw new AppError(`Weight exceeds the ${maxWeight}kg limit for ${vehicleType}`, 400);
+  }
+}
 
 // Haversine distance in km between two [lng, lat] points. Used as a stand-in
 // for a real routing distance until Google Distance Matrix API is wired in
@@ -47,6 +55,7 @@ exports.estimate = catchAsync(async (req, res) => {
   if (!pickupLocation || !dropLocation || !vehicleType) {
     throw new AppError('pickupLocation, dropLocation, and vehicleType are required', 400);
   }
+  if (weightKg) assertWeightWithinCapacity(vehicleType, weightKg);
 
   let distanceKm;
   if (pickupLocation.lat != null && dropLocation.lat != null) {
@@ -86,13 +95,13 @@ exports.create = catchAsync(async (req, res) => {
     weightKg,
     isFragile,
     insuranceOpted,
-    pricingMode,
     distanceKm,
   } = req.body;
 
   if (!pickupLocation?.address || !dropLocation?.address || !vehicleType) {
     throw new AppError('pickupLocation, dropLocation, and vehicleType are required', 400);
   }
+  if (weightKg) assertWeightWithinCapacity(vehicleType, weightKg);
 
   const finalDistanceKm = distanceKm || 10;
   // Price is always recalculated server-side - never trust a client-sent price.
@@ -116,7 +125,6 @@ exports.create = catchAsync(async (req, res) => {
     weightKg,
     isFragile: Boolean(isFragile),
     insuranceOpted: Boolean(insuranceOpted),
-    pricingMode: pricingMode || 'fixed',
     distanceKm: finalDistanceKm,
     price: estimatedPrice,
     status: 'pending',

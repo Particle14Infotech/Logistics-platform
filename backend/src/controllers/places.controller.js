@@ -24,6 +24,11 @@ exports.autocomplete = catchAsync(async (req, res) => {
 
   const status = response.data?.status;
   if (status !== 'OK' && status !== 'ZERO_RESULTS') {
+    // Anything other than a genuine empty result (billing not enabled, API
+    // not enabled on the project, quota exceeded, bad key, etc.) was
+    // previously indistinguishable from "no matches" - the app just showed
+    // no dropdown with zero indication anything was actually wrong.
+    console.error(`[places.controller] Google Places autocomplete returned ${status}: ${response.data?.error_message || 'no error_message'}`);
     return success(res, { predictions: [] });
   }
 

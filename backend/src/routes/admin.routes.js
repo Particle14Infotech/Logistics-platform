@@ -23,6 +23,9 @@ router.put('/payments/:id/refund', ctrl.refundPayment);
 router.get('/disputes', ctrl.listDisputes);
 router.put('/disputes/:id/resolve', ctrl.resolveDispute);
 
+router.get('/enterprises', ctrl.listEnterprises);
+router.put('/enterprises/:id/status', ctrl.updateEnterpriseStatus);
+
 router.get('/analytics', ctrl.analytics);
 
 router.get('/banners', ctrl.listBanners);

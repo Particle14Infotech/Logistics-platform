@@ -1,10 +1,14 @@
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const PDFDocument = require('pdfkit');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
+const { signAccessToken, signRefreshToken } = require('../utils/jwt');
+const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const User = require('../models/user.model');
 const Enterprise = require('../models/enterprise.model');
 const Order = require('../models/order.model');
 const Invoice = require('../models/invoice.model');
+const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 
 const VEHICLE_BASE_PRICE = { bike: 100, auto: 150, mini_truck: 300, medium_truck: 600, large_truck: 1000 };
 
@@ -12,12 +16,131 @@ const VEHICLE_BASE_PRICE = { bike: 100, auto: 150, mini_truck: 300, medium_truck
 // admin (adminUserId) or an invited sub-user (subUsers array). JWTs only
 // carry { id, role }, so this always looks it up fresh rather than trusting
 // a cached enterpriseId on the User doc.
-async function resolveEnterprise(userId) {
-  let enterprise = await Enterprise.findOne({ adminUserId: userId });
-  if (!enterprise) enterprise = await Enterprise.findOne({ subUsers: userId });
+//
+// requireActive gates every enterprise feature behind admin approval
+// (isActive) by default - the one exception is the `status` endpoint below,
+// which needs to report isActive:false without throwing. selectApiKey pulls
+// back the otherwise select:false apiKey field for getApiKey.
+async function resolveEnterprise(userId, { requireActive = true, selectApiKey = false } = {}) {
+  const projection = selectApiKey ? '+apiKey' : undefined;
+  let enterprise = await Enterprise.findOne({ adminUserId: userId }).select(projection);
+  if (!enterprise) enterprise = await Enterprise.findOne({ subUsers: userId }).select(projection);
   if (!enterprise) throw new AppError('No enterprise account associated with this user', 404);
+  if (requireActive && !enterprise.isActive) {
+    throw new AppError('Your enterprise account is pending approval', 403);
+  }
   return enterprise;
 }
+
+// POST /api/v1/enterprise/signup  { companyName, contactName, email, password, gstin?, billingEmail? }
+// Public self-service signup: creates the User (role: enterprise_admin) and
+// its Enterprise doc together, starting inactive (Enterprise.model.js
+// isActive defaults to false) until an admin approves it via
+// PUT /admin/enterprises/:id/status. Logs the user in immediately (same
+// token shape as verifyOtp/firebaseSession) so the frontend can show a
+// pending-approval screen instead of an email-verification wait.
+exports.signup = catchAsync(async (req, res) => {
+  const { companyName, contactName, email, password, gstin, billingEmail } = req.body;
+  if (!companyName || !contactName || !email || !password) {
+    throw new AppError('companyName, contactName, email, and password are required', 400);
+  }
+  if (password.length < 6) throw new AppError('Password must be at least 6 characters', 400);
+
+  const existing = await User.findOne({ email });
+  if (existing) throw new AppError('An account with this email already exists', 400);
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await User.create({ name: contactName, email, passwordHash, role: 'enterprise_admin' });
+
+  const enterprise = await Enterprise.create({ companyName, gstin, billingEmail, adminUserId: user._id });
+  user.enterpriseId = enterprise._id;
+  await user.save();
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+
+  return success(res, { user, accessToken, refreshToken, enterprise }, 'Enterprise account created - pending approval', 201);
+});
+
+// POST /api/v1/enterprise/firebase-signup  { idToken, companyName, contactName, gstin?, billingEmail? }
+// Firebase-credentialed counterpart to the bcrypt `signup` above - Firebase
+// owns the password + email verification, this just exchanges a verified ID
+// token for a session. Also handles migrating an existing bcrypt account
+// (e.g. a seeded/pre-Firebase enterprise_admin) onto a Firebase identity:
+// found-by-email links firebaseUid to the EXISTING User/Enterprise instead
+// of creating a duplicate, so an already-approved account stays approved.
+exports.firebaseSignup = catchAsync(async (req, res) => {
+  const { idToken, companyName, contactName, gstin, billingEmail } = req.body;
+  if (!idToken) throw new AppError('idToken is required', 400);
+  if (!ensureInitialized()) throw new AppError('Firebase is not configured', 500);
+
+  let decoded;
+  try {
+    decoded = await admin.auth().verifyIdToken(idToken);
+  } catch (err) {
+    throw new AppError('Invalid or expired Firebase token', 401);
+  }
+  if (!decoded.email_verified) throw new AppError('Email not verified', 403);
+
+  let user = await User.findOne({ firebaseUid: decoded.uid });
+  let enterprise = null;
+
+  if (!user) {
+    user = await User.findOne({ email: decoded.email });
+    if (user) {
+      // Migration case: an existing (likely bcrypt) enterprise_admin claims
+      // this Firebase identity - reuse it and its Enterprise rather than
+      // creating a second one. Any other existing account (customer,
+      // driver, an invited enterprise_user, etc.) on this email is NOT a
+      // migration - it must not get silently promoted into a brand-new
+      // Enterprise's admin just by hitting this signup endpoint.
+      if (user.role !== 'enterprise_admin') {
+        throw new AppError('An account with this email already exists - log in instead, or contact support.', 400);
+      }
+      user.firebaseUid = decoded.uid;
+      user.isVerified = true;
+      await user.save();
+      enterprise = await Enterprise.findOne({ adminUserId: user._id });
+    }
+  }
+
+  if (!user) {
+    if (!companyName || !contactName) {
+      throw new AppError('companyName and contactName are required', 400);
+    }
+    user = await User.create({
+      name: contactName,
+      email: decoded.email,
+      firebaseUid: decoded.uid,
+      isVerified: true,
+      role: 'enterprise_admin',
+    });
+  }
+
+  if (!enterprise) {
+    enterprise = await Enterprise.create({
+      companyName: companyName || user.name,
+      gstin,
+      billingEmail,
+      adminUserId: user._id,
+    });
+    user.enterpriseId = enterprise._id;
+    await user.save();
+  }
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+
+  return success(res, { user, accessToken, refreshToken, enterprise }, 'Enterprise account ready', 201);
+});
+
+// GET /api/v1/enterprise/status - lightweight check the frontend calls right
+// after login/signup to decide whether to show the real dashboard or a
+// pending-approval screen, without requireActive throwing on it.
+exports.status = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id, { requireActive: false });
+  return success(res, { companyName: enterprise.companyName, isActive: enterprise.isActive });
+});
 
 // POST /api/v1/enterprise/create  { companyName, gstin, billingEmail }
 exports.createAccount = catchAsync(async (req, res) => {
@@ -30,7 +153,7 @@ exports.createAccount = catchAsync(async (req, res) => {
   const enterprise = await Enterprise.create({ companyName, gstin, billingEmail, adminUserId: req.user.id });
   await User.findByIdAndUpdate(req.user.id, { role: 'enterprise_admin', enterpriseId: enterprise._id });
 
-  return success(res, { enterprise }, 'Enterprise account created', 201);
+  return success(res, { enterprise }, 'Enterprise account created - pending approval', 201);
 });
 
 // GET /api/v1/enterprise/dashboard
@@ -110,6 +233,10 @@ exports.bulkBooking = catchAsync(async (req, res) => {
       if (!VEHICLE_BASE_PRICE[row.vehicleType]) throw new Error(`Invalid vehicleType "${row.vehicleType}"`);
 
       const weightKg = Number(row.weightKg) || 0;
+      const maxWeight = VEHICLE_MAX_WEIGHT_KG[row.vehicleType];
+      if (maxWeight != null && weightKg > maxWeight) {
+        throw new Error(`Weight exceeds the ${maxWeight}kg limit for ${row.vehicleType}`);
+      }
       const price = VEHICLE_BASE_PRICE[row.vehicleType] + weightKg * 0.5;
 
       await Order.create({
@@ -232,8 +359,7 @@ exports.updateContractPricing = catchAsync(async (req, res) => {
 
 // GET /api/v1/enterprise/api-key - returns masked key if one exists
 exports.getApiKey = catchAsync(async (req, res) => {
-  const enterprise = await Enterprise.findOne({ adminUserId: req.user.id }).select('+apiKey');
-  if (!enterprise) throw new AppError('No enterprise account associated with this user', 404);
+  const enterprise = await resolveEnterprise(req.user.id, { selectApiKey: true });
 
   const masked = enterprise.apiKey ? `${enterprise.apiKey.slice(0, 8)}${'•'.repeat(20)}` : null;
   return success(res, { apiKey: masked, hasKey: Boolean(enterprise.apiKey) });
@@ -241,8 +367,7 @@ exports.getApiKey = catchAsync(async (req, res) => {
 
 // POST /api/v1/enterprise/api-key/regenerate - only the enterprise_admin can do this
 exports.regenerateApiKey = catchAsync(async (req, res) => {
-  const enterprise = await Enterprise.findOne({ adminUserId: req.user.id });
-  if (!enterprise) throw new AppError('No enterprise account associated with this user', 404);
+  const enterprise = await resolveEnterprise(req.user.id);
 
   const newKey = `lgk_${crypto.randomBytes(24).toString('hex')}`;
   enterprise.apiKey = newKey;

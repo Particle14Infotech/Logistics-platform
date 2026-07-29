@@ -32,7 +32,7 @@ app.use(
       // server) aren't subject to CORS at all - always allow those through.
       if (!origin) return callback(null, true);
 
-      const allowlist = [process.env.CLIENT_ORIGIN, process.env.ADMIN_ORIGIN].filter(Boolean);
+      const allowlist = [process.env.CLIENT_ORIGIN, process.env.ADMIN_ORIGIN, process.env.ENTERPRISE_ORIGIN].filter(Boolean);
       if (allowlist.includes(origin)) return callback(null, true);
 
       // In development, also allow any localhost:<port> origin - covers

@@ -11,7 +11,11 @@ const enterpriseSchema = new mongoose.Schema(
     billingEmail: String,
     creditLimit: { type: Number, default: 0 },
     apiKey: { type: String, select: false },
-    isActive: { type: Boolean, default: true },
+    // Approval gate: a brand-new enterprise (self-signup or self-promote via
+    // /enterprise/create) starts inactive until an admin approves it via
+    // PUT /admin/enterprises/:id/status - see resolveEnterprise() in
+    // enterprise.controller.js, which blocks all enterprise routes while false.
+    isActive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

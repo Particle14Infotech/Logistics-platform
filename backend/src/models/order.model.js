@@ -23,6 +23,11 @@ const orderSchema = new mongoose.Schema(
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', default: null },
     enterpriseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enterprise', default: null },
+    // Drivers who tapped "Pass" on this order (driver.controller.js's
+    // rejectOrder) - excluded from that same driver's available-orders list
+    // going forward, so passing on a job actually removes it instead of it
+    // reappearing on the next poll.
+    rejectedDriverIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Driver' }],
 
     pickupLocation: { type: geoPointSchema, required: true },
     dropLocation: { type: geoPointSchema, required: true },
@@ -38,7 +43,6 @@ const orderSchema = new mongoose.Schema(
     isFragile: { type: Boolean, default: false },
     insuranceOpted: { type: Boolean, default: false },
 
-    pricingMode: { type: String, enum: ['fixed', 'bidding'], default: 'fixed' },
     distanceKm: Number,
     price: { type: Number, required: true },
 

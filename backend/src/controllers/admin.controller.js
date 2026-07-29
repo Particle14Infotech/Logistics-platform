@@ -8,6 +8,7 @@ const Dispute = require('../models/dispute.model');
 const Banner = require('../models/banner.model');
 const Faq = require('../models/faq.model');
 const Notification = require('../models/notification.model');
+const Enterprise = require('../models/enterprise.model');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
 exports.listOrders = catchAsync(async (req, res) => {
@@ -127,6 +128,14 @@ exports.updateDriverStatus = catchAsync(async (req, res) => {
   if (!driver) throw new AppError('Driver not found', 404);
 
   if (isApproved !== undefined) {
+    // A fleet owner can create a Driver row directly (AddVehicleScreen) with
+    // no selfie ever captured - the app's own routing now forces that
+    // driver through the selfie step before reaching the dashboard, but
+    // that's a client-side nudge, not enforcement. This is the actual gate:
+    // no facial KYC photo, no approval, regardless of how the request got here.
+    if (isApproved && !driver.documents?.photoUrl) {
+      throw new AppError('Cannot approve - no KYC selfie has been uploaded for this driver yet', 400);
+    }
     driver.isApproved = isApproved;
     if (!isApproved) driver.isAvailable = false; // pull an unapproved driver off the road
     await driver.save();
@@ -427,24 +436,68 @@ exports.listNotifications = catchAsync(async (req, res) => {
 });
 
 // POST /api/v1/admin/notifications  { title, body, audience }
-// NOTE: this records the announcement and marks it 'queued'. Actual FCM
-// delivery requires Firebase Admin SDK credentials (see backend/.env.example
-// FIREBASE_* vars) wired into a notification.service.js - that's a follow-up.
+// Sends a real push to matching recipients via notification.service.js
+// (which no-ops quietly if Firebase isn't configured, same pattern as
+// Maps - see backend/.env.example FIREBASE_* vars). Record is saved
+// regardless, so the history list in Content > Announcements works either
+// way.
 exports.sendNotification = catchAsync(async (req, res) => {
   const { title, body, audience } = req.body;
   if (!title || !body) throw new AppError('title and body are required', 400);
 
   const recipientFilter = audience && audience !== 'all' ? { role: audience } : { role: { $in: ['customer', 'driver'] } };
-  const recipientCount = await User.countDocuments(recipientFilter);
+  const recipients = await User.find(recipientFilter).select('_id');
+  const recipientCount = recipients.length;
 
   const notification = await Notification.create({
     title,
     body,
     audience: audience || 'all',
     sentBy: req.user.id,
-    status: 'queued',
+    status: isConfigured() ? 'sent' : 'queued',
     recipientCount,
   });
 
-  return success(res, { notification }, `Announcement queued for ${recipientCount} recipient(s)`, 201);
+  sendToUsers(recipients.map((u) => u._id), { title, body, data: { type: 'admin_announcement' } });
+
+  return success(res, { notification }, `Announcement ${isConfigured() ? 'sent to' : 'queued for'} ${recipientCount} recipient(s)`, 201);
+});
+
+// GET /api/v1/admin/enterprises?status=pending|approved&page=&limit=
+// status=pending -> isActive:false (awaiting approval), status=approved -> isActive:true
+exports.listEnterprises = catchAsync(async (req, res) => {
+  const { status, page = 1, limit = 20 } = req.query;
+
+  const filter = {};
+  if (status === 'pending') filter.isActive = false;
+  if (status === 'approved') filter.isActive = true;
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+  const [enterprises, total] = await Promise.all([
+    Enterprise.find(filter)
+      .populate('adminUserId', 'name email')
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean(),
+    Enterprise.countDocuments(filter),
+  ]);
+
+  return success(res, { enterprises, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } });
+});
+
+// PUT /api/v1/admin/enterprises/:id/status  { isActive }
+// isActive:true approves a pending signup; isActive:false suspends/rejects
+// one (whether pending or previously-approved) - a single boolean serves
+// both purposes rather than a separate reject state.
+exports.updateEnterpriseStatus = catchAsync(async (req, res) => {
+  const { isActive } = req.body;
+  if (typeof isActive !== 'boolean') throw new AppError('isActive must be a boolean', 400);
+
+  const enterprise = await Enterprise.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+  if (!enterprise) throw new AppError('Enterprise not found', 404);
+
+  return success(res, { enterprise }, isActive ? 'Enterprise approved' : 'Enterprise suspended');
 });

@@ -5,6 +5,10 @@ const { protect, authorize } = require('../middlewares/auth.middleware');
 const enterpriseRoles = authorize('enterprise_admin', 'enterprise_user');
 const adminOnly = authorize('enterprise_admin');
 
+router.post('/signup', ctrl.signup);
+router.post('/firebase-signup', ctrl.firebaseSignup);
+router.get('/status', protect, ctrl.status);
+
 router.post('/create', protect, ctrl.createAccount);
 router.get('/dashboard', protect, enterpriseRoles, ctrl.dashboard);
 

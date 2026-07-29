@@ -4,7 +4,6 @@ const crypto = require('crypto');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
-const Bid = require('../models/bid.model');
 const { sendToUser } = require('../services/notification.service');
 
 // Local-disk storage for dev (uploads/ served statically by app.js). Swap
@@ -107,16 +106,21 @@ exports.createProfile = catchAsync(async (req, res) => {
 
 // GET /api/v1/driver/available-orders
 // NOTE: filters to pending, unassigned orders matching the driver's vehicle
-// type. Real geospatial "nearby" filtering needs live lat/lng from the
-// customer app's location picker, which isn't wired yet (no Maps key) - see
-// booking.controller.js's estimate() for the same limitation. Rejections
-// aren't tracked per-driver yet, so a rejected order will keep showing here
-// until another driver accepts it or the customer cancels.
+// type, excluding orders this driver already passed on (rejectedDriverIds,
+// set by rejectOrder below) - real geospatial "nearby" filtering needs live
+// lat/lng from the customer app's location picker, which isn't wired yet
+// (no Maps key) - see booking.controller.js's estimate() for the same
+// limitation.
 exports.availableOrders = catchAsync(async (req, res) => {
   const driver = await getOwnDriverDoc(req.user.id);
   if (!driver.isApproved) throw new AppError('Your account is pending KYC approval', 403);
 
-  const orders = await Order.find({ status: 'pending', driverId: null, vehicleType: driver.vehicleType })
+  const orders = await Order.find({
+    status: 'pending',
+    driverId: null,
+    vehicleType: driver.vehicleType,
+    rejectedDriverIds: { $ne: driver._id },
+  })
     .populate('customerId', 'name phone')
     .sort({ createdAt: 1 })
     .limit(20);
@@ -130,19 +134,28 @@ exports.acceptOrder = catchAsync(async (req, res) => {
   if (!driver.isApproved) throw new AppError('Your account is pending KYC approval', 403);
   if (!driver.isAvailable) throw new AppError('Go online before accepting jobs', 400);
 
-  const order = await Order.findById(req.params.bookingId);
-  if (!order) throw new AppError('Booking not found', 404);
-  if (order.status !== 'pending' || order.driverId) {
-    throw new AppError('This booking is no longer available', 409);
-  }
-  if (order.vehicleType !== driver.vehicleType) {
+  const orderCheck = await Order.findById(req.params.bookingId);
+  if (!orderCheck) throw new AppError('Booking not found', 404);
+  if (orderCheck.vehicleType !== driver.vehicleType) {
     throw new AppError('Vehicle type mismatch', 400);
   }
 
-  order.driverId = driver._id;
-  order.status = 'accepted';
-  order.timeline.push({ status: 'accepted', note: `Accepted by driver ${driver.vehicleNumber}` });
-  await order.save();
+  // Atomic compare-and-swap: without this, two drivers hitting Accept on the
+  // same order within the same instant could both pass a plain
+  // findById + JS-side status check before either had saved, and both
+  // would get a 200 "Booking accepted" - whichever .save() landed second
+  // would silently overwrite the first driver's assignment. Matching the
+  // query's status/driverId conditions in the update itself means only one
+  // concurrent request can ever succeed; the other gets null back.
+  const order = await Order.findOneAndUpdate(
+    { _id: req.params.bookingId, status: 'pending', driverId: null },
+    {
+      $set: { driverId: driver._id, status: 'accepted' },
+      $push: { timeline: { status: 'accepted', note: `Accepted by driver ${driver.vehicleNumber}` } },
+    },
+    { new: true }
+  );
+  if (!order) throw new AppError('This booking is no longer available', 409);
 
   const io = req.app.get('io');
   if (io) io.to(`booking:${order._id}`).emit('status_broadcast', { bookingId: order._id, status: 'accepted', timestamp: Date.now() });
@@ -156,43 +169,23 @@ exports.acceptOrder = catchAsync(async (req, res) => {
 });
 
 // POST /api/v1/driver/reject/:bookingId
-// See NOTE above availableOrders - this is currently a soft acknowledgment
-// only (doesn't hide the order from this driver going forward).
+// Records this driver's pass on rejectedDriverIds so availableOrders
+// excludes it going forward - previously this was a no-op acknowledgment
+// only, so a passed job reappeared for the same driver on the very next
+// poll (contradicting what "Pass" tells the driver just happened).
 exports.rejectOrder = catchAsync(async (req, res) => {
+  const driver = await getOwnDriverDoc(req.user.id);
   const order = await Order.findById(req.params.bookingId);
   if (!order) throw new AppError('Booking not found', 404);
+
+  if (!order.rejectedDriverIds.some((id) => String(id) === String(driver._id))) {
+    order.rejectedDriverIds.push(driver._id);
+    await order.save();
+  }
+
   return success(res, null, 'Booking passed');
 });
 
-// POST /api/v1/driver/bids/:orderId  { amount }
-// Bidding-mode counterpart to acceptOrder above - used when the order's
-// pricingMode is 'bidding' instead of 'fixed'. Doesn't assign the driver
-// immediately; the customer reviews all bids and picks one via
-// booking.controller.js's acceptBid.
-exports.placeBid = catchAsync(async (req, res) => {
-  const { amount } = req.body;
-  if (!amount || amount <= 0) throw new AppError('A valid bid amount is required', 400);
-
-  const driver = await getOwnDriverDoc(req.user.id);
-  if (!driver.isApproved) throw new AppError('Your account is pending KYC approval', 403);
-
-  const order = await Order.findById(req.params.orderId);
-  if (!order) throw new AppError('Booking not found', 404);
-  if (order.pricingMode !== 'bidding') throw new AppError('This booking is not open for bidding', 400);
-  if (order.status !== 'pending' || order.driverId) throw new AppError('This booking is no longer available', 409);
-  if (order.vehicleType !== driver.vehicleType) throw new AppError('Vehicle type mismatch', 400);
-
-  // Upsert: a driver can revise their bid by placing a new one, rather than
-  // ending up with duplicate bids (the schema's unique index on
-  // orderId+driverId would reject a second plain insert anyway).
-  const bid = await Bid.findOneAndUpdate(
-    { orderId: order._id, driverId: driver._id },
-    { amount, status: 'pending' },
-    { new: true, upsert: true }
-  );
-
-  return success(res, { bid }, 'Bid placed', 201);
-});
 exports.updateStatus = catchAsync(async (req, res) => {
   const { isAvailable } = req.body;
   const driver = await getOwnDriverDoc(req.user.id);

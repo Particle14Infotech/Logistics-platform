@@ -2,16 +2,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const { success, AppError, catchAsync } = require('../utils/apiResponse');
 const otpService = require('../services/otp.service');
-
-const signAccessToken = (user) =>
-  jwt.sign({ id: user._id, role: user.role }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m',
-  });
-
-const signRefreshToken = (user) =>
-  jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRY || '30d',
-  });
+const { admin, ensureInitialized } = require('../config/firebaseAdmin');
+const { signAccessToken, signRefreshToken } = require('../utils/jwt');
 
 // POST /api/v1/auth/send-otp
 exports.sendOtp = catchAsync(async (req, res) => {
@@ -43,6 +35,54 @@ exports.verifyOtp = catchAsync(async (req, res) => {
   return success(res, { user, accessToken, refreshToken, isNewUser }, 'OTP verified');
 });
 
+// POST /api/v1/auth/firebase-session  { idToken, role? }
+// Exchanges a verified Firebase ID token (email/password auth, handled
+// entirely client-side by the Firebase SDK) for this app's own JWT session,
+// so downstream routes/middleware never need to know Firebase exists. Mirrors
+// verifyOtp's shape/response - Firebase is the credential+verification
+// authority, this backend still owns the session.
+exports.firebaseSession = catchAsync(async (req, res) => {
+  const { idToken, role } = req.body;
+  if (!idToken) throw new AppError('idToken is required', 400);
+  if (!ensureInitialized()) throw new AppError('Firebase is not configured', 500);
+
+  let decoded;
+  try {
+    decoded = await admin.auth().verifyIdToken(idToken);
+  } catch (err) {
+    throw new AppError('Invalid or expired Firebase token', 401);
+  }
+
+  if (!decoded.email_verified) throw new AppError('Email not verified', 403);
+
+  let user = await User.findOne({ firebaseUid: decoded.uid });
+  let isNewUser = false;
+
+  if (!user) {
+    user = await User.findOne({ email: decoded.email });
+    if (user) {
+      user.firebaseUid = decoded.uid;
+      user.isVerified = true;
+      await user.save();
+    }
+  }
+
+  if (!user) {
+    user = await User.create({
+      email: decoded.email,
+      firebaseUid: decoded.uid,
+      isVerified: true,
+      role: role || 'customer',
+    });
+    isNewUser = true;
+  }
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+
+  return success(res, { user, accessToken, refreshToken, isNewUser }, 'Firebase session established');
+});
+
 // POST /api/v1/auth/register  (complete profile after OTP verification)
 // Issues fresh tokens reflecting any role change, not just the profile
 // update - a role is baked into the JWT payload at sign time (see
@@ -54,10 +94,24 @@ exports.verifyOtp = catchAsync(async (req, res) => {
 // role:'customer' by default, and this endpoint is what promotes them to
 // 'driver' - without a fresh token, every /driver/* call after signup
 // would 403 even though the database was already correct.
+// Self-service roles only - this endpoint must never be able to grant
+// admin/enterprise_admin/enterprise_user, since it's reachable by any
+// authenticated user completing their own profile right after OTP/Firebase
+// verification (see otp_login_screen.dart / email_auth_screen.dart in both
+// mobile apps).
+const SELF_SERVICE_ROLES = ['customer', 'driver', 'fleet_owner'];
+
 exports.register = catchAsync(async (req, res) => {
-  const { userId, name, email, role } = req.body;
+  const { name, email, role } = req.body;
+  if (role && !SELF_SERVICE_ROLES.includes(role)) {
+    throw new AppError(`role must be one of: ${SELF_SERVICE_ROLES.join(', ')}`, 400);
+  }
+
+  // req.user.id (from the caller's own verified JWT), never a userId taken
+  // from the request body - otherwise any caller could update ANY user's
+  // name/email/role by guessing/knowing their Mongo _id, not just their own.
   const user = await User.findByIdAndUpdate(
-    userId,
+    req.user.id,
     { name, email, role: role || 'customer' },
     { new: true }
   );
@@ -91,8 +145,17 @@ exports.getProfile = catchAsync(async (req, res) => {
 });
 
 // PUT /api/v1/auth/profile
+// Explicit field whitelist - req.body must never be spread directly into
+// findByIdAndUpdate, or any authenticated caller could set their own role/
+// isVerified/isBlocked/enterpriseId (same class of bug already fixed on
+// /auth/register above).
 exports.updateProfile = catchAsync(async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.user.id, req.body, { new: true });
+  const { name, email, phone, dob, notificationsEnabled } = req.body;
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    { name, email, phone, dob, notificationsEnabled },
+    { new: true }
+  );
   return success(res, { user }, 'Profile updated');
 });
 
