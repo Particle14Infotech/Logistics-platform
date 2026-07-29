@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
@@ -29,7 +28,8 @@ class BookingDetailScreen extends ConsumerStatefulWidget {
   const BookingDetailScreen({super.key, required this.orderId});
 
   @override
-  ConsumerState<BookingDetailScreen> createState() => _BookingDetailScreenState();
+  ConsumerState<BookingDetailScreen> createState() =>
+      _BookingDetailScreenState();
 }
 
 class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
@@ -56,7 +56,8 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final order = await ref.read(bookingServiceProvider).getBooking(widget.orderId);
+      final order =
+          await ref.read(bookingServiceProvider).getBooking(widget.orderId);
       if (!mounted) return;
       setState(() => _order = order);
       if (!['delivered', 'cancelled'].contains(order.status)) {
@@ -100,8 +101,12 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
         title: const Text('Cancel booking?'),
         content: const Text('This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep booking')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cancel booking')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Keep booking')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Cancel booking')),
         ],
       ),
     );
@@ -128,7 +133,10 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
       appBar: AppBar(title: const Text('Order Details')),
       body: SafeArea(
         child: order == null
-            ? Center(child: _error != null ? Text(_error!) : const CircularProgressIndicator())
+            ? Center(
+                child: _error != null
+                    ? Text(_error!)
+                    : const CircularProgressIndicator())
             : RefreshIndicator(
                 onRefresh: _load,
                 child: ListView(
@@ -138,21 +146,44 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       children: [
                         StatusPill(status: order.status),
                         const SizedBox(width: 8),
-                        Text('#${order.id.substring(order.id.length - 8).toUpperCase()}', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
+                        Text(
+                            '#${order.id.substring(order.id.length - 8).toUpperCase()}',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: Colors.grey.shade500)),
                       ],
                     ),
                     if (showLiveMap) ...[
                       const SizedBox(height: 16),
-                      _LiveMapCard(driverPosition: _driverPosition, mapController: _mapController),
+                      _LiveMapCard(
+                          driverPosition: _driverPosition,
+                          mapController: _mapController),
                     ],
                     const SizedBox(height: 16),
                     _InfoCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 10), Expanded(child: Text(order.pickupLocation.address, style: GoogleFonts.poppins(fontSize: 13)))]),
-                          const Padding(padding: EdgeInsets.only(left: 8), child: SizedBox(height: 16, child: VerticalDivider(width: 1))),
-                          Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 10), Expanded(child: Text(order.dropLocation.address, style: GoogleFonts.poppins(fontSize: 13)))]),
+                          Row(children: [
+                            const Icon(Icons.trip_origin,
+                                color: Colors.green, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: Text(order.pickupLocation.address,
+                                    style: GoogleFonts.poppins(fontSize: 13)))
+                          ]),
+                          const Padding(
+                              padding: EdgeInsets.only(left: 8),
+                              child: SizedBox(
+                                  height: 16,
+                                  child: VerticalDivider(width: 1))),
+                          Row(children: [
+                            const Icon(Icons.location_on,
+                                color: Colors.red, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: Text(order.dropLocation.address,
+                                    style: GoogleFonts.poppins(fontSize: 13)))
+                          ]),
                         ],
                       ),
                     ),
@@ -161,21 +192,34 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       _InfoCard(
                         child: Row(
                           children: [
-                            CircleAvatar(backgroundColor: AppTheme.primarySurface, child: Icon(Icons.person, color: AppTheme.primary)),
+                            const CircleAvatar(
+                                backgroundColor: AppTheme.primarySurface,
+                                child: Icon(Icons.person,
+                                    color: AppTheme.primary)),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(order.driverName!, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
-                                  Text('${order.vehicleNumber ?? ''} · ${order.driverRating?.toStringAsFixed(1) ?? '—'} ★', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+                                  Text(order.driverName!,
+                                      style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14)),
+                                  Text(
+                                      '${order.vehicleNumber ?? ''} · ${order.driverRating?.toStringAsFixed(1) ?? '—'} ★',
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade500)),
                                 ],
                               ),
                             ),
                             if (order.driverPhone != null) ...[
-                              _CircleIconButton(icon: Icons.chat_bubble_outline, onTap: () {}),
+                              _CircleIconButton(
+                                  icon: Icons.chat_bubble_outline,
+                                  onTap: () {}),
                               const SizedBox(width: 8),
-                              _CircleIconButton(icon: Icons.call_outlined, onTap: () {}),
+                              _CircleIconButton(
+                                  icon: Icons.call_outlined, onTap: () {}),
                             ],
                           ],
                         ),
@@ -186,41 +230,26 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           children: [
                             const CircleAvatar(child: Icon(Icons.search)),
                             const SizedBox(width: 12),
-                            Text('Finding a driver…', style: GoogleFonts.poppins(fontSize: 14)),
+                            Text('Finding a driver…',
+                                style: GoogleFonts.poppins(fontSize: 14)),
                           ],
                         ),
                       ),
-                    if (order.pricingMode == 'bidding' && order.status == 'pending') ...[
-                      const SizedBox(height: 12),
-                      _InfoCard(
-                        onTap: () => context.push('/bidding/${order.id}'),
-                        child: Row(
-                          children: [
-                            Icon(Icons.gavel, color: AppTheme.primary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('View bids', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
-                                  Text('See offers from drivers and pick one', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right),
-                          ],
-                        ),
-                      ),
-                    ],
                     if (order.deliveryOtp != null) ...[
                       const SizedBox(height: 12),
                       _InfoCard(
                         color: const Color(0xFFFFF8E1),
                         child: Column(
                           children: [
-                            Text('Give this code to your driver at drop-off', style: GoogleFonts.poppins(fontSize: 13), textAlign: TextAlign.center),
+                            Text('Give this code to your driver at drop-off',
+                                style: GoogleFonts.poppins(fontSize: 13),
+                                textAlign: TextAlign.center),
                             const SizedBox(height: 8),
-                            Text(order.deliveryOtp!, style: GoogleFonts.poppins(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 8)),
+                            Text(order.deliveryOtp!,
+                                style: GoogleFonts.poppins(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 8)),
                           ],
                         ),
                       ),
@@ -229,16 +258,32 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                     _InfoCard(
                       child: Column(
                         children: [
-                          _DetailRow(label: 'Vehicle', value: order.vehicleType.replaceAll('_', ' ')),
-                          if (order.distanceKm != null) _DetailRow(label: 'Distance', value: '${order.distanceKm} km'),
-                          if (order.goodsType != null) _DetailRow(label: 'Goods Type', value: order.goodsType!),
-                          if (order.weightKg != null) _DetailRow(label: 'Weight', value: '${order.weightKg} kg'),
+                          _DetailRow(
+                              label: 'Vehicle',
+                              value: order.vehicleType.replaceAll('_', ' ')),
+                          if (order.distanceKm != null)
+                            _DetailRow(
+                                label: 'Distance',
+                                value: '${order.distanceKm} km'),
+                          if (order.goodsType != null)
+                            _DetailRow(
+                                label: 'Goods Type', value: order.goodsType!),
+                          if (order.weightKg != null)
+                            _DetailRow(
+                                label: 'Weight', value: '${order.weightKg} kg'),
                           const Divider(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total Amount', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
-                              Text('₹${order.price}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.primary)),
+                              Text('Total Amount',
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15)),
+                              Text('₹${order.price}',
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18,
+                                      color: AppTheme.primary)),
                             ],
                           ),
                         ],
@@ -246,14 +291,18 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error)),
+                      Text(_error!,
+                          style: GoogleFonts.poppins(color: AppTheme.error)),
                     ],
                     if (['pending', 'accepted'].contains(order.status)) ...[
                       const SizedBox(height: 16),
                       OutlinedButton(
                         onPressed: _cancelling ? null : _cancel,
-                        style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error),
-                        child: _cancelling ? const Text('Cancelling…') : const Text('Cancel booking'),
+                        style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.error),
+                        child: _cancelling
+                            ? const Text('Cancelling…')
+                            : const Text('Cancel booking'),
                       ),
                     ],
                   ],
@@ -267,20 +316,17 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
 class _InfoCard extends StatelessWidget {
   final Widget child;
   final Color? color;
-  final VoidCallback? onTap;
-  const _InfoCard({required this.child, this.color, this.onTap});
+  const _InfoCard({required this.child, this.color});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       color: color ?? Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(padding: const EdgeInsets.all(16), child: child),
-      ),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppTheme.borderColor)),
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }
 }
@@ -298,7 +344,9 @@ class _CircleIconButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
-        child: Padding(padding: const EdgeInsets.all(8), child: Icon(icon, size: 18, color: AppTheme.primary)),
+        child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, size: 18, color: AppTheme.primary)),
       ),
     );
   }
@@ -316,8 +364,12 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
-          Text(value, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(label,
+              style: GoogleFonts.poppins(
+                  fontSize: 13, color: Colors.grey.shade500)),
+          Text(value,
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -327,23 +379,28 @@ class _DetailRow extends StatelessWidget {
 class _LiveMapCard extends StatelessWidget {
   final LatLng? driverPosition;
   final MapController mapController;
-  const _LiveMapCard({required this.driverPosition, required this.mapController});
+  const _LiveMapCard(
+      {required this.driverPosition, required this.mapController});
 
   @override
   Widget build(BuildContext context) {
     if (driverPosition == null) {
       return Card(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppTheme.borderColor)),
         child: Container(
           height: 180,
           alignment: Alignment.center,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8, width: 200, child: LinearProgressIndicator()),
+              const SizedBox(
+                  height: 8, width: 200, child: LinearProgressIndicator()),
               const SizedBox(height: 12),
-              Text("Waiting for your driver's GPS signal…", style: GoogleFonts.poppins(fontSize: 13)),
+              Text("Waiting for your driver's GPS signal…",
+                  style: GoogleFonts.poppins(fontSize: 13)),
             ],
           ),
         ),
@@ -370,7 +427,8 @@ class _LiveMapCard extends StatelessWidget {
                   point: driverPosition!,
                   width: 40,
                   height: 40,
-                  child: const Icon(Icons.local_shipping, color: AppTheme.primary, size: 32),
+                  child: const Icon(Icons.local_shipping,
+                      color: AppTheme.primary, size: 32),
                 ),
               ],
             ),

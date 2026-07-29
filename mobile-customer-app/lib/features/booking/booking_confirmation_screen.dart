@@ -14,10 +14,12 @@ class BookingConfirmationScreen extends ConsumerStatefulWidget {
   const BookingConfirmationScreen({super.key, required this.orderId});
 
   @override
-  ConsumerState<BookingConfirmationScreen> createState() => _BookingConfirmationScreenState();
+  ConsumerState<BookingConfirmationScreen> createState() =>
+      _BookingConfirmationScreenState();
 }
 
-class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationScreen> {
+class _BookingConfirmationScreenState
+    extends ConsumerState<BookingConfirmationScreen> {
   OrderModel? _order;
 
   @override
@@ -28,7 +30,8 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
 
   Future<void> _load() async {
     try {
-      final order = await ref.read(bookingServiceProvider).getBooking(widget.orderId);
+      final order =
+          await ref.read(bookingServiceProvider).getBooking(widget.orderId);
       if (mounted) setState(() => _order = order);
     } catch (_) {
       // Non-critical - the confirmation still shows without the order card.
@@ -49,42 +52,78 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
               Container(
                 width: 88,
                 height: 88,
-                decoration: BoxDecoration(color: AppTheme.success.withOpacity(0.12), shape: BoxShape.circle),
-                child: Icon(Icons.check, size: 48, color: AppTheme.success),
+                decoration: BoxDecoration(
+                    color: AppTheme.success.withValues(alpha: 0.12),
+                    shape: BoxShape.circle),
+                child:
+                    const Icon(Icons.check, size: 48, color: AppTheme.success),
               ),
               const SizedBox(height: 24),
-              Text('Booking Confirmed!', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.textDark), textAlign: TextAlign.center),
+              Text('Booking Confirmed!',
+                  style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark),
+                  textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text(
                 "Your shipment has been successfully booked.",
-                style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500),
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: Colors.grey.shade500),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppTheme.borderColor)),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('#${widget.orderId.substring(widget.orderId.length - 8).toUpperCase()}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14)),
+                      Text(
+                          '#${widget.orderId.substring(widget.orderId.length - 8).toUpperCase()}',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700, fontSize: 14)),
                       const SizedBox(height: 12),
                       if (order != null) ...[
-                        Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 16), const SizedBox(width: 8), Expanded(child: Text(order.pickupLocation.address, style: GoogleFonts.poppins(fontSize: 12)))]),
+                        Row(children: [
+                          const Icon(Icons.trip_origin,
+                              color: Colors.green, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                              child: Text(order.pickupLocation.address,
+                                  style: GoogleFonts.poppins(fontSize: 12)))
+                        ]),
                         const SizedBox(height: 6),
-                        Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 16), const SizedBox(width: 8), Expanded(child: Text(order.dropLocation.address, style: GoogleFonts.poppins(fontSize: 12)))]),
+                        Row(children: [
+                          const Icon(Icons.location_on,
+                              color: Colors.red, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                              child: Text(order.dropLocation.address,
+                                  style: GoogleFonts.poppins(fontSize: 12)))
+                        ]),
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Estimated Price', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
-                            Text('₹${order.price}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16, color: AppTheme.primary)),
+                            Text('Estimated Price',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13, color: Colors.grey.shade500)),
+                            Text('₹${order.price}',
+                                style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                    color: AppTheme.primary)),
                           ],
                         ),
                       ] else
-                        const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Center(child: CircularProgressIndicator())),
+                        const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Center(child: CircularProgressIndicator())),
                     ],
                   ),
                 ),
@@ -93,7 +132,8 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: () => context.go('/booking/detail/${widget.orderId}'),
+                  onPressed: () =>
+                      context.go('/booking/detail/${widget.orderId}'),
                   child: const Text('Track Shipment'),
                 ),
               ),

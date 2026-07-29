@@ -88,7 +88,12 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
     final drop = (_drop != null && _drop!.address == dropAddress) ? _drop! : LocationModel(address: dropAddress);
 
     ref.read(bookingDraftProvider.notifier).setLocations(pickup: pickup, drop: drop);
-    context.push('/booking/vehicle');
+    // pushReplacement, not push - every step of this wizard replaces the
+    // last so the whole flow collapses to a single back-stack/browser-
+    // history entry on top of Home. Otherwise back has to be pressed once
+    // per step (locations/vehicle/details/estimate/confirmation) instead of
+    // going straight to the dashboard in one press.
+    context.pushReplacement('/booking/vehicle');
   }
 
   @override

@@ -1,4 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Without these, a RELEASE build has zero network access at all - the
+         debug-only manifest (android/app/src/debug/AndroidManifest.xml)
+         auto-grants INTERNET for `flutter run`/hot-reload, which is why
+         this wasn't noticed sooner: every dev test happened to run in
+         debug mode. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Android 13+ (API 33) requires this to even show the notification
+         permission dialog - without it, FirebaseMessaging.requestPermission()
+         silently has nothing to ask for. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="logistics_customer_app"
         android:name="${applicationName}"

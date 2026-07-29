@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_bottom_bar.dart';
@@ -24,14 +25,29 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     // Registers the FCM token and routes notification taps (driver
-    // assigned, status updates, new bid received - all already sent from
-    // the backend) straight to that booking's detail/tracking screen.
+    // assigned, status updates - all already sent from the backend)
+    // straight to that booking's detail/tracking screen.
     PushNotificationService().initialize(
       onBookingTap: (bookingId) {
         if (!mounted) return;
         context.push('/booking/detail/$bookingId');
       },
     );
+    _requestLocationPermission();
+  }
+
+  // Asked proactively here (right after login, same spot as the FCM
+  // permission prompt above) rather than left for a future location-using
+  // feature to trigger lazily - matches the OS-dialog timing on the driver
+  // app's active_trip_screen.dart, just moved earlier.
+  Future<void> _requestLocationPermission() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
   }
 
   void _onNavigateToTab(int index) => setState(() => _selectedIndex = index);

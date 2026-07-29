@@ -12,7 +12,12 @@
           "package_name": "com.example.logistics_customer_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -31,7 +41,12 @@
           "package_name": "com.example.logistics_driver_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ"
@@ -39,7 +54,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

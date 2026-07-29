@@ -99,7 +99,13 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
     try {
       final result = await _authService.verifyOtp(_phoneController.text.trim(), _otp);
       if (result.isNewUser) {
+        // updateAccessToken() only stashes the token (for DioClient's
+        // interceptor to attach as Bearer auth) without touching `user`, so
+        // isAuthenticated stays false and the router doesn't redirect away
+        // from this screen before the name step below (which calls
+        // /auth/register, now `protect`-gated server-side) runs.
         _pendingUserId = result.user.id;
+        await ref.read(authProvider.notifier).updateAccessToken(result.accessToken);
         setState(() => _step = _Step.name);
       } else {
         await ref.read(authProvider.notifier).setSession(

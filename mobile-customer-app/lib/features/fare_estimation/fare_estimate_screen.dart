@@ -17,7 +17,6 @@ class FareEstimateScreen extends ConsumerStatefulWidget {
 
 class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
   bool _confirming = false;
-  bool _postingBid = false;
   String? _error;
 
   Future<void> _confirmBooking() async {
@@ -39,44 +38,13 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
             isFragile: draft.isFragile,
             insuranceOpted: draft.insuranceOpted,
             distanceKm: draft.estimate!.distanceKm,
-            pricingMode: 'fixed',
           );
       ref.read(bookingDraftProvider.notifier).reset();
-      if (mounted) context.go('/booking/confirmation/${order.id}');
+      if (mounted) context.pushReplacement('/booking/confirmation/${order.id}');
     } catch (e) {
       setState(() => _error = 'Could not confirm this booking. Try again.');
     } finally {
       if (mounted) setState(() => _confirming = false);
-    }
-  }
-
-  Future<void> _postForBidding() async {
-    final draft = ref.read(bookingDraftProvider);
-    if (draft.estimate == null) return;
-
-    setState(() {
-      _postingBid = true;
-      _error = null;
-    });
-
-    try {
-      final order = await ref.read(bookingServiceProvider).createBooking(
-            pickup: draft.pickup!,
-            drop: draft.drop!,
-            vehicleType: draft.vehicleType!,
-            goodsType: draft.goodsType,
-            weightKg: draft.weightKg,
-            isFragile: draft.isFragile,
-            insuranceOpted: draft.insuranceOpted,
-            distanceKm: draft.estimate!.distanceKm,
-            pricingMode: 'bidding',
-          );
-      ref.read(bookingDraftProvider.notifier).reset();
-      if (mounted) context.push('/bidding/${order.id}');
-    } catch (e) {
-      setState(() => _error = 'Could not post this booking for bidding. Try again.');
-    } finally {
-      if (mounted) setState(() => _postingBid = false);
     }
   }
 
@@ -164,17 +132,10 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   FilledButton(
-                    onPressed: (_confirming || _postingBid) ? null : _confirmBooking,
+                    onPressed: _confirming ? null : _confirmBooking,
                     child: _confirming
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Text('Confirm Booking'),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: (_confirming || _postingBid) ? null : _postForBidding,
-                    child: _postingBid
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Post for bidding instead'),
                   ),
                 ],
               ),

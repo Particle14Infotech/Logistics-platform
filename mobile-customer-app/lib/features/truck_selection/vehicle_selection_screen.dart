@@ -54,7 +54,7 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
   void _continue() {
     if (_selected == null) return;
     ref.read(bookingDraftProvider.notifier).setVehicleType(_selected!);
-    context.push('/booking/details');
+    context.pushReplacement('/booking/details');
   }
 
   @override

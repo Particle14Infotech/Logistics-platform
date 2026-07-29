@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final int maxLength;
+  final bool obscureText;
 
   const CustomTextField({
     super.key,
@@ -16,6 +17,7 @@ class CustomTextField extends StatelessWidget {
     this.controller,
     this.keyboardType = TextInputType.text,
     this.maxLength = 0,
+    this.obscureText = false,
   });
 
   @override
@@ -31,6 +33,7 @@ class CustomTextField extends StatelessWidget {
         controller: controller,
         keyboardType: keyboardType,
         maxLength: maxLength > 0 ? maxLength : null,
+        obscureText: obscureText,
         decoration: InputDecoration(
           counterText: '',
           border: InputBorder.none,

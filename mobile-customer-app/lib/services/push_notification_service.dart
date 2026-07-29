@@ -6,7 +6,7 @@ import '../services/auth_service.dart';
 // device token with the backend (POST /auth/fcm-token), and routes
 // incoming notification taps. All the actual *sending* logic already
 // exists and is wired throughout the backend (driver assigned, status
-// updates, new bid received, etc.) - this is purely the receiving side.
+// updates, etc.) - this is purely the receiving side.
 //
 // Silently does nothing if Firebase isn't configured (no google-services.json
 // yet) - matches the same degrade-gracefully pattern used elsewhere.

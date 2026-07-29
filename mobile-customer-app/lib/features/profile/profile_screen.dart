@@ -132,6 +132,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _ProfileRow(icon: Icons.payment_outlined, label: 'Payment Methods', onTap: () => _comingSoon(context)),
           _ProfileRow(icon: Icons.folder_shared_outlined, label: 'My Documents', onTap: () => _comingSoon(context)),
           _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.password_outlined, label: 'Change Password', onTap: () => context.push('/profile/change-password')),
           _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => _comingSoon(context)),
           _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => _comingSoon(context)),
           const SizedBox(height: 16),

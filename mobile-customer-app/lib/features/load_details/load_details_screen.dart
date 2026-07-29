@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/vehicle_types.dart';
 import '../../providers/booking_provider.dart';
 
 const _kGoodsTypes = ['General cargo', 'Furniture', 'Electronics', 'Food & groceries', 'Documents', 'Industrial equipment', 'Other'];
@@ -58,6 +59,14 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
       return;
     }
 
+    final draft = ref.read(bookingDraftProvider);
+    final vehicle = kVehicleTypes.where((v) => v.value == draft.vehicleType).firstOrNull;
+    if (vehicle != null && weight > vehicle.maxWeightKg) {
+      setState(() => _error =
+          '${vehicle.label} can carry up to ${vehicle.maxWeightKg}kg - choose a bigger vehicle or reduce the weight.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -65,8 +74,6 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
 
     final notifier = ref.read(bookingDraftProvider.notifier);
     notifier.setLoadDetails(goodsType: _goodsType, weightKg: weight, isFragile: _isFragile, insuranceOpted: _insuranceOpted);
-
-    final draft = ref.read(bookingDraftProvider);
     try {
       final estimate = await ref.read(bookingServiceProvider).getEstimate(
             pickup: draft.pickup!,
@@ -75,7 +82,7 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
             weightKg: weight,
           );
       notifier.setEstimate(estimate);
-      if (mounted) context.push('/booking/estimate');
+      if (mounted) context.pushReplacement('/booking/estimate');
     } catch (e) {
       setState(() => _error = 'Could not get a fare estimate. Check your connection and try again.');
     } finally {

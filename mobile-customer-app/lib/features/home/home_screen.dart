@@ -35,7 +35,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user = ref.read(authProvider).user;
     if (user == null) return;
     try {
-      final bookings = await ref.read(bookingServiceProvider).listMyBookings(user.id);
+      final bookings =
+          await ref.read(bookingServiceProvider).listMyBookings(user.id);
       if (mounted) setState(() => _bookings = bookings);
     } catch (e) {
       if (mounted) setState(() => _error = 'Could not load your bookings.');
@@ -49,7 +50,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _goToOrders() => widget.onNavigateToTab?.call(1);
 
-  void _comingSoon() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon')));
+  void _comingSoon() => ScaffoldMessenger.of(context)
+      .showSnackBar(const SnackBar(content: Text('Coming soon')));
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +72,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     radius: 22,
                     backgroundColor: AppTheme.primary,
                     child: Text(
-                      (user?.name?.isNotEmpty ?? false) ? user!.name![0].toUpperCase() : '?',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Colors.white),
+                      (user?.name?.isNotEmpty ?? false)
+                          ? user!.name![0].toUpperCase()
+                          : '?',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -79,30 +84,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Hey ${user?.name?.split(' ').first ?? 'there'}', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                        Text('Welcome back', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+                        Text('Hey ${user?.name?.split(' ').first ?? 'there'}',
+                            style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textDark)),
+                        Text('Welcome back',
+                            style: GoogleFonts.poppins(
+                                fontSize: 12, color: Colors.grey.shade500)),
                       ],
                     ),
                   ),
-                  IconButton(onPressed: _comingSoon, icon: const Icon(Icons.notifications_none)),
+                  IconButton(
+                      onPressed: _comingSoon,
+                      icon: const Icon(Icons.notifications_none)),
                 ],
               ),
               const SizedBox(height: 20),
-
               Container(
                 height: 46,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.borderColor)),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.borderColor)),
                 child: Row(
                   children: [
                     Icon(Icons.search, color: Colors.grey.shade500, size: 20),
                     const SizedBox(width: 8),
-                    Expanded(child: Text('Search shipments', style: GoogleFonts.poppins(color: Colors.grey.shade500, fontSize: 13))),
+                    Expanded(
+                        child: Text('Search shipments',
+                            style: GoogleFonts.poppins(
+                                color: Colors.grey.shade500, fontSize: 13))),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-
               Material(
                 color: AppTheme.primary,
                 borderRadius: BorderRadius.circular(18),
@@ -117,17 +134,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Book a New Shipment', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                              Text('Book a New Shipment',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white)),
                               const SizedBox(height: 4),
-                              Text('Get instant price and book your delivery', style: GoogleFonts.poppins(fontSize: 12, color: Colors.white.withOpacity(0.85))),
+                              Text('Get instant price and book your delivery',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.white
+                                          .withValues(alpha: 0.85))),
                             ],
                           ),
                         ),
                         Container(
                           width: 44,
                           height: 44,
-                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                          child: const Icon(Icons.local_shipping, color: AppTheme.primary),
+                          decoration: const BoxDecoration(
+                              color: Colors.white, shape: BoxShape.circle),
+                          child: const Icon(Icons.local_shipping,
+                              color: AppTheme.primary),
                         ),
                       ],
                     ),
@@ -135,32 +162,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _QuickAction(icon: Icons.location_searching, label: 'Track Order', onTap: _goToOrders),
-                  _QuickAction(icon: Icons.calculate_outlined, label: 'Price Calculator', onTap: _startNewBooking),
-                  _QuickAction(icon: Icons.receipt_long_outlined, label: 'My Orders', onTap: _goToOrders),
-                  _QuickAction(icon: Icons.support_agent_outlined, label: 'Support', onTap: _comingSoon),
+                  _QuickAction(
+                      icon: Icons.location_searching,
+                      label: 'Track Order',
+                      onTap: _goToOrders),
+                  _QuickAction(
+                      icon: Icons.calculate_outlined,
+                      label: 'Price Calculator',
+                      onTap: () => context.push('/price-calculator')),
+                  _QuickAction(
+                      icon: Icons.receipt_long_outlined,
+                      label: 'My Orders',
+                      onTap: _goToOrders),
+                  _QuickAction(
+                      icon: Icons.support_agent_outlined,
+                      label: 'Support',
+                      onTap: _comingSoon),
                 ],
               ),
               const SizedBox(height: 24),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Recent Orders', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                  Text('Recent Orders',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textDark)),
                   TextButton(
                     onPressed: _goToOrders,
-                    child: Text('View All', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                    child: Text('View All',
+                        style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: AppTheme.primary,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
-              if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              if (_bookings == null && _error == null) const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
+              if (_error != null)
+                Text(_error!,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error)),
+              if (_bookings == null && _error == null)
+                const Center(
+                    child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator())),
               if (_bookings != null && recentBookings.isEmpty)
-                Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: Text('No bookings yet - your first one is just a tap away.', style: GoogleFonts.poppins(color: Colors.grey.shade500))),
+                Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(
+                        'No bookings yet - your first one is just a tap away.',
+                        style:
+                            GoogleFonts.poppins(color: Colors.grey.shade500))),
               ...recentBookings.map((b) => _BookingCard(order: b)),
             ],
           ),
@@ -174,7 +231,8 @@ class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _QuickAction({required this.icon, required this.label, required this.onTap});
+  const _QuickAction(
+      {required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -186,13 +244,18 @@ class _QuickAction extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(color: AppTheme.primarySurface, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+                color: AppTheme.primarySurface,
+                borderRadius: BorderRadius.circular(16)),
             child: Icon(icon, color: AppTheme.primary),
           ),
           const SizedBox(height: 6),
           SizedBox(
             width: 68,
-            child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 11, color: AppTheme.textDark)),
+            child: Text(label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                    fontSize: 11, color: AppTheme.textDark)),
           ),
         ],
       ),
@@ -209,7 +272,9 @@ class _BookingCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppTheme.borderColor)),
       child: InkWell(
         onTap: () => context.push('/booking/detail/${order.id}'),
         borderRadius: BorderRadius.circular(14),
@@ -223,18 +288,36 @@ class _BookingCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text('#${order.id.substring(order.id.length - 8).toUpperCase()}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark))),
+                        Expanded(
+                            child: Text(
+                                '#${order.id.substring(order.id.length - 8).toUpperCase()}',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textDark))),
                         StatusPill(status: order.status),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(order.pickupLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text(order.dropLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(order.pickupLocation.address,
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: Colors.grey.shade500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    Text(order.dropLocation.address,
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: Colors.grey.shade500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Text('₹${order.price}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+              Text('₹${order.price}',
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark)),
             ],
           ),
         ),

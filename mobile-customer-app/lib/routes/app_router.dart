@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/auth/otp_login_screen.dart';
+import '../features/auth/email_auth_screen.dart';
 import '../features/main/main_screen.dart';
 import '../features/booking/locations_screen.dart';
 import '../features/truck_selection/vehicle_selection_screen.dart';
@@ -12,8 +13,9 @@ import '../features/fare_estimation/fare_estimate_screen.dart';
 import '../features/booking/booking_confirmation_screen.dart';
 import '../features/booking_history/booking_detail_screen.dart';
 import '../features/booking_history/orders_screen.dart';
-import '../features/bidding/bids_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../features/profile/change_password_screen.dart';
+import '../features/price_calculator/price_calculator_screen.dart';
 
 // Router is a provider so it can react to auth state changes (login/logout)
 // via the redirect callback below - Riverpod recreates the GoRouter whenever
@@ -36,7 +38,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return loggedIn ? '/home' : '/onboarding';
       }
 
-      final isAuthRoute = loc == '/onboarding' || loc == '/login';
+      final isAuthRoute = loc == '/onboarding' || loc == '/login' || loc == '/login-otp';
       if (!loggedIn && !isAuthRoute) return '/login';
       if (loggedIn && isAuthRoute) return '/home';
       return null;
@@ -44,7 +46,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
-      GoRoute(path: '/login', builder: (context, state) => const OtpLoginScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const EmailAuthScreen()),
+      // Phone-OTP login is kept fully functional but unlinked from the UI -
+      // no button routes here anymore, it's only reachable by direct
+      // navigation (e.g. re-enabling it later just means adding a link back).
+      GoRoute(path: '/login-otp', builder: (context, state) => const OtpLoginScreen()),
       // /home now renders the bottom-tab shell (Home/Orders/Profile as
       // IndexedStack tabs) - see features/main/main_screen.dart. The two
       // routes below stay registered as standalone fallbacks (deep-linking,
@@ -52,10 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (context, state) => const MainScreen()),
       GoRoute(path: '/orders', builder: (context, state) => const OrdersScreen()),
       GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
-      GoRoute(
-        path: '/bidding/:orderId',
-        builder: (context, state) => BidsScreen(orderId: state.pathParameters['orderId']!),
-      ),
+      GoRoute(path: '/profile/change-password', builder: (context, state) => const ChangePasswordScreen()),
+      GoRoute(path: '/price-calculator', builder: (context, state) => const PriceCalculatorScreen()),
 
       // Booking flow - each step reads/writes bookingDraftProvider
       GoRoute(path: '/booking/locations', builder: (context, state) => const LocationsScreen()),
