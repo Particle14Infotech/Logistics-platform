@@ -20,6 +20,11 @@ dependencies:
 
   google_maps_flutter: ^2.7.0
   geolocator: ^12.0.0
+  # OpenStreetMap-tiled live tracking map (no API key/billing needed, unlike
+  # Google Maps) - matches the customer app's booking_detail_screen.dart,
+  # which uses the same pair for its live-tracking view.
+  flutter_map: ^8.2.1
+  latlong2: ^0.9.1
   # background_locator_2 removed: unused (we broadcast location via plain
   # geolocator + a foreground Timer in active_trip_screen.dart) and its
   # Android build.gradle depends on jcenter(), a repository shut down years
@@ -29,8 +34,9 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   shared_preferences: ^2.2.3
 
-  firebase_core: ^3.3.0
-  firebase_messaging: ^15.0.3
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
+  firebase_auth: ^6.0.0
 
   intl: ^0.19.0
   # Poppins typography, matching the reference app's brand identity

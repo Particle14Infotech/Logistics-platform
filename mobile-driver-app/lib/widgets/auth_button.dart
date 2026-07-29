@@ -22,13 +22,15 @@ class AuthButton extends StatefulWidget {
   State<AuthButton> createState() => _AuthButtonState();
 }
 
-class _AuthButtonState extends State<AuthButton> with SingleTickerProviderStateMixin {
+class _AuthButtonState extends State<AuthButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _scaleController;
 
   @override
   void initState() {
     super.initState();
-    _scaleController = AnimationController(vsync: this, duration: const Duration(milliseconds: 100));
+    _scaleController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 100));
   }
 
   @override
@@ -45,7 +47,8 @@ class _AuthButtonState extends State<AuthButton> with SingleTickerProviderStateM
       onTapCancel: widget.isLoading ? null : () => _scaleController.reverse(),
       onTap: widget.isLoading ? null : widget.onPressed,
       child: ScaleTransition(
-        scale: Tween(begin: 1.0, end: 0.98).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeOut)),
+        scale: Tween(begin: 1.0, end: 0.98).animate(
+            CurvedAnimation(parent: _scaleController, curve: Curves.easeOut)),
         child: Container(
           height: widget.height,
           width: double.infinity,
@@ -57,8 +60,14 @@ class _AuthButtonState extends State<AuthButton> with SingleTickerProviderStateM
             ),
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
-              BoxShadow(color: AppTheme.amber.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
-              BoxShadow(color: Colors.white.withOpacity(0.2), blurRadius: 10, offset: const Offset(-2, -2)),
+              BoxShadow(
+                  color: AppTheme.amber.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10)),
+              BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(-2, -2)),
             ],
           ),
           child: Center(
@@ -66,11 +75,18 @@ class _AuthButtonState extends State<AuthButton> with SingleTickerProviderStateM
                 ? SizedBox(
                     height: 24,
                     width: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(AppTheme.textDark.withOpacity(0.7))),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.textDark.withValues(alpha: 0.7))),
                   )
                 : Text(
                     widget.label,
-                    style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textDark, letterSpacing: 0.5),
+                    style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark,
+                        letterSpacing: 0.5),
                   ),
           ),
         ),

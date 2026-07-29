@@ -36,6 +36,24 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   bool _uploadingSelfie = false;
 
   @override
+  void initState() {
+    super.initState();
+    // A Driver profile can already exist with no selfie yet - e.g. a fleet
+    // owner created it directly via AddVehicleScreen (no selfie step in
+    // that flow at all). The vehicle-details form below requires non-empty
+    // fields to submit, so without this check that driver would be stuck:
+    // routed here by app_router.dart, but unable to reach the selfie step
+    // since they can't (and shouldn't need to) re-enter vehicle details
+    // that already exist.
+    final profile = ref.read(driverProfileProvider).valueOrNull;
+    if (profile != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _step = _SetupStep.selfie);
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _vehicleNumberController.dispose();
     _licenseController.dispose();
@@ -59,12 +77,21 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
           );
       setState(() => _step = _SetupStep.selfie);
     } on DioException catch (e) {
+      final serverMessage = e.response?.data is Map ? e.response?.data['message'] as String? : null;
       if (e.response?.statusCode == 403) {
         setState(() {
           _roleConflict = true;
           _error = 'This phone number is already registered under a different role (e.g. as a customer). '
               'Sign out and use a different phone number to sign up as a driver.';
         });
+      } else if (e.response?.statusCode == 400 && (serverMessage?.contains('already exists') ?? false)) {
+        // A profile was already created for this account in an earlier
+        // attempt (e.g. the app was backgrounded/killed right after a
+        // successful submit, before this screen advanced past this step -
+        // its step state is local, not persisted). Treat that as success
+        // rather than dead-ending the user on a resubmit that will always
+        // 400 from here on.
+        setState(() => _step = _SetupStep.selfie);
       } else {
         setState(() {
           _roleConflict = false;

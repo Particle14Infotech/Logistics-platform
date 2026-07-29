@@ -1,16 +1,22 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/driver_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/trip_model.dart';
+import '../../models/location_model.dart';
 import '../../services/socket_service.dart';
 import '../../widgets/status_pill.dart';
+
+const _kLiveStatuses = ['accepted', 'picked_up', 'in_transit'];
 
 // Active trip: navigation, status updates, trip completion (SRS 3.2.5).
 // Also broadcasts this driver's live GPS position over Socket.IO while the
@@ -33,6 +39,9 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   final _socketService = SocketService();
   Timer? _gpsTimer;
   String? _locationError;
+  bool _socketConnected = false;
+  LatLng? _driverPosition;
+  final _mapController = MapController();
 
   @override
   void initState() {
@@ -70,6 +79,24 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
 
     _socketService.connect(accessToken);
     _socketService.joinBookingRoom(widget.tripId);
+    _socketService.onConnectionChange((connected) {
+      if (mounted) setState(() => _socketConnected = connected);
+    });
+    // Previously never wired up at all - the order could be cancelled by
+    // the customer or an admin while this driver was mid-trip, and this
+    // screen would have no idea: GPS kept broadcasting indefinitely, and
+    // the driver could still type a delivery code and hit Confirm against
+    // an order that no longer exists to be delivered.
+    _socketService.onStatusBroadcast((data) {
+      final status = data['status'] as String?;
+      if (status == 'cancelled' && mounted) {
+        _gpsTimer?.cancel();
+        setState(() {
+          _error = 'This booking was cancelled.';
+          _trip = _trip?.copyWith(status: 'cancelled');
+        });
+      }
+    });
 
     _broadcastOnce(); // send an immediate fix rather than waiting a full interval
     _gpsTimer = Timer.periodic(const Duration(seconds: ApiConstants.gpsBroadcastIntervalSeconds), (_) => _broadcastOnce());
@@ -79,6 +106,14 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     try {
       final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       _socketService.sendLocation(bookingId: widget.tripId, lat: position.latitude, lng: position.longitude);
+      if (mounted) {
+        final moved = _driverPosition == null;
+        setState(() => _driverPosition = LatLng(position.latitude, position.longitude));
+        // Only recenter on the very first fix - once the map has a position,
+        // let the driver freely pan/zoom without it snapping back on every
+        // broadcast tick.
+        if (moved) _mapController.move(_driverPosition!, 15);
+      }
     } catch (_) {
       // A single failed GPS read isn't worth surfacing to the UI - the next
       // timer tick will just try again.
@@ -94,7 +129,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       // this check, opening a delivered trip (e.g. from trip history, once
       // that links here) would ask for location permission and start
       // broadcasting pointlessly for a completed job.
-      if (['accepted', 'picked_up', 'in_transit'].contains(trip.status)) {
+      if (_kLiveStatuses.contains(trip.status)) {
         _startLocationBroadcast();
       }
     } catch (e) {
@@ -111,7 +146,12 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       final trip = await ref.read(driverServiceProvider).advanceTripStatus(widget.tripId, status, note: note);
       if (mounted) setState(() => _trip = trip);
     } catch (e) {
-      setState(() => _error = 'Could not update trip status.');
+      // Surface the backend's actual validation message (e.g. "Cannot move
+      // from picked_up to picked_up" on a double-tap, or a 404 because the
+      // order was cancelled elsewhere) instead of a generic line that hides
+      // what actually went wrong.
+      final serverMessage = e is DioException && e.response?.data is Map ? e.response?.data['message'] as String? : null;
+      setState(() => _error = serverMessage ?? 'Could not update trip status.');
     } finally {
       if (mounted) setState(() => _updating = false);
     }
@@ -142,7 +182,13 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       ref.invalidate(driverProfileProvider); // picks up updated totalTrips/earnings
       if (mounted) context.go('/dashboard');
     } catch (e) {
-      setState(() => _error = 'Incorrect code. Ask the customer to confirm it.');
+      // "Incorrect code" was previously shown for EVERY failure here,
+      // including a plain network timeout or the backend's own "Trip must
+      // be in transit before delivery can be confirmed" (e.g. if the order
+      // was cancelled or the status changed elsewhere) - both got blamed on
+      // the customer's code being wrong, which it never was.
+      final serverMessage = e is DioException && e.response?.data is Map ? e.response?.data['message'] as String? : null;
+      setState(() => _error = serverMessage ?? 'Could not confirm delivery. Check your connection and try again.');
     } finally {
       if (mounted) setState(() => _updating = false);
     }
@@ -162,16 +208,43 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                 children: [
                   Row(children: [StatusPill(status: trip.status)]),
                   const SizedBox(height: 8),
-                  if (_locationError != null)
-                    Text(_locationError!, style: TextStyle(color: AppTheme.error, fontSize: 12))
-                  else
-                    Row(
-                      children: [
-                        Icon(Icons.gps_fixed, size: 14, color: AppTheme.success),
-                        const SizedBox(width: 6),
-                        Text('Sharing your live location with the customer', style: TextStyle(color: AppTheme.success, fontSize: 12)),
-                      ],
+                  // Only relevant while a trip is actually broadcasting-
+                  // eligible (see _load()'s status check) - previously this
+                  // showed the same "green, all good" text for a delivered/
+                  // cancelled trip too, since it just meant "no permission
+                  // error", not "actually connected right now".
+                  if (_kLiveStatuses.contains(trip.status))
+                    if (_locationError != null)
+                      Text(_locationError!, style: TextStyle(color: AppTheme.error, fontSize: 12))
+                    else if (_socketConnected)
+                      Row(
+                        children: [
+                          Icon(Icons.gps_fixed, size: 14, color: AppTheme.success),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text('Sharing your live location with the customer', style: TextStyle(color: AppTheme.success, fontSize: 12)),
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          Icon(Icons.gps_not_fixed, size: 14, color: AppTheme.amber),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text('Reconnecting - the customer may not see your live position right now', style: TextStyle(color: AppTheme.amber, fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                  if (_kLiveStatuses.contains(trip.status)) ...[
+                    const SizedBox(height: 12),
+                    _LiveMapCard(
+                      driverPosition: _driverPosition,
+                      mapController: _mapController,
+                      pickup: trip.pickupLocation,
+                      drop: trip.dropLocation,
                     ),
+                  ],
                   const SizedBox(height: 16),
                   _InfoCard(
                     child: Column(
@@ -273,6 +346,15 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         );
       case 'delivered':
         return const Center(child: Text('This trip is complete.'));
+      case 'cancelled':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(child: Text('This booking was cancelled.')),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: () => context.go('/dashboard'), child: const Text('Back to dashboard')),
+          ],
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -289,6 +371,92 @@ class _InfoCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
       child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+// Live tracking map - previously the Active Trip screen had no map at all,
+// just plain-text pickup/drop addresses, despite the driver app already
+// broadcasting GPS over the socket for the customer's map to consume. Uses
+// OpenStreetMap tiles (flutter_map/latlong2), same as the customer app's
+// booking_detail_screen.dart, rather than google_maps_flutter - no API
+// key/billing dependency, sidestepping the Google Cloud billing issue that
+// broke Places Autocomplete earlier in this project.
+class _LiveMapCard extends StatelessWidget {
+  final LatLng? driverPosition;
+  final MapController mapController;
+  final LocationModel pickup;
+  final LocationModel drop;
+  const _LiveMapCard({
+    required this.driverPosition,
+    required this.mapController,
+    required this.pickup,
+    required this.drop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (driverPosition == null) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+        child: Container(
+          height: 160,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8, width: 200, child: LinearProgressIndicator()),
+              const SizedBox(height: 12),
+              Text('Getting your GPS position…', style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final dropPoint = (drop.lat != null && drop.lng != null) ? LatLng(drop.lat!, drop.lng!) : null;
+    final pickupPoint = (pickup.lat != null && pickup.lng != null) ? LatLng(pickup.lat!, pickup.lng!) : null;
+    final distanceToDropKm = dropPoint == null ? null : const Distance().as(LengthUnit.Kilometer, driverPosition!, dropPoint);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Card(
+          elevation: 0,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          child: SizedBox(
+            height: 200,
+            child: FlutterMap(
+              mapController: mapController,
+              options: MapOptions(initialCenter: driverPosition!, initialZoom: 15),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.logistics.driver_app',
+                ),
+                MarkerLayer(
+                  markers: [
+                    if (pickupPoint != null)
+                      Marker(point: pickupPoint, width: 32, height: 32, child: const Icon(Icons.trip_origin, color: Colors.green, size: 26)),
+                    if (dropPoint != null)
+                      Marker(point: dropPoint, width: 32, height: 32, child: const Icon(Icons.location_on, color: Colors.red, size: 30)),
+                    Marker(point: driverPosition!, width: 36, height: 36, child: const Icon(Icons.local_shipping, color: AppTheme.amber, size: 30)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (distanceToDropKm != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            '${distanceToDropKm.toStringAsFixed(1)} km to drop-off',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ],
     );
   }
 }

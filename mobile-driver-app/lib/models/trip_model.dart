@@ -12,7 +12,6 @@ class TripModel {
   final String status;
   final String? customerName;
   final String? customerPhone;
-  final num? myBidAmount; // only populated by /bid/available-orders, null otherwise
   final DateTime createdAt;
 
   TripModel({
@@ -27,9 +26,25 @@ class TripModel {
     required this.status,
     this.customerName,
     this.customerPhone,
-    this.myBidAmount,
     required this.createdAt,
   });
+
+  TripModel copyWith({String? status}) {
+    return TripModel(
+      id: id,
+      pickupLocation: pickupLocation,
+      dropLocation: dropLocation,
+      vehicleType: vehicleType,
+      goodsType: goodsType,
+      weightKg: weightKg,
+      distanceKm: distanceKm,
+      price: price,
+      status: status ?? this.status,
+      customerName: customerName,
+      customerPhone: customerPhone,
+      createdAt: createdAt,
+    );
+  }
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
     final customer = json['customerId'];
@@ -45,7 +60,6 @@ class TripModel {
       status: json['status'] as String,
       customerName: customer is Map<String, dynamic> ? customer['name'] as String? : null,
       customerPhone: customer is Map<String, dynamic> ? customer['phone'] as String? : null,
-      myBidAmount: json['myBidAmount'] as num?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

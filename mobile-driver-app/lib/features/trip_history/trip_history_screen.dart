@@ -54,7 +54,8 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     if (_trips == null) return [];
     final status = _kFilters[_filterIndex].status;
     if (status == null) return _trips!;
-    if (status == 'active') return _trips!.where((t) => _kActiveStatuses.contains(t.status)).toList();
+    if (status == 'active')
+      return _trips!.where((t) => _kActiveStatuses.contains(t.status)).toList();
     return _trips!.where((t) => t.status == status).toList();
   }
 
@@ -77,7 +78,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                 return ChoiceChip(
                   label: Text(_kFilters[i].label),
                   selected: selected,
-                  selectedColor: AppTheme.amber.withOpacity(0.25),
+                  selectedColor: AppTheme.amber.withValues(alpha: 0.25),
                   onSelected: (_) => setState(() => _filterIndex = i),
                 );
               },
@@ -87,21 +88,33 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
             child: RefreshIndicator(
               onRefresh: _load,
               child: _trips == null
-                  ? (_error != null ? Center(child: Text(_error!)) : const Center(child: CircularProgressIndicator()))
+                  ? (_error != null
+                      ? Center(child: Text(_error!))
+                      : const Center(child: CircularProgressIndicator()))
                   : _filtered.isEmpty
-                      ? ListView(children: const [Padding(padding: EdgeInsets.all(32), child: Center(child: Text('No trips here yet.')))])
+                      ? ListView(children: const [
+                          Padding(
+                              padding: EdgeInsets.all(32),
+                              child: Center(child: Text('No trips here yet.')))
+                        ])
                       : ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: _filtered.length,
                           itemBuilder: (context, i) {
                             final trip = _filtered[i];
-                            final isActive = _kActiveStatuses.contains(trip.status);
+                            final isActive =
+                                _kActiveStatuses.contains(trip.status);
                             return Card(
                               elevation: 0,
                               margin: const EdgeInsets.only(bottom: 10),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  side: const BorderSide(
+                                      color: AppTheme.borderColor)),
                               child: InkWell(
-                                onTap: isActive ? () => context.push('/trip/${trip.id}') : null,
+                                onTap: isActive
+                                    ? () => context.push('/trip/${trip.id}')
+                                    : null,
                                 borderRadius: BorderRadius.circular(14),
                                 child: Padding(
                                   padding: const EdgeInsets.all(14),
@@ -110,27 +123,52 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                                       Container(
                                         width: 44,
                                         height: 44,
-                                        decoration: BoxDecoration(color: AppTheme.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                                        child: Icon(vehicleIcon(trip.vehicleType), color: const Color(0xFF8A6200)),
+                                        decoration: BoxDecoration(
+                                            color: AppTheme.amber
+                                                .withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: Icon(
+                                            vehicleIcon(trip.vehicleType),
+                                            color: const Color(0xFF8A6200)),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
-                                                Expanded(child: Text('${trip.pickupLocation.address} → ${trip.dropLocation.address}', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600))),
+                                                Expanded(
+                                                    child: Text(
+                                                        '${trip.pickupLocation.address} → ${trip.dropLocation.address}',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600))),
                                                 StatusPill(status: trip.status),
                                               ],
                                             ),
                                             const SizedBox(height: 4),
-                                            Text('${trip.customerName ?? 'Customer'} · ${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}', style: GoogleFonts.poppins(fontSize: 11, color: AppTheme.textGrey)),
+                                            Text(
+                                                '${trip.customerName ?? 'Customer'} · ${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}',
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 11,
+                                                    color: AppTheme.textGrey)),
                                           ],
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      Text('₹${trip.price}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
+                                      Text('₹${trip.price}',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700)),
                                     ],
                                   ),
                                 ),

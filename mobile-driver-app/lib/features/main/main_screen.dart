@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/custom_bottom_bar.dart';
@@ -41,6 +42,22 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
     );
+    _requestLocationPermission();
+  }
+
+  // Asked proactively here (right after login) rather than only lazily at
+  // trip-start (active_trip_screen.dart's _startLocationBroadcast() still
+  // does its own check too, since a driver could deny here and grant later,
+  // or the OS could revoke it between sessions - this just gets the prompt
+  // in front of the driver earlier instead of first thing when a job starts.
+  Future<void> _requestLocationPermission() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
   }
 
   void _onNavigateToTab(int index) => setState(() => _selectedIndex = index);

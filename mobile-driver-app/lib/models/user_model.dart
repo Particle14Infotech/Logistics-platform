@@ -3,9 +3,19 @@ class UserModel {
   final String? name;
   final String? phone;
   final String? email;
+  final String? dob;
   final String role;
+  final bool notificationsEnabled;
 
-  UserModel({required this.id, this.name, this.phone, this.email, required this.role});
+  UserModel({
+    required this.id,
+    this.name,
+    this.phone,
+    this.email,
+    this.dob,
+    required this.role,
+    this.notificationsEnabled = true,
+  });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -13,7 +23,9 @@ class UserModel {
       name: json['name'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
+      dob: json['dob'] as String?,
       role: json['role'] as String? ?? 'driver',
+      notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
     );
   }
 }

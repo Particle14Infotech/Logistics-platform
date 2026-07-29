@@ -109,7 +109,13 @@ class _OtpLoginScreenState extends ConsumerState<OtpLoginScreen> {
         // the router watches, and would redirect away from this screen
         // before the name step below (which actually calls /auth/register)
         // ever runs. completeProfile() is what finally calls setSession().
+        // updateAccessToken() only stashes the token (for DioClient's
+        // interceptor to attach as Bearer auth) without touching `user`, so
+        // isAuthenticated stays false and the router doesn't redirect - but
+        // /auth/register, now `protect`-gated server-side, still sees a
+        // valid caller.
         _pendingUserId = result.user.id;
+        await ref.read(authProvider.notifier).updateAccessToken(result.accessToken);
         setState(() => _step = _Step.name);
       } else {
         await ref.read(authProvider.notifier).setSession(

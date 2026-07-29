@@ -23,6 +23,18 @@ class SocketService {
     _socket!.connect();
   }
 
+  // Reflects the socket's ACTUAL connect/disconnect state, so the UI can
+  // show an honest "not currently sharing location" instead of assuming
+  // connected just because location permission was granted (that only
+  // gates whether broadcasting was ever attempted, not whether it's
+  // currently reaching the server - the two can and do diverge, e.g. a
+  // network drop or an expired handshake token).
+  void onConnectionChange(void Function(bool connected) callback) {
+    _socket?.onConnect((_) => callback(true));
+    _socket?.onDisconnect((_) => callback(false));
+    _socket?.onConnectError((_) => callback(false));
+  }
+
   void joinBookingRoom(String bookingId) {
     _socket?.emit('join_booking_room', {'bookingId': bookingId});
   }

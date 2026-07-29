@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
@@ -35,12 +36,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final userId = await _storage.read(key: 'userId');
     final userName = await _storage.read(key: 'userName');
     final userPhone = await _storage.read(key: 'userPhone');
+    // Falls back to 'driver' only for sessions stored before this field
+    // existed - previously this was ALWAYS hard-coded to 'driver' on
+    // restore, silently reassigning every restored fleet_owner back to
+    // 'driver' on every app restart. That sent them down the router's
+    // driver branch instead of the fleet branch, which 403s fetching
+    // /driver/profile (authorize('driver')-gated) and got treated as a
+    // permanent "this account isn't registered as a driver" lockout with
+    // no way back in except signing out and re-registering.
+    final userRole = await _storage.read(key: 'userRole');
 
     if (accessToken != null && userId != null) {
       state = AuthState(
         accessToken: accessToken,
         refreshToken: refreshToken,
-        user: UserModel(id: userId, name: userName, phone: userPhone, role: 'driver'),
+        user: UserModel(id: userId, name: userName, phone: userPhone, role: userRole ?? 'driver'),
         isLoading: false,
       );
     } else {
@@ -52,6 +62,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _storage.write(key: 'accessToken', value: accessToken);
     await _storage.write(key: 'refreshToken', value: refreshToken);
     await _storage.write(key: 'userId', value: user.id);
+    await _storage.write(key: 'userRole', value: user.role);
     if (user.name != null) await _storage.write(key: 'userName', value: user.name);
     if (user.phone != null) await _storage.write(key: 'userPhone', value: user.phone);
 
@@ -65,6 +76,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     await _storage.deleteAll();
+    // Backend session and Firebase session are two independent systems
+    // (see auth_service.dart) - clearing only secure storage left
+    // FirebaseAuth.instance.currentUser pointing at whoever last signed in
+    // via email/password on this device. On a shared device, a second
+    // person logging in via phone OTP (which never touches Firebase)
+    // would then have changePassword()/checkEmailVerified() etc. silently
+    // operate against the FIRST person's still-signed-in Firebase account.
+    try {
+      await fb.FirebaseAuth.instance.signOut();
+    } catch (_) {
+      // No Firebase session to sign out of (e.g. this device only ever
+      // used phone OTP) - nothing to do.
+    }
     state = const AuthState(isLoading: false);
   }
 }

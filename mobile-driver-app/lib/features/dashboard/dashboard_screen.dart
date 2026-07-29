@@ -84,7 +84,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           error: (e, __) => Center(child: Text('Could not load your profile.\n$e', textAlign: TextAlign.center)),
           data: (profile) {
             if (profile == null) return const Center(child: CircularProgressIndicator());
-            if (!profile.isApproved) return _PendingApprovalView(onRefresh: () => ref.invalidate(driverProfileProvider));
+            if (!profile.isApproved) {
+              return _PendingApprovalView(
+                onCheckStatus: () async {
+                  final refreshed = await ref.refresh(driverProfileProvider.future);
+                  return refreshed?.isApproved ?? false;
+                },
+              );
+            }
 
             final activeTrips = (_recentTrips ?? []).where((t) => _kActiveStatuses.contains(t.status)).toList();
             final recent = (_recentTrips ?? []).take(5).toList();
@@ -307,9 +314,36 @@ class _TripCard extends StatelessWidget {
   }
 }
 
-class _PendingApprovalView extends StatelessWidget {
-  final VoidCallback onRefresh;
-  const _PendingApprovalView({required this.onRefresh});
+class _PendingApprovalView extends StatefulWidget {
+  // Returns true once the refreshed profile is approved, so the button can
+  // show explicit feedback instead of silently invalidating a provider -
+  // that gave zero visual feedback when (as is normal) the driver is still
+  // pending, which read as the button "doing nothing".
+  final Future<bool> Function() onCheckStatus;
+  const _PendingApprovalView({required this.onCheckStatus});
+
+  @override
+  State<_PendingApprovalView> createState() => _PendingApprovalViewState();
+}
+
+class _PendingApprovalViewState extends State<_PendingApprovalView> {
+  bool _checking = false;
+
+  Future<void> _handleCheckStatus() async {
+    setState(() => _checking = true);
+    try {
+      final approved = await widget.onCheckStatus();
+      if (!approved && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Still pending approval - check back soon.')),
+        );
+      }
+      // If now approved, the parent's .when() re-renders past this view
+      // automatically once driverProfileProvider's new value comes through.
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +368,16 @@ class _PendingApprovalView extends StatelessWidget {
               label: const Text('Upload remaining documents'),
             ),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRefresh, child: const Text('Check status')),
+            OutlinedButton(
+              onPressed: _checking ? null : _handleCheckStatus,
+              child: _checking
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Check status'),
+            ),
           ],
         ),
       ),

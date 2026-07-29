@@ -12,6 +12,11 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
 
+    <!-- Android 13+ (API 33) requires this to even show the notification
+         permission dialog - without it, FirebaseMessaging.requestPermission()
+         silently has nothing to ask for. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:label="logistics_driver_app"
         android:name="${applicationName}"
