@@ -1,0 +1,25 @@
+name: Web Portal Enterprise CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths: ['web-portal-enterprise/**']
+  pull_request:
+    branches: [develop, main]
+    paths: ['web-portal-enterprise/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-portal-enterprise
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web-portal-enterprise/package-lock.json
+      - run: npm install
+      - run: npm run build

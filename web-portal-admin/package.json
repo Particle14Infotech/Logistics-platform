@@ -1,0 +1,32 @@
+{
+  "name": "logistics-web-portal-admin",
+  "version": "1.0.0",
+  "description": "Admin Web Portal (MERN - React + Vite)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@react-google-maps/api": "^2.19.3",
+    "axios": "^1.7.2",
+    "date-fns": "^3.6.0",
+    "firebase": "^12.16.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.25.1",
+    "recharts": "^2.12.7",
+    "socket.io-client": "^4.7.5",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^9.7.0",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7",
+    "vite": "^5.3.4"
+  }
+}
