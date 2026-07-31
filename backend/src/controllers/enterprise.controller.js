@@ -100,6 +100,11 @@ exports.firebaseSignup = catchAsync(async (req, res) => {
       }
       user.firebaseUid = decoded.uid;
       user.isVerified = true;
+      // A user created via the old auth/firebase-session auto-create path
+      // (see auth.controller.js) has no name at all - this is the one
+      // place contactName is actually collected for that account, so
+      // backfill it rather than leaving it permanently blank.
+      if (!user.name && contactName) user.name = contactName;
       await user.save();
       enterprise = await Enterprise.findOne({ adminUserId: user._id });
     }

@@ -3,10 +3,15 @@ import { NavLink } from 'react-router-dom';
 /**
  * Left dispatch-console navigation. `items` = [{ to, label, icon }]
  * `footerLabel` shows the signed-in identity above the sign-out control.
+ *
+ * Below the md breakpoint this used to just disappear entirely (hidden
+ * md:flex, no fallback) - there was no way to navigate at all on a narrow
+ * viewport. mobileOpen/onClose add a slide-in drawer + backdrop for that
+ * case; the desktop <aside> below is unchanged.
  */
-export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut }) {
-  return (
-    <aside className="hidden md:flex md:w-60 md:flex-col bg-panel border-r border-line shrink-0 shadow-sm">
+export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut, mobileOpen = false, onClose }) {
+  const navContent = (onNavigate) => (
+    <>
       <div className="h-16 flex items-center gap-2 px-5 border-b border-line">
         <div className="w-7 h-7 rounded bg-signal flex items-center justify-center">
           <span className="font-display font-bold text-white text-sm">L</span>
@@ -22,6 +27,7 @@ export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut }) 
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={onNavigate}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
@@ -45,6 +51,25 @@ export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut }) 
           Sign out
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: permanent sidebar, unchanged from before */}
+      <aside className="hidden md:flex md:w-60 md:flex-col bg-panel border-r border-line shrink-0 shadow-sm">
+        {navContent()}
+      </aside>
+
+      {/* Mobile: slide-in drawer, only mounted below md */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 bg-black/60" onClick={onClose} />
+          <aside className="relative flex flex-col w-64 max-w-[80vw] bg-panel border-r border-line shadow-lg">
+            {navContent(onClose)}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

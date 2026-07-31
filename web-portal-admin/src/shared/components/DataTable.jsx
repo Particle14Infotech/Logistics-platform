@@ -3,33 +3,38 @@
  */
 export default function DataTable({ columns, rows, keyField = 'id', onRowClick }) {
   return (
-    <div className="border border-line rounded-xl shadow-sm overflow-hidden bg-panel">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-panel2 border-b border-line">
-            {columns.map((col) => (
-              <th key={col.key} className="text-left px-4 py-2.5 eyebrow font-normal">
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row[keyField]}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={`border-b border-line last:border-b-0 hover:bg-panel2/60 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
-            >
+    <div className="border border-line rounded-xl shadow-sm bg-panel">
+      {/* overflow-x-auto here (not on the outer div) - a narrow viewport
+          needs the table itself to scroll horizontally, not get clipped -
+          the outer div keeps overflow-hidden's job of rounding corners. */}
+      <div className="overflow-x-auto rounded-xl">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-panel2 border-b border-line">
               {columns.map((col) => (
-                <td key={col.key} className="px-4 py-3 align-middle">
-                  {col.render ? col.render(row) : row[col.key]}
-                </td>
+                <th key={col.key} className="text-left px-4 py-2.5 eyebrow font-normal whitespace-nowrap">
+                  {col.label}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row[keyField]}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={`border-b border-line last:border-b-0 hover:bg-panel2/60 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+              >
+                {columns.map((col) => (
+                  <td key={col.key} className="px-4 py-3 align-middle whitespace-nowrap">
+                    {col.render ? col.render(row) : row[col.key]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {rows.length === 0 && (
         <div className="px-4 py-10 text-center text-mist text-sm">Nothing here yet.</div>
       )}

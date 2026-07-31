@@ -96,6 +96,9 @@ export default function AdminOrderDetailPage() {
             <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
               <span className="eyebrow">Customer</span>
               <div className="text-sm space-y-1.5 mt-2">
+                {order.enterpriseId?.companyName && (
+                  <div className="flex justify-between"><span className="text-mist">Company</span><span>{order.enterpriseId.companyName}</span></div>
+                )}
                 <div className="flex justify-between"><span className="text-mist">Name</span><span>{order.customerId?.name ?? '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Phone</span><span className="font-mono">{order.customerId?.phone ?? '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Email</span><span>{order.customerId?.email ?? '—'}</span></div>

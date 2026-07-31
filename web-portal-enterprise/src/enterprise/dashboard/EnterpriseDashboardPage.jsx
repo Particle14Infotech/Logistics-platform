@@ -144,11 +144,11 @@ export default function EnterpriseDashboardPage() {
       {error && <div className="border border-stop/30 bg-stop/10 text-stop text-sm rounded-lg p-4">{error}</div>}
 
       {loading ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[0, 1, 2].map((i) => <div key={i} className="bg-panel border border-line rounded-xl shadow-sm p-4 h-24 animate-pulse" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {kpis.map((kpi) => <KpiCard key={kpi.label} {...kpi} mono={false} />)}
         </div>
       )}

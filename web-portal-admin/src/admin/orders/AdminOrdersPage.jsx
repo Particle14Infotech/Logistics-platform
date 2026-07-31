@@ -62,7 +62,16 @@ export default function AdminOrdersPage() {
 
   const columns = [
     { key: 'id', label: 'Order', render: (r) => <span className="font-mono text-xs">{r._id.slice(-8).toUpperCase()}</span> },
-    { key: 'customer', label: 'Customer', render: (r) => r.customerId?.name ?? '—' },
+    {
+      key: 'customer',
+      label: 'Customer',
+      // Enterprise-placed orders (bulk booking) should read as the company
+      // that ordered them, not whichever individual enterprise user's
+      // account happened to submit it - and it's the only name guaranteed
+      // to be set, since a plain customer account's own name is optional
+      // and can be blank until they fill in their profile.
+      render: (r) => r.enterpriseId?.companyName ?? r.customerId?.name ?? '—',
+    },
     {
       key: 'route',
       label: 'Route',

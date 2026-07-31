@@ -2,10 +2,18 @@
  * Top bar: search + live status pill + identity. Kept quiet so the
  * signature fleet ticker and KPI strip below do the visual work.
  */
-export default function Topbar({ userName, userRole, dateLabel }) {
+export default function Topbar({ userName, userRole, dateLabel, onMenuClick }) {
   return (
-    <header className="h-16 flex items-center justify-between gap-4 px-6 border-b border-line bg-ink/80 backdrop-blur sticky top-0 z-10 shadow-sm">
-      <div className="flex items-center gap-3 flex-1 max-w-md">
+    <header className="h-16 flex items-center justify-between gap-4 px-4 sm:px-6 border-b border-line bg-ink/80 backdrop-blur sticky top-0 z-10 shadow-sm">
+      <div className="flex items-center gap-3 flex-1 max-w-md min-w-0">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="md:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-md border border-line text-mist hover:text-paper hover:bg-panel2 transition-colors"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
         <div className="relative w-full">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-mist text-sm">⌕</span>
           <input

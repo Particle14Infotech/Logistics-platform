@@ -237,7 +237,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <span className="eyebrow">Today</span>
-            <div className="grid grid-cols-3 gap-4 mt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
               {todayKpis.map((kpi) => (
                 <KpiCard key={kpi.label} {...kpi} />
               ))}

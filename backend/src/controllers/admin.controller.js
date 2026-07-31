@@ -44,6 +44,7 @@ exports.listOrders = catchAsync(async (req, res) => {
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum)
       .populate('customerId', 'name email phone')
+      .populate('enterpriseId', 'companyName')
       .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating', populate: { path: 'userId', select: 'name phone' } })
       .lean(),
     Order.countDocuments(filter),
@@ -59,6 +60,7 @@ exports.listOrders = catchAsync(async (req, res) => {
 exports.getOrderById = catchAsync(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate('customerId', 'name email phone')
+    .populate('enterpriseId', 'companyName')
     .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating currentLocation', populate: { path: 'userId', select: 'name phone' } });
 
   if (!order) throw new AppError('Order not found', 404);
