@@ -127,14 +127,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _ProfileRow(icon: Icons.person_outline, label: 'Personal Information', onTap: () => _comingSoon(context)),
-          _ProfileRow(icon: Icons.location_on_outlined, label: 'Addresses', onTap: () => _comingSoon(context)),
-          _ProfileRow(icon: Icons.payment_outlined, label: 'Payment Methods', onTap: () => _comingSoon(context)),
-          _ProfileRow(icon: Icons.folder_shared_outlined, label: 'My Documents', onTap: () => _comingSoon(context)),
-          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.person_outline, label: 'Personal Information', onTap: () => context.push('/profile/personal-information')),
+          _ProfileRow(icon: Icons.location_on_outlined, label: 'Addresses', onTap: () => context.push('/profile/addresses')),
+          _ProfileRow(icon: Icons.payment_outlined, label: 'Payment Methods', onTap: () => context.push('/profile/payment-history')),
+          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => context.push('/profile/notifications')),
           _ProfileRow(icon: Icons.password_outlined, label: 'Change Password', onTap: () => context.push('/profile/change-password')),
-          _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => _comingSoon(context)),
-          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => context.push('/profile/help-support')),
+          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => context.push('/profile/settings')),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -149,10 +148,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
-  }
-
-  void _comingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon')));
   }
 }
 

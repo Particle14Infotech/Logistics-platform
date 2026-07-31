@@ -14,11 +14,25 @@ class AuthResult {
 class AuthService {
   final _dio = DioClient.instance;
 
-  Future<UserModel> updateProfile({String? name, String? email}) async {
+  Future<UserModel> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+    String? dob,
+    bool? notificationsEnabled,
+  }) async {
     final response = await _dio.put('/auth/profile', data: {
       if (name != null) 'name': name,
       if (email != null) 'email': email,
+      if (phone != null) 'phone': phone,
+      if (dob != null) 'dob': dob,
+      if (notificationsEnabled != null) 'notificationsEnabled': notificationsEnabled,
     });
+    return UserModel.fromJson(response.data['data']['user'] as Map<String, dynamic>);
+  }
+
+  Future<UserModel> getProfile() async {
+    final response = await _dio.get('/auth/profile');
     return UserModel.fromJson(response.data['data']['user'] as Map<String, dynamic>);
   }
 

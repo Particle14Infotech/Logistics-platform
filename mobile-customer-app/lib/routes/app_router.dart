@@ -14,6 +14,12 @@ import '../features/booking_history/booking_detail_screen.dart';
 import '../features/booking_history/orders_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/profile/change_password_screen.dart';
+import '../features/profile/personal_information_screen.dart';
+import '../features/profile/addresses_screen.dart';
+import '../features/profile/payment_history_screen.dart';
+import '../features/profile/notification_settings_screen.dart';
+import '../features/profile/help_support_screen.dart';
+import '../features/profile/settings_screen.dart';
 import '../features/price_calculator/price_calculator_screen.dart';
 
 // Router is a provider so it can react to auth state changes (login/logout)
@@ -54,6 +60,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/orders', builder: (context, state) => const OrdersScreen()),
       GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
       GoRoute(path: '/profile/change-password', builder: (context, state) => const ChangePasswordScreen()),
+      GoRoute(path: '/profile/personal-information', builder: (context, state) => const PersonalInformationScreen()),
+      GoRoute(path: '/profile/addresses', builder: (context, state) => const AddressesScreen()),
+      GoRoute(path: '/profile/payment-history', builder: (context, state) => const PaymentHistoryScreen()),
+      GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationSettingsScreen()),
+      GoRoute(path: '/profile/help-support', builder: (context, state) => const HelpSupportScreen()),
+      GoRoute(path: '/profile/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(path: '/price-calculator', builder: (context, state) => const PriceCalculatorScreen()),
 
       // Booking flow - each step reads/writes bookingDraftProvider

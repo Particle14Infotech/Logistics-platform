@@ -146,11 +146,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(height: 8),
           _ProfileRow(icon: Icons.folder_shared_outlined, label: 'My Documents', onTap: () => context.push('/documents')),
-          _ProfileRow(icon: Icons.account_balance_outlined, label: 'Bank Details', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.account_balance_outlined, label: 'Bank Details', onTap: () => context.push('/profile/bank-details')),
           _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => context.push('/profile/notifications')),
           _ProfileRow(icon: Icons.password_outlined, label: 'Change Password', onTap: () => context.push('/profile/change-password')),
-          _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => _comingSoon(context)),
-          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => _comingSoon(context)),
+          _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => context.push('/profile/help-support')),
+          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => context.push('/profile/settings')),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -165,10 +165,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
-  }
-
-  void _comingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coming soon')));
   }
 }
 

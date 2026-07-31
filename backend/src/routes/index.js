@@ -8,5 +8,7 @@ router.use('/enterprise', require('./enterprise.routes'));
 router.use('/fleet', require('./fleet.routes'));
 router.use('/places', require('./places.routes'));
 router.use('/admin', require('./admin.routes'));
+router.use('/saved-addresses', require('./savedAddress.routes'));
+router.use('/content', require('./content.routes'));
 
 module.exports = router;
