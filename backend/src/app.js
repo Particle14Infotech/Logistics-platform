@@ -11,6 +11,14 @@ const errorHandler = require('./middlewares/errorHandler.middleware');
 
 const app = express();
 
+// In production this sits behind exactly one reverse proxy hop (nginx on
+// the same VPS) - without this, express-rate-limit can't trust the
+// X-Forwarded-For header nginx sets, and would otherwise key every
+// request off nginx's own address instead of the real client IP.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security & parsing middleware
 app.use(helmet());
 app.use(compression());
