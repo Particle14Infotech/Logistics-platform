@@ -118,8 +118,12 @@ exports.listDrivers = catchAsync(async (req, res) => {
     Driver.countDocuments(filter),
   ]);
 
+  // .lean() skips schema defaults, so drivers created before the wallet
+  // feature existed would otherwise come back with walletBalance: undefined.
+  const normalized = drivers.map((d) => ({ ...d, walletBalance: d.walletBalance ?? 0 }));
+
   return success(res, {
-    drivers: search ? drivers.filter((d) => d.userId) : drivers,
+    drivers: search ? normalized.filter((d) => d.userId) : normalized,
     pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) },
   });
 });
