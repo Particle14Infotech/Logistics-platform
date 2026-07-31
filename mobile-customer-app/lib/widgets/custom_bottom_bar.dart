@@ -20,11 +20,11 @@ class CustomBottomBar extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, -2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -2))],
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 64,
+          height: 66,
           child: Row(
             children: List.generate(items.length, (i) {
               final item = items[i];
@@ -32,13 +32,23 @@ class CustomBottomBar extends StatelessWidget {
               return Expanded(
                 child: InkWell(
                   onTap: () => onTap(i),
+                  borderRadius: BorderRadius.circular(16),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        selected ? (item.activeIcon ?? item.icon) : item.icon,
-                        color: selected ? AppTheme.primary : AppTheme.textLight,
-                        size: 24,
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: selected ? AppTheme.primary.withValues(alpha: 0.12) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          selected ? (item.activeIcon ?? item.icon) : item.icon,
+                          color: selected ? AppTheme.primary : AppTheme.textLight,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(

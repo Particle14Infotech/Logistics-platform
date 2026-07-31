@@ -68,15 +68,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: AppTheme.primary,
-                    child: Text(
-                      (user?.name?.isNotEmpty ?? false)
-                          ? user!.name![0].toUpperCase()
-                          : '?',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w700, color: Colors.white),
+                  Container(
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: const BoxDecoration(gradient: AppTheme.heroGradient, shape: BoxShape.circle),
+                    child: CircleAvatar(
+                      radius: 21,
+                      backgroundColor: Colors.white,
+                      child: CircleAvatar(
+                        radius: 19,
+                        backgroundColor: AppTheme.primary,
+                        child: Text(
+                          (user?.name?.isNotEmpty ?? false)
+                              ? user!.name![0].toUpperCase()
+                              : '?',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -84,34 +92,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Hey ${user?.name?.split(' ').first ?? 'there'}',
+                        Text('Hey ${user?.name?.split(' ').first ?? 'there'} 👋',
                             style: GoogleFonts.poppins(
-                                fontSize: 17,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: AppTheme.textDark)),
-                        Text('Welcome back',
+                        Text('Where are we shipping today?',
                             style: GoogleFonts.poppins(
-                                fontSize: 12, color: Colors.grey.shade500)),
+                                fontSize: 12.5, color: Colors.grey.shade500)),
                       ],
                     ),
                   ),
-                  IconButton(
-                      onPressed: _comingSoon,
-                      icon: const Icon(Icons.notifications_none)),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: AppTheme.cardShadow,
+                    ),
+                    child: IconButton(
+                        onPressed: _comingSoon,
+                        icon: const Icon(Icons.notifications_none, size: 22)),
+                  ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
               Container(
-                height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppTheme.borderColor)),
+                    boxShadow: AppTheme.cardShadow),
                 child: Row(
                   children: [
-                    Icon(Icons.search, color: Colors.grey.shade500, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                    const SizedBox(width: 10),
                     Expanded(
                         child: Text('Search shipments',
                             style: GoogleFonts.poppins(
@@ -120,48 +135,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Material(
-                color: AppTheme.primary,
-                borderRadius: BorderRadius.circular(18),
-                child: InkWell(
-                  onTap: _startNewBooking,
-                  borderRadius: BorderRadius.circular(18),
-                  child: Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: Row(
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppTheme.heroGradient,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: AppTheme.primary.withValues(alpha: 0.28), blurRadius: 20, offset: const Offset(0, 8)),
+                  ],
+                ),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: _startNewBooking,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Stack(
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        Positioned(
+                          right: -18,
+                          top: -18,
+                          child: Icon(Icons.local_shipping, size: 90, color: Colors.white.withValues(alpha: 0.10)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
                             children: [
-                              Text('Book a New Shipment',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white)),
-                              const SizedBox(height: 4),
-                              Text('Get instant price and book your delivery',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.white
-                                          .withValues(alpha: 0.85))),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Book a New Shipment',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white)),
+                                    const SizedBox(height: 5),
+                                    Text('Get instant price and book your delivery',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12.5,
+                                            color: Colors.white
+                                                .withValues(alpha: 0.85))),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: const BoxDecoration(
+                                    color: Colors.white, shape: BoxShape.circle),
+                                child: const Icon(Icons.arrow_forward_rounded,
+                                    color: AppTheme.primary),
+                              ),
                             ],
                           ),
-                        ),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                              color: Colors.white, shape: BoxShape.circle),
-                          child: const Icon(Icons.local_shipping,
-                              color: AppTheme.primary),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 26),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -245,17 +277,18 @@ class _QuickAction extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-                color: AppTheme.primarySurface,
-                borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: AppTheme.primary),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppTheme.cardShadow),
+            child: Icon(icon, color: AppTheme.primary, size: 22),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           SizedBox(
             width: 68,
             child: Text(label,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                    fontSize: 11, color: AppTheme.textDark)),
+                    fontSize: 11, color: AppTheme.textDark, fontWeight: FontWeight.w500)),
           ),
         ],
       ),
@@ -269,56 +302,60 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: AppTheme.borderColor)),
-      child: InkWell(
-        onTap: () => context.push('/booking/detail/${order.id}'),
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                                '#${order.id.substring(order.id.length - 8).toUpperCase()}',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textDark))),
-                        StatusPill(status: order.status),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(order.pickupLocation.address,
-                        style: GoogleFonts.poppins(
-                            fontSize: 12, color: Colors.grey.shade500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
-                    Text(order.dropLocation.address,
-                        style: GoogleFonts.poppins(
-                            fontSize: 12, color: Colors.grey.shade500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
-                  ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () => context.push('/booking/detail/${order.id}'),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Text(
+                                  '#${order.id.substring(order.id.length - 8).toUpperCase()}',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textDark))),
+                          StatusPill(status: order.status),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(order.pickupLocation.address,
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.grey.shade500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      Text(order.dropLocation.address,
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.grey.shade500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text('₹${order.price}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textDark)),
-            ],
+                const SizedBox(width: 8),
+                Text('₹${order.price}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark)),
+              ],
+            ),
           ),
         ),
       ),

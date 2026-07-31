@@ -50,7 +50,6 @@ dependencies:
   # have yet - broke the Android build outright.
   # Barcode/QR scanning for proof-of-pickup confirmation
   mobile_scanner: ^5.2.3
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

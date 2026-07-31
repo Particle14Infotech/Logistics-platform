@@ -68,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: i == _page ? 28 : 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: i == _page ? Colors.white : Colors.white.withOpacity(0.35),
+                          color: i == _page ? Colors.white : Colors.white.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -82,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 12),
                   Text(
                     _slides[_page].body,
-                    style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.85), height: 1.5),
+                    style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withValues(alpha: 0.85), height: 1.5),
                   ),
                   const SizedBox(height: 28),
                   _GetStartedButton(isLast: _page == _slides.length - 1, onTap: _next),
@@ -105,14 +105,14 @@ class _HeroSection extends StatelessWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(36), bottomRight: Radius.circular(36)),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [AppTheme.primaryMedium, AppTheme.primary],
           ),
         ),
-        child: Center(child: Icon(icon, size: 140, color: Colors.white.withOpacity(0.9))),
+        child: Center(child: Icon(icon, size: 140, color: Colors.white.withValues(alpha: 0.9))),
       ),
     );
   }
@@ -143,7 +143,7 @@ class _GetStartedButton extends StatelessWidget {
             const SizedBox(width: 14),
             Text(isLast ? 'Get Started' : 'Next', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
             const SizedBox(width: 8),
-            Icon(Icons.keyboard_double_arrow_right, color: AppTheme.primary, size: 20),
+            const Icon(Icons.keyboard_double_arrow_right, color: AppTheme.primary, size: 20),
             const SizedBox(width: 8),
           ],
         ),

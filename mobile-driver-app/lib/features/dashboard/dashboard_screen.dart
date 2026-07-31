@@ -106,12 +106,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: AppTheme.amber,
-                        child: Text(
-                          (user?.name?.isNotEmpty ?? false) ? user!.name![0].toUpperCase() : '?',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Colors.black87),
+                      Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: const BoxDecoration(gradient: AppTheme.heroGradient, shape: BoxShape.circle),
+                        child: CircleAvatar(
+                          radius: 21,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 19,
+                            backgroundColor: AppTheme.amber,
+                            child: Text(
+                              (user?.name?.isNotEmpty ?? false) ? user!.name![0].toUpperCase() : '?',
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Colors.black87),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -119,33 +127,37 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Hey ${user?.name?.split(' ').first ?? 'there'}', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                            Text('Hey ${user?.name?.split(' ').first ?? 'there'}', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
                             Row(
                               children: [
                                 Icon(Icons.circle, size: 8, color: profile.isAvailable ? AppTheme.success : Colors.grey.shade400),
-                                const SizedBox(width: 4),
-                                Text(profile.isAvailable ? 'Online' : 'Offline', style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textGrey)),
+                                const SizedBox(width: 5),
+                                Text(profile.isAvailable ? 'Online - ready for jobs' : 'Offline', style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textGrey)),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      _togglingAvailability
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : Switch(value: profile.isAvailable, onChanged: _toggleAvailability, activeThumbColor: AppTheme.amber),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: AppTheme.cardShadow),
+                        child: _togglingAvailability
+                            ? const SizedBox(height: 44, width: 44, child: Center(child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))))
+                            : Switch(value: profile.isAvailable, onChanged: _toggleAvailability, activeThumbColor: AppTheme.amber),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
 
                   // Search bar - filters recent trips below by pickup/drop text
                   Container(
-                    height: 46,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.borderColor)),
+                    height: 48,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: AppTheme.cardShadow),
                     child: Row(
                       children: [
                         Icon(Icons.search, color: AppTheme.textGrey, size: 20),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(child: Text('Search trips, waybill no.', style: GoogleFonts.poppins(color: AppTheme.textGrey, fontSize: 13))),
                       ],
                     ),
@@ -206,34 +218,55 @@ class _HeroBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppTheme.amber,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppTheme.heroGradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: AppTheme.amber.withValues(alpha: 0.32), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Positioned(
+                right: -18,
+                top: -18,
+                child: Icon(
+                  hasActiveTrip ? Icons.local_shipping : Icons.assignment,
+                  size: 90,
+                  color: Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
                   children: [
-                    Text(hasActiveTrip ? 'Trip in progress' : 'View job requests', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black87)),
-                    const SizedBox(height: 4),
-                    Text(
-                      hasActiveTrip ? 'Tap to resume tracking' : 'Browse bookings near you',
-                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.black.withOpacity(0.65)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(hasActiveTrip ? 'Trip in progress' : 'View job requests', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.black87)),
+                          const SizedBox(height: 5),
+                          Text(
+                            hasActiveTrip ? 'Tap to resume tracking' : 'Browse bookings near you',
+                            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.black.withValues(alpha: 0.65)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      child: Icon(hasActiveTrip ? Icons.local_shipping : Icons.arrow_forward_rounded, color: Colors.black87),
                     ),
                   ],
                 ),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: Icon(hasActiveTrip ? Icons.local_shipping : Icons.assignment, color: Colors.black87),
               ),
             ],
           ),
@@ -259,11 +292,11 @@ class _QuickAction extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(color: AppTheme.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: const Color(0xFF8A6200)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: AppTheme.cardShadow),
+            child: Icon(icon, color: const Color(0xFF8A6200), size: 22),
           ),
-          const SizedBox(height: 6),
-          Text(label, style: GoogleFonts.poppins(fontSize: 11, color: AppTheme.textDark)),
+          const SizedBox(height: 7),
+          Text(label, style: GoogleFonts.poppins(fontSize: 11, color: AppTheme.textDark, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -277,36 +310,38 @@ class _TripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: Text('#${trip.id.substring(trip.id.length - 8).toUpperCase()}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark))),
-                        StatusPill(status: trip.status),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(trip.pickupLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textGrey), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text(trip.dropLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textGrey), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: AppTheme.cardShadow),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: Text('#${trip.id.substring(trip.id.length - 8).toUpperCase()}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark))),
+                          StatusPill(status: trip.status),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(trip.pickupLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textGrey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(trip.dropLocation.address, style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textGrey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text('₹${trip.price}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-            ],
+                const SizedBox(width: 8),
+                Text('₹${trip.price}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+              ],
+            ),
           ),
         ),
       ),

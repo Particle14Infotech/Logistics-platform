@@ -11,14 +11,14 @@ class StatusPill extends StatelessWidget {
       case 'pending':
         return (Colors.blueGrey.shade50, Colors.blueGrey.shade700, 'Pending');
       case 'accepted':
-        return (AppTheme.amber.withOpacity(0.15), const Color(0xFF8A6200), 'Accepted');
+        return (AppTheme.amber.withValues(alpha: 0.15), const Color(0xFF8A6200), 'Accepted');
       case 'picked_up':
       case 'in_transit':
-        return (AppTheme.amber.withOpacity(0.15), const Color(0xFF8A6200), 'In Transit');
+        return (AppTheme.amber.withValues(alpha: 0.15), const Color(0xFF8A6200), 'In Transit');
       case 'delivered':
-        return (AppTheme.success.withOpacity(0.12), const Color(0xFF1B7A34), 'Delivered');
+        return (AppTheme.success.withValues(alpha: 0.12), const Color(0xFF1B7A34), 'Delivered');
       case 'cancelled':
-        return (AppTheme.error.withOpacity(0.10), const Color(0xFFB3261E), 'Cancelled');
+        return (AppTheme.error.withValues(alpha: 0.10), const Color(0xFFB3261E), 'Cancelled');
       default:
         return (Colors.grey.shade200, Colors.grey.shade700, status);
     }
