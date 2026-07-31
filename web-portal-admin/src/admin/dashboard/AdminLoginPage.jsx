@@ -164,22 +164,6 @@ export default function AdminLoginPage() {
               Go to enterprise portal
             </a>
           </p>
-
-          <p className="text-xs text-mist/60 mt-8 text-center">
-            Dev credentials: admin@particle14.com / Admin@12345 (run <code>npm run seed</code>)
-          </p>
-          <div className="text-center mt-3">
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('admin@particle14.com');
-                setPassword('Admin@12345');
-              }}
-              className="text-xs text-signal hover:underline"
-            >
-              Fill dev credentials
-            </button>
-          </div>
         </form>
       </div>
     </div>

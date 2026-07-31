@@ -236,11 +236,6 @@ export default function EnterpriseLoginPage() {
                   Go to admin console
                 </a>
               </p>
-
-              <p className="text-xs text-mist/60 mt-8 text-center">
-                Dev seed account (priya@vertexpharma.com) was created before Firebase auth -
-                use Sign Up once with that email to link it, choosing any new password.
-              </p>
             </form>
           )}
 
