@@ -11,6 +11,8 @@ router.put('/orders/:id/assign', ctrl.assignDriver);
 router.get('/drivers', ctrl.listDrivers);
 router.get('/drivers/:id', ctrl.getDriverById);
 router.put('/drivers/:id', ctrl.updateDriverStatus);
+router.get('/drivers/:id/wallet', ctrl.getDriverWallet);
+router.post('/drivers/:id/payout', ctrl.payoutDriver);
 
 router.get('/vehicles', ctrl.listVehicles);
 
@@ -19,6 +21,7 @@ router.put('/pricing', ctrl.updatePricing);
 
 router.get('/payments', ctrl.listPayments);
 router.put('/payments/:id/refund', ctrl.refundPayment);
+router.put('/invoices/:id/status', ctrl.updateInvoiceStatus);
 
 router.get('/disputes', ctrl.listDisputes);
 router.put('/disputes/:id/resolve', ctrl.resolveDispute);

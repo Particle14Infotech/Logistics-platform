@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import DataTable from '../../shared/components/DataTable.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
@@ -25,10 +25,14 @@ function OnlineBadge({ isAvailable }) {
 
 export default function AdminDriversPage() {
   const navigate = useNavigate();
+  // Lets the dashboard's "Drivers online" KPI link straight here
+  // pre-filtered (/drivers?isAvailable=true) instead of an unfiltered list.
+  const [searchParams] = useSearchParams();
   const [drivers, setDrivers] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [approvalFilter, setApprovalFilter] = useState(''); // '', 'true', 'false'
-  const [vehicleType, setVehicleType] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState(searchParams.get('isAvailable') || ''); // '', 'true', 'false'
+  const [vehicleType, setVehicleType] = useState(searchParams.get('vehicleType') || '');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -41,6 +45,7 @@ export default function AdminDriversPage() {
       const { data } = await axiosClient.get('/admin/drivers', {
         params: {
           isApproved: approvalFilter || undefined,
+          isAvailable: availabilityFilter || undefined,
           vehicleType: vehicleType || undefined,
           search: search || undefined,
           page,
@@ -55,7 +60,7 @@ export default function AdminDriversPage() {
     } finally {
       setLoading(false);
     }
-  }, [approvalFilter, vehicleType, search, page]);
+  }, [approvalFilter, availabilityFilter, vehicleType, search, page]);
 
   useEffect(() => {
     fetchDrivers();
@@ -63,7 +68,7 @@ export default function AdminDriversPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [approvalFilter, vehicleType, search]);
+  }, [approvalFilter, availabilityFilter, vehicleType, search]);
 
   const columns = [
     { key: 'name', label: 'Driver', render: (r) => r.userId?.name ?? '—' },
@@ -110,10 +115,20 @@ export default function AdminDriversPage() {
             </option>
           ))}
         </select>
-        {(approvalFilter || vehicleType || search) && (
+        <select
+          value={availabilityFilter}
+          onChange={(e) => setAvailabilityFilter(e.target.value)}
+          className="bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
+        >
+          <option value="">All availability</option>
+          <option value="true">Online</option>
+          <option value="false">Offline</option>
+        </select>
+        {(approvalFilter || availabilityFilter || vehicleType || search) && (
           <button
             onClick={() => {
               setApprovalFilter('');
+              setAvailabilityFilter('');
               setVehicleType('');
               setSearch('');
             }}

@@ -25,13 +25,22 @@ function resolveDocUrl(url) {
   return url.startsWith('/') ? `${BACKEND_ORIGIN}${url}` : url;
 }
 
+const WALLET_TYPE_LABELS = {
+  trip_earning: 'Trip fare',
+  cancellation_compensation: 'Cancellation compensation',
+  payout: 'Payout',
+  adjustment: 'Adjustment',
+};
+
 export default function AdminDriverDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [driver, setDriver] = useState(null);
   const [stats, setStats] = useState(null);
+  const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [payingOut, setPayingOut] = useState(false);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
 
@@ -39,9 +48,13 @@ export default function AdminDriverDetailPage() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axiosClient.get(`/admin/drivers/${id}`);
+      const [{ data }, { data: walletData }] = await Promise.all([
+        axiosClient.get(`/admin/drivers/${id}`),
+        axiosClient.get(`/admin/drivers/${id}/wallet`),
+      ]);
       setDriver(data.data.driver);
       setStats(data.data.stats);
+      setWallet(walletData.data);
     } catch (err) {
       console.error('[AdminDriverDetailPage] failed to load driver', err);
       setError(err.response?.data?.message || 'Could not load this driver.');
@@ -53,6 +66,21 @@ export default function AdminDriverDetailPage() {
   useEffect(() => {
     fetchDriver();
   }, [fetchDriver]);
+
+  const processPayout = async () => {
+    if (!window.confirm(`Mark ₹${wallet?.balance ?? 0} as paid out to this driver? Only do this after actually transferring the money via their bank details.`)) return;
+    setPayingOut(true);
+    setActionError('');
+    try {
+      await axiosClient.post(`/admin/drivers/${id}/payout`);
+      await fetchDriver();
+    } catch (err) {
+      console.error('[AdminDriverDetailPage] payout failed', err);
+      setActionError(err.response?.data?.message || 'Could not process payout.');
+    } finally {
+      setPayingOut(false);
+    }
+  };
 
   const updateStatus = async (payload) => {
     setUpdating(true);
@@ -169,6 +197,39 @@ export default function AdminDriverDetailPage() {
               </div>
             </div>
           </div>
+
+          {wallet && (
+            <div className="bg-panel border border-line rounded-lg p-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <span className="eyebrow">Wallet</span>
+                  <div className="text-2xl font-display font-semibold mt-1">₹{wallet.balance}</div>
+                </div>
+                <button
+                  onClick={processPayout}
+                  disabled={payingOut || !(wallet.balance > 0)}
+                  className="bg-go/10 text-go text-sm font-medium rounded-md px-4 py-2 hover:bg-go/20 disabled:opacity-40 transition-colors"
+                >
+                  {payingOut ? 'Processing…' : 'Mark as paid out'}
+                </button>
+              </div>
+              {wallet.transactions.length > 0 && (
+                <div className="mt-4 space-y-1.5">
+                  {wallet.transactions.slice(0, 10).map((t) => (
+                    <div key={t._id} className="flex justify-between text-sm py-1.5 border-b border-line last:border-0">
+                      <div>
+                        <div>{WALLET_TYPE_LABELS[t.type] ?? t.type}</div>
+                        <div className="text-xs text-mist">{new Date(t.createdAt).toLocaleDateString('en-IN')}{t.note ? ` · ${t.note}` : ''}</div>
+                      </div>
+                      <span className={t.amount >= 0 ? 'text-go' : 'text-stop'}>
+                        {t.amount >= 0 ? '+' : '-'}₹{Math.abs(t.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="bg-panel border border-line rounded-lg p-4">
             <span className="eyebrow">KYC documents</span>

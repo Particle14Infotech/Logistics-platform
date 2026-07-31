@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import DataTable from '../../shared/components/DataTable.jsx';
 import StatusBadge from '../../shared/components/StatusBadge.jsx';
@@ -11,11 +11,17 @@ const VEHICLE_OPTIONS = ['', 'bike', 'auto', 'mini_truck', 'medium_truck', 'larg
 
 export default function AdminOrdersPage() {
   const navigate = useNavigate();
+  // Lets the dashboard's KPI cards/chart bars link straight here pre-filtered
+  // (e.g. /orders?status=delivered&dateFrom=2026-07-31) instead of just
+  // dumping the admin on an unfiltered list they have to redo by hand.
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
   const [vehicleType, setVehicleType] = useState('');
   const [search, setSearch] = useState('');
+  const [dateFrom] = useState(searchParams.get('dateFrom') || '');
+  const [dateTo] = useState(searchParams.get('dateTo') || '');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,6 +35,8 @@ export default function AdminOrdersPage() {
           status: status || undefined,
           vehicleType: vehicleType || undefined,
           search: search || undefined,
+          dateFrom: dateFrom || undefined,
+          dateTo: dateTo || undefined,
           page,
           limit: 15,
         },
@@ -41,7 +49,7 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [status, vehicleType, search, page]);
+  }, [status, vehicleType, search, dateFrom, dateTo, page]);
 
   useEffect(() => {
     fetchOrders();

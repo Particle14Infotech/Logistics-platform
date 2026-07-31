@@ -9,6 +9,9 @@ const Banner = require('../models/banner.model');
 const Faq = require('../models/faq.model');
 const Notification = require('../models/notification.model');
 const Enterprise = require('../models/enterprise.model');
+const WalletTransaction = require('../models/walletTransaction.model');
+const Invoice = require('../models/invoice.model');
+const { applyWalletTransaction } = require('../services/wallet.service');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
 exports.listOrders = catchAsync(async (req, res) => {
@@ -162,6 +165,38 @@ exports.getDriverById = catchAsync(async (req, res) => {
   return success(res, { driver, stats: { totalOrders, deliveredOrders } });
 });
 
+// POST /api/v1/admin/drivers/:id/payout  { amount? }
+// Marks a payout as settled - no bank-transfer automation exists yet, this
+// is purely bookkeeping for whatever transfer the admin already did
+// manually using driver.bankDetails. Defaults to paying out the full
+// current balance if amount isn't given.
+exports.payoutDriver = catchAsync(async (req, res) => {
+  const driver = await Driver.findById(req.params.id);
+  if (!driver) throw new AppError('Driver not found', 404);
+
+  const amount = req.body.amount != null ? Number(req.body.amount) : driver.walletBalance;
+  if (!(amount > 0)) throw new AppError('Payout amount must be greater than zero', 400);
+  if (amount > driver.walletBalance) throw new AppError(`Cannot pay out ₹${amount} - wallet balance is only ₹${driver.walletBalance}`, 400);
+
+  const updated = await applyWalletTransaction({
+    driverId: driver._id,
+    type: 'payout',
+    amount: -amount,
+    note: 'Payout processed by admin',
+  });
+
+  return success(res, { balance: updated.walletBalance }, 'Payout recorded');
+});
+
+// GET /api/v1/admin/drivers/:id/wallet - ledger for a specific driver
+exports.getDriverWallet = catchAsync(async (req, res) => {
+  const driver = await Driver.findById(req.params.id);
+  if (!driver) throw new AppError('Driver not found', 404);
+
+  const transactions = await WalletTransaction.find({ driverId: driver._id }).sort({ createdAt: -1 }).limit(100);
+  return success(res, { balance: driver.walletBalance, transactions });
+});
+
 // GET /api/v1/admin/analytics - KPI + revenue snapshot for the dashboard
 exports.analytics = catchAsync(async (req, res) => {
   const todayStart = new Date();
@@ -170,9 +205,17 @@ exports.analytics = catchAsync(async (req, res) => {
   const sevenDaysAgo = new Date(todayStart);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 7 days inclusive of today
 
+  // For a cod order, only codAdvanceAmount was ever actually captured online
+  // - the remainder is cash the driver collects directly, never platform
+  // revenue in the sense this figure means. Summing '$price' for every
+  // 'paid' order (as this used to do) overstated revenue on every cod
+  // order by the whole uncollected remainder.
+  const paidAmountExpr = { $cond: [{ $eq: ['$paymentMethod', 'cod'] }, '$codAdvanceAmount', '$price'] };
+
   const [
     ordersToday,
     revenueAgg,
+    enterpriseRevenueAgg,
     activeDrivers,
     totalDrivers,
     deliveredToday,
@@ -182,11 +225,22 @@ exports.analytics = catchAsync(async (req, res) => {
     activeTrips,
     statusAgg,
     vehicleAgg,
+    todayStatusAgg,
   ] = await Promise.all([
     Order.countDocuments({ createdAt: { $gte: todayStart } }),
     Order.aggregate([
       { $match: { createdAt: { $gte: todayStart }, paymentStatus: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$price' } } },
+      { $group: { _id: null, total: { $sum: paidAmountExpr } } },
+    ]),
+    // Enterprise billing is a separate invoice-based system, not the
+    // per-order Payment/paymentStatus flow individual customers use - an
+    // enterprise order's own paymentStatus never becomes 'paid', so it was
+    // previously invisible to both this figure and admin/payments entirely.
+    // updatedAt is used as a paid-today proxy since Invoice has no
+    // dedicated paidAt field.
+    Invoice.aggregate([
+      { $match: { status: 'paid', updatedAt: { $gte: todayStart } } },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
     ]),
     Driver.countDocuments({ isAvailable: true, isApproved: true }),
     Driver.countDocuments({ isApproved: true }),
@@ -206,7 +260,7 @@ exports.analytics = catchAsync(async (req, res) => {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Asia/Kolkata' } },
           orders: { $sum: 1 },
-          revenue: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$price', 0] } },
+          revenue: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, paidAmountExpr, 0] } },
         },
       },
     ]),
@@ -222,6 +276,16 @@ exports.analytics = catchAsync(async (req, res) => {
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     Driver.aggregate([{ $match: { isApproved: true } }, { $group: { _id: '$vehicleType', count: { $sum: 1 } } }]),
+    // Distinct from the "live right now" pipeline above (which mixes
+    // regardless-of-creation-date pending/accepted/picked_up/in_transit
+    // counts with today-only delivered/cancelled counts into one
+    // confusing array) - this is every order actually created today,
+    // grouped by whatever status it's at right now, so "today's activity"
+    // has its own real answer instead of being folded into that one.
+    Order.aggregate([
+      { $match: { createdAt: { $gte: todayStart } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
   ]);
 
   const completedToday = deliveredToday + cancelledToday;
@@ -236,6 +300,17 @@ exports.analytics = catchAsync(async (req, res) => {
     { status: 'in_transit', label: 'In transit', count: statusCounts.in_transit },
     { status: 'delivered', label: 'Delivered (today)', count: deliveredToday },
     { status: 'cancelled', label: 'Cancelled (today)', count: cancelledToday },
+  ];
+
+  const todayStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, delivered: 0, cancelled: 0 };
+  todayStatusAgg.forEach((s) => { todayStatusCounts[s._id] = s.count; });
+  const todayOrdersByStatus = [
+    { status: 'pending', label: 'Pending', count: todayStatusCounts.pending },
+    { status: 'accepted', label: 'Accepted', count: todayStatusCounts.accepted },
+    { status: 'picked_up', label: 'Picked up', count: todayStatusCounts.picked_up },
+    { status: 'in_transit', label: 'In transit', count: todayStatusCounts.in_transit },
+    { status: 'delivered', label: 'Delivered', count: todayStatusCounts.delivered },
+    { status: 'cancelled', label: 'Cancelled', count: todayStatusCounts.cancelled },
   ];
 
   const VEHICLE_TYPE_LABELS = {
@@ -270,9 +345,14 @@ exports.analytics = catchAsync(async (req, res) => {
     });
   }
 
+  const individualRevenueToday = revenueAgg[0]?.total ?? 0;
+  const enterpriseRevenueToday = enterpriseRevenueAgg[0]?.total ?? 0;
+
   return success(res, {
     ordersToday,
-    revenueToday: revenueAgg[0]?.total ?? 0,
+    revenueToday: individualRevenueToday + enterpriseRevenueToday,
+    individualRevenueToday,
+    enterpriseRevenueToday,
     activeDrivers,
     totalDrivers,
     activeOrders,
@@ -280,6 +360,7 @@ exports.analytics = catchAsync(async (req, res) => {
     deliverySuccessRate: Math.round(successRate * 10) / 10,
     last7Days,
     ordersByStatus,
+    todayOrdersByStatus,
     fleetByVehicleType,
   });
 });
@@ -358,28 +439,70 @@ exports.updatePricing = catchAsync(async (req, res) => {
 });
 
 // GET /api/v1/admin/payments?status=&search=&page=&limit=
+// Unifies individual customer payments (Payment collection - Razorpay
+// checkout/cod advance) with enterprise invoices (Invoice collection -
+// entirely separate billing path, never went through Payment/paymentStatus
+// at all) into one list, so nothing is invisible here just because it came
+// through a different billing mechanism. Two collections with different
+// status vocabularies (StatusBadge already has color/label mappings for
+// both) can't be paginated together at the DB level, so this fetches both
+// fully and paginates the merged, sorted result in memory - fine at this
+// project's scale.
 exports.listPayments = catchAsync(async (req, res) => {
   const { status, search, page = 1, limit = 20 } = req.query;
-
-  const filter = {};
-  if (status) filter.status = status;
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
-  let query = Payment.find(filter).populate('userId', 'name email phone').populate('orderId', 'pickupLocation dropLocation');
-  if (search) {
-    query = query.populate({ path: 'userId', match: { name: { $regex: search, $options: 'i' } }, select: 'name email phone' });
-  }
+  const paymentFilter = {};
+  if (status) paymentFilter.status = status;
+  const invoiceFilter = {};
+  if (status) invoiceFilter.status = status;
 
-  const [payments, total] = await Promise.all([
-    query.sort({ createdAt: -1 }).skip((pageNum - 1) * limitNum).limit(limitNum).lean(),
-    Payment.countDocuments(filter),
+  const [payments, invoices] = await Promise.all([
+    Payment.find(paymentFilter)
+      .populate('userId', 'name email phone')
+      .populate('orderId', 'pickupLocation dropLocation')
+      .sort({ createdAt: -1 })
+      .lean(),
+    Invoice.find(invoiceFilter).populate('enterpriseId', 'companyName').sort({ createdAt: -1 }).lean(),
   ]);
 
+  const individualRows = payments
+    .filter((p) => !search || p.userId?.name?.toLowerCase().includes(search.toLowerCase()))
+    .map((p) => ({
+      _id: p._id,
+      type: 'individual',
+      reference: p.razorpayPaymentId ?? String(p._id).slice(-8),
+      partyName: p.userId?.name ?? '—',
+      route: p.orderId ? `${p.orderId.pickupLocation?.address ?? '?'} → ${p.orderId.dropLocation?.address ?? '?'}` : null,
+      amount: p.amount, // already paise
+      status: p.status,
+      createdAt: p.createdAt,
+    }));
+
+  const enterpriseRows = invoices
+    .filter((inv) => !search || inv.enterpriseId?.companyName?.toLowerCase().includes(search.toLowerCase()))
+    .map((inv) => ({
+      _id: inv._id,
+      type: 'enterprise',
+      reference: `INV-${String(inv._id).slice(-8).toUpperCase()}`,
+      partyName: inv.enterpriseId?.companyName ?? '—',
+      route: inv.periodStart && inv.periodEnd
+        ? `${new Date(inv.periodStart).toLocaleDateString('en-IN')} – ${new Date(inv.periodEnd).toLocaleDateString('en-IN')}`
+        : null,
+      amount: Math.round((inv.totalAmount ?? 0) * 100), // rupees -> paise, to match individual rows
+      status: inv.status,
+      createdAt: inv.createdAt,
+    }));
+
+  const merged = [...individualRows, ...enterpriseRows].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const total = merged.length;
+  const pageRows = merged.slice((pageNum - 1) * limitNum, (pageNum - 1) * limitNum + limitNum);
+
   return success(res, {
-    payments: search ? payments.filter((p) => p.userId) : payments,
-    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) },
+    payments: pageRows,
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.max(1, Math.ceil(total / limitNum)) },
   });
 });
 
@@ -414,6 +537,20 @@ exports.refundPayment = catchAsync(async (req, res) => {
     { payment },
     razorpayConfigured ? 'Payment refunded' : 'Payment marked as refunded (Razorpay not configured - simulated)'
   );
+});
+
+// PUT /api/v1/admin/invoices/:id/status  { status }
+// No online payment gateway is wired to enterprise invoices - this is
+// bookkeeping for whatever bank transfer/settlement already happened
+// offline, same "admin marks it done" pattern as the driver wallet payout.
+exports.updateInvoiceStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+  if (!['draft', 'sent', 'paid', 'overdue'].includes(status)) {
+    throw new AppError("status must be one of: draft, sent, paid, overdue", 400);
+  }
+  const invoice = await Invoice.findByIdAndUpdate(req.params.id, { status }, { new: true });
+  if (!invoice) throw new AppError('Invoice not found', 404);
+  return success(res, { invoice }, 'Invoice status updated');
 });
 
 // GET /api/v1/admin/disputes?status=&category=&page=&limit=

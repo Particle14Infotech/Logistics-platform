@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import DataTable from '../../shared/components/DataTable.jsx';
 import StatusBadge from '../../shared/components/StatusBadge.jsx';
@@ -8,9 +9,14 @@ import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'delivered', 'cancelled'];
 
 export default function EnterpriseOrderTrackingPage() {
+  // Lets the dashboard's KPI cards/chart bars link straight here
+  // pre-filtered instead of just dumping the user on an unfiltered list.
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
+  const [dateFrom] = useState(searchParams.get('dateFrom') || '');
+  const [dateTo] = useState(searchParams.get('dateTo') || '');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +25,9 @@ export default function EnterpriseOrderTrackingPage() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axiosClient.get('/enterprise/orders', { params: { status: status || undefined, page, limit: 15 } });
+      const { data } = await axiosClient.get('/enterprise/orders', {
+        params: { status: status || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined, page, limit: 15 },
+      });
       setOrders(data.data.orders);
       setPagination(data.data.pagination);
     } catch (err) {
@@ -28,7 +36,7 @@ export default function EnterpriseOrderTrackingPage() {
     } finally {
       setLoading(false);
     }
-  }, [status, page]);
+  }, [status, dateFrom, dateTo, page]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
   useEffect(() => { setPage(1); }, [status]);

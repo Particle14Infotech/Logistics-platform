@@ -26,10 +26,25 @@ const STATUS_BAR_COLOR = {
   cancelled: '#D03B3B',
 };
 
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+// Backend's dateTo filter is an inclusive $lte against midnight of that
+// date string, not end-of-day - so a same-day range (dateFrom=X&dateTo=X)
+// would match almost nothing, since virtually every order that day was
+// created after X's own midnight. The next calendar day as the upper bound
+// is what actually captures "all of day X".
+const nextDayIso = (dateStr) => {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
+
 // Orders and revenue are different units/scales, so they're two single-hue
 // charts rather than one dual-axis chart - a dual y-axis chart is the #1
 // chart-reading mistake (the two scales silently mislead on relative size).
-function TrendChart({ title, data, dataKey, color, formatValue }) {
+// onBarClick, when given, makes each day's bar a real link to that day's
+// orders instead of pure display.
+function TrendChart({ title, data, dataKey, color, formatValue, onBarClick }) {
   return (
     <div className="bg-panel border border-line rounded-xl shadow-sm p-4">
       <span className="eyebrow">{title}</span>
@@ -43,7 +58,14 @@ function TrendChart({ title, data, dataKey, color, formatValue }) {
               formatter={(value) => [formatValue ? formatValue(value) : value, title]}
               contentStyle={tooltipStyle}
             />
-            <Bar dataKey={dataKey} fill={color} radius={[4, 4, 0, 0]} maxBarSize={28} />
+            <Bar
+              dataKey={dataKey}
+              fill={color}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={28}
+              cursor={onBarClick ? 'pointer' : undefined}
+              onClick={onBarClick ? (entry) => onBarClick(entry) : undefined}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -51,11 +73,13 @@ function TrendChart({ title, data, dataKey, color, formatValue }) {
   );
 }
 
-// Live pipeline snapshot - how many shipments sit in each status right now.
-function OrderStatusChart({ data }) {
+// Status breakdown chart - shared by the "live right now" and "today"
+// variants below, just fed different data/title. onBarClick navigates to
+// the matching filtered Orders list instead of leaving the chart inert.
+function StatusBreakdownChart({ title, data, onBarClick }) {
   return (
     <div className="bg-panel border border-line rounded-xl shadow-sm p-4">
-      <span className="eyebrow">Orders by status — live</span>
+      <span className="eyebrow">{title}</span>
       <div className="h-56 mt-3">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 4, bottom: 0 }}>
@@ -63,7 +87,13 @@ function OrderStatusChart({ data }) {
             <XAxis type="number" hide />
             <YAxis dataKey="label" type="category" axisLine={false} tickLine={false} width={100} tick={{ fill: '#0F172A', fontSize: 12 }} />
             <Tooltip cursor={{ fill: '#F1F5F9' }} formatter={(value) => [value, 'Orders']} contentStyle={tooltipStyle} />
-            <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={18}>
+            <Bar
+              dataKey="count"
+              radius={[0, 4, 4, 0]}
+              maxBarSize={18}
+              cursor={onBarClick ? 'pointer' : undefined}
+              onClick={onBarClick ? (entry) => onBarClick(entry) : undefined}
+            >
               {data.map((entry) => (
                 <Cell key={entry.status} fill={STATUS_BAR_COLOR[entry.status] ?? '#64748B'} />
               ))}
@@ -76,7 +106,8 @@ function OrderStatusChart({ data }) {
 }
 
 // Fleet composition - how many approved drivers/vehicles of each type.
-function FleetCompositionChart({ data }) {
+// onBarClick navigates to Drivers filtered to that vehicle type.
+function FleetCompositionChart({ data, onBarClick }) {
   return (
     <div className="bg-panel border border-line rounded-xl shadow-sm p-4">
       <span className="eyebrow">Fleet by vehicle type</span>
@@ -86,7 +117,14 @@ function FleetCompositionChart({ data }) {
             <CartesianGrid vertical={false} stroke="#E2E8F0" />
             <XAxis dataKey="label" axisLine={false} tickLine={false} tick={tickStyle} interval={0} angle={-20} textAnchor="end" height={40} />
             <Tooltip cursor={{ fill: '#F1F5F9' }} formatter={(value) => [value, 'Drivers']} contentStyle={tooltipStyle} />
-            <Bar dataKey="count" fill="#1BAF7A" radius={[4, 4, 0, 0]} maxBarSize={36} />
+            <Bar
+              dataKey="count"
+              fill="#1BAF7A"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={36}
+              cursor={onBarClick ? 'pointer' : undefined}
+              onClick={onBarClick ? (entry) => onBarClick(entry) : undefined}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -108,9 +146,12 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError('');
+    // silent: true skips the loading spinner / error banner on background
+    // refreshes, so the periodic poll below doesn't flash the whole
+    // dashboard on every tick - only the very first load shows those.
+    async function load({ silent = false } = {}) {
+      if (!silent) setLoading(true);
+      if (!silent) setError('');
       try {
         const [analyticsRes, ordersRes] = await Promise.all([
           axiosClient.get('/admin/analytics'),
@@ -121,14 +162,19 @@ export default function AdminDashboardPage() {
         setRecentOrders(ordersRes.data.data.orders);
       } catch (err) {
         console.error('[AdminDashboardPage] failed to load dashboard data', err);
-        if (!cancelled) setError(err.response?.data?.message || 'Could not load dashboard data. Is the backend running?');
+        if (!cancelled && !silent) setError(err.response?.data?.message || 'Could not load dashboard data. Is the backend running?');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && !silent) setLoading(false);
       }
     }
     load();
+    // Revenue/active-orders/active-trips previously only ever loaded once on
+    // mount - an admin had to manually reload the page to see anything
+    // change. Polling keeps it live without needing a websocket wired in.
+    const interval = setInterval(() => load({ silent: true }), 20000);
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 
@@ -145,20 +191,22 @@ export default function AdminDashboardPage() {
     { key: 'price', label: 'Amount', render: (r) => <span className="font-mono">₹{r.price.toLocaleString('en-IN')}</span> },
   ];
 
-  const todayKpis = analytics
+  // Every KPI/chart click below lands on a real, pre-filtered destination -
+  // these used to be pure display with nothing wired to onClick at all.
+  const liveKpis = analytics
     ? [
-        { label: 'Orders today', value: analytics.ordersToday.toLocaleString('en-IN') },
-        { label: 'Revenue today', value: `₹${(analytics.revenueToday / 100000).toFixed(1)}L` },
-        { label: 'Delivery success', value: analytics.deliverySuccessRate, unit: '%' },
+        { label: 'Active orders', value: analytics.activeOrders.toLocaleString('en-IN'), onClick: () => navigate('/orders') },
+        { label: 'Active trips', value: analytics.activeTrips.toLocaleString('en-IN'), onClick: () => navigate('/orders?status=in_transit') },
+        { label: 'Drivers online', value: analytics.activeDrivers.toLocaleString('en-IN'), onClick: () => navigate('/drivers?isAvailable=true') },
+        { label: 'Total drivers', value: analytics.totalDrivers.toLocaleString('en-IN'), onClick: () => navigate('/drivers') },
       ]
     : [];
 
-  const liveKpis = analytics
+  const todayKpis = analytics
     ? [
-        { label: 'Active orders', value: analytics.activeOrders.toLocaleString('en-IN') },
-        { label: 'Active trips', value: analytics.activeTrips.toLocaleString('en-IN') },
-        { label: 'Drivers online', value: analytics.activeDrivers.toLocaleString('en-IN') },
-        { label: 'Total drivers', value: analytics.totalDrivers.toLocaleString('en-IN') },
+        { label: 'Orders today', value: analytics.ordersToday.toLocaleString('en-IN'), onClick: () => navigate(`/orders?dateFrom=${todayIso()}`) },
+        { label: 'Revenue today', value: `₹${(analytics.revenueToday / 100000).toFixed(1)}L`, onClick: () => navigate('/payments') },
+        { label: 'Delivery success', value: analytics.deliverySuccessRate, unit: '%', onClick: () => navigate(`/orders?status=delivered&dateFrom=${todayIso()}`) },
       ]
     : [];
 
@@ -198,22 +246,44 @@ export default function AdminDashboardPage() {
         </>
       )}
 
-      {!loading && analytics?.ordersByStatus && analytics?.fleetByVehicleType && (
+      {!loading && analytics?.ordersByStatus && analytics?.todayOrdersByStatus && (
         <div className="grid md:grid-cols-2 gap-4">
-          <OrderStatusChart data={analytics.ordersByStatus} />
-          <FleetCompositionChart data={analytics.fleetByVehicleType} />
+          <StatusBreakdownChart
+            title="Orders by status — live"
+            data={analytics.ordersByStatus}
+            onBarClick={(entry) => navigate(`/orders?status=${entry.status}`)}
+          />
+          <StatusBreakdownChart
+            title="Today's orders by status"
+            data={analytics.todayOrdersByStatus}
+            onBarClick={(entry) => navigate(`/orders?status=${entry.status}&dateFrom=${todayIso()}`)}
+          />
         </div>
+      )}
+
+      {!loading && analytics?.fleetByVehicleType && (
+        <FleetCompositionChart
+          data={analytics.fleetByVehicleType}
+          onBarClick={(entry) => navigate(`/drivers?vehicleType=${entry.type}`)}
+        />
       )}
 
       {!loading && analytics?.last7Days && (
         <div className="grid md:grid-cols-2 gap-4">
-          <TrendChart title="Orders — last 7 days" data={analytics.last7Days} dataKey="orders" color="#2A78D6" />
+          <TrendChart
+            title="Orders — last 7 days"
+            data={analytics.last7Days}
+            dataKey="orders"
+            color="#2A78D6"
+            onBarClick={(entry) => navigate(`/orders?dateFrom=${entry.date}&dateTo=${nextDayIso(entry.date)}`)}
+          />
           <TrendChart
             title="Revenue — last 7 days"
             data={analytics.last7Days}
             dataKey="revenue"
             color="#EB6834"
             formatValue={(v) => `₹${v.toLocaleString('en-IN')}`}
+            onBarClick={(entry) => navigate(`/payments`)}
           />
         </div>
       )}

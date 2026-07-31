@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import KpiCard from '../../shared/components/KpiCard.jsx';
@@ -7,6 +8,44 @@ import StatusBadge from '../../shared/components/StatusBadge.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { downloadFile } from '../../shared/utils/downloadFile.js';
 import { ENTERPRISE_NAV } from '../enterpriseNav.js';
+
+const monthStartIso = () => {
+  const d = new Date();
+  d.setDate(1);
+  return d.toISOString().slice(0, 10);
+};
+
+// Shared by the "live" and "this month" status charts below - onBarClick
+// navigates to the matching filtered Order Tracking list instead of
+// leaving the chart inert.
+function StatusBreakdownChart({ title, data, onBarClick }) {
+  return (
+    <div className="bg-panel border border-line rounded-xl shadow-sm p-4">
+      <span className="eyebrow">{title}</span>
+      <div className="h-56 mt-3">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 4, bottom: 0 }}>
+            <CartesianGrid horizontal={false} stroke="#E2E8F0" />
+            <XAxis type="number" hide />
+            <YAxis dataKey="label" type="category" axisLine={false} tickLine={false} width={110} tick={{ fill: '#0F172A', fontSize: 12 }} />
+            <Tooltip cursor={{ fill: '#F1F5F9' }} formatter={(value) => [value, 'Shipments']} contentStyle={tooltipStyle} />
+            <Bar
+              dataKey="count"
+              radius={[0, 4, 4, 0]}
+              maxBarSize={18}
+              cursor={onBarClick ? 'pointer' : undefined}
+              onClick={onBarClick ? (entry) => onBarClick(entry) : undefined}
+            >
+              {data.map((entry) => (
+                <Cell key={entry.status} fill={STATUS_BAR_COLOR[entry.status] ?? '#64748B'} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
 
 const tooltipStyle = { borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 };
 const axisTick = { fill: '#64748B', fontSize: 11, fontFamily: 'Inter, sans-serif' };
@@ -24,6 +63,7 @@ const STATUS_BAR_COLOR = {
 
 // Enterprise dashboard: monthly spend, active shipments, top destinations (SRS 4.3)
 export default function EnterpriseDashboardPage() {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,9 +71,12 @@ export default function EnterpriseDashboardPage() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError('');
+    // silent: true skips the loading/error UI on background refreshes -
+    // previously this only ever loaded once on mount, so spend/shipment
+    // counts went stale until a manual page reload.
+    async function load({ silent = false } = {}) {
+      if (!silent) setLoading(true);
+      if (!silent) setError('');
       try {
         const [dashRes, invoicesRes] = await Promise.all([
           axiosClient.get('/enterprise/dashboard'),
@@ -44,13 +87,17 @@ export default function EnterpriseDashboardPage() {
         setRecentInvoices(invoicesRes.data.data.invoices.slice(0, 4));
       } catch (err) {
         console.error('[EnterpriseDashboardPage] failed to load dashboard', err);
-        if (!cancelled) setError(err.response?.data?.message || 'Could not load dashboard data.');
+        if (!cancelled && !silent) setError(err.response?.data?.message || 'Could not load dashboard data.');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && !silent) setLoading(false);
       }
     }
     load();
-    return () => { cancelled = true; };
+    const interval = setInterval(() => load({ silent: true }), 20000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const invoiceColumns = [
@@ -72,11 +119,13 @@ export default function EnterpriseDashboardPage() {
     },
   ];
 
+  // Every KPI/chart click below lands on a real, pre-filtered destination -
+  // these used to be pure display with nothing wired to onClick at all.
   const kpis = summary
     ? [
-        { label: 'Monthly spend', value: `₹${(summary.monthlySpend / 100000).toFixed(2)}L` },
-        { label: 'Active shipments', value: summary.activeShipments },
-        { label: 'Pending invoices', value: summary.pendingInvoices },
+        { label: 'Monthly spend', value: `₹${(summary.monthlySpend / 100000).toFixed(2)}L`, onClick: () => navigate('/invoices') },
+        { label: 'Active shipments', value: summary.activeShipments, onClick: () => navigate('/order-tracking?status=in_transit') },
+        { label: 'Pending invoices', value: summary.pendingInvoices, onClick: () => navigate('/invoices') },
       ]
     : [];
 
@@ -128,33 +177,21 @@ export default function EnterpriseDashboardPage() {
           )}
 
           {summary?.shipmentsByStatus && (
-            <div className="bg-panel border border-line rounded-xl shadow-sm p-4">
-              <span className="eyebrow">Shipments by status — live</span>
-              <div className="h-56 mt-3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={summary.shipmentsByStatus} layout="vertical" margin={{ top: 4, right: 16, left: 4, bottom: 0 }}>
-                    <CartesianGrid horizontal={false} stroke="#E2E8F0" />
-                    <XAxis type="number" hide />
-                    <YAxis
-                      dataKey="label"
-                      type="category"
-                      axisLine={false}
-                      tickLine={false}
-                      width={110}
-                      tick={{ fill: '#0F172A', fontSize: 12 }}
-                    />
-                    <Tooltip cursor={{ fill: '#F1F5F9' }} formatter={(value) => [value, 'Shipments']} contentStyle={tooltipStyle} />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={18}>
-                      {summary.shipmentsByStatus.map((entry) => (
-                        <Cell key={entry.status} fill={STATUS_BAR_COLOR[entry.status] ?? '#64748B'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            <StatusBreakdownChart
+              title="Shipments by status — live"
+              data={summary.shipmentsByStatus}
+              onBarClick={(entry) => navigate(`/order-tracking?status=${entry.status}`)}
+            />
           )}
         </div>
+      )}
+
+      {!loading && summary?.thisMonthShipmentsByStatus && (
+        <StatusBreakdownChart
+          title="This month's shipments by status"
+          data={summary.thisMonthShipmentsByStatus}
+          onBarClick={(entry) => navigate(`/order-tracking?status=${entry.status}&dateFrom=${monthStartIso()}`)}
+        />
       )}
 
       <div className="grid lg:grid-cols-5 gap-6">
