@@ -10,13 +10,11 @@ import '../../widgets/custom_textfield.dart';
 
 enum _Step { login, register, verifyEmail }
 
-// Email/password login is the default, visible auth path (phone OTP stays
-// in the codebase at /login-otp, just unlinked from the UI - see
-// app_router.dart). Firebase owns the credential and email-verification
-// state; this screen only calls AuthService.syncFirebaseSession() once
-// Firebase confirms the email is verified, which exchanges the Firebase ID
-// token for this app's own JWT session (identical shape to the OTP flow),
-// so router redirects/home routing work unchanged.
+// Email/password login is the only auth path - Firebase owns the credential
+// and email-verification state; this screen only calls
+// AuthService.syncFirebaseSession() once Firebase confirms the email is
+// verified, which exchanges the Firebase ID token for this app's own JWT
+// session.
 class EmailAuthScreen extends ConsumerStatefulWidget {
   const EmailAuthScreen({super.key});
 

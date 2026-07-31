@@ -14,35 +14,6 @@ class AuthResult {
 class AuthService {
   final _dio = DioClient.instance;
 
-  Future<void> sendOtp(String phone) async {
-    await _dio.post('/auth/send-otp', data: {'phone': phone});
-  }
-
-  Future<AuthResult> verifyOtp(String phone, String otp) async {
-    final response = await _dio.post('/auth/verify-otp', data: {'phone': phone, 'otp': otp});
-    final data = response.data['data'];
-    return AuthResult(
-      accessToken: data['accessToken'] as String,
-      refreshToken: data['refreshToken'] as String,
-      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
-      isNewUser: data['isNewUser'] as bool? ?? false,
-    );
-  }
-
-  // Returns fresh tokens (backend now reissues them on every /auth/register
-  // call, not just role changes) - needed because we no longer pre-set a
-  // session before this call completes, see otp_login_screen.dart.
-  Future<AuthResult> completeProfile({required String userId, required String name}) async {
-    final response = await _dio.post('/auth/register', data: {'userId': userId, 'name': name});
-    final data = response.data['data'];
-    return AuthResult(
-      accessToken: data['accessToken'] as String,
-      refreshToken: data['refreshToken'] as String,
-      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
-      isNewUser: false,
-    );
-  }
-
   Future<UserModel> updateProfile({String? name, String? email}) async {
     final response = await _dio.put('/auth/profile', data: {
       if (name != null) 'name': name,
@@ -59,8 +30,7 @@ class AuthService {
   // Firebase owns credential storage + email verification state; this
   // backend never sees the password. Once Firebase confirms the email is
   // verified, syncFirebaseSession() exchanges the Firebase ID token for this
-  // app's own JWT session (same AuthResult shape as verifyOtp above), so
-  // everything downstream of login is identical regardless of auth method.
+  // app's own JWT session.
   final _firebaseAuth = fb.FirebaseAuth.instance;
 
   Future<fb.User> registerWithEmail(String email, String password) async {

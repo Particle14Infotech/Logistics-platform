@@ -1,54 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const { success, AppError, catchAsync } = require('../utils/apiResponse');
-const otpService = require('../services/otp.service');
 const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const { signAccessToken, signRefreshToken } = require('../utils/jwt');
-
-// POST /api/v1/auth/send-otp
-exports.sendOtp = catchAsync(async (req, res) => {
-  const { phone } = req.body;
-  if (!phone) throw new AppError('Phone number is required', 400);
-  await otpService.sendOtp(phone);
-  return success(res, null, 'OTP sent successfully');
-});
-
-// Reserved roles this phone-OTP path (dormant in both apps' UIs, but still
-// a live endpoint) must never authenticate into, regardless of which app's
-// OTP screen called it - mirrors firebase-session's APP_ALLOWED_ROLES guard
-// below. New users here always start as 'customer' (promoted to
-// driver/fleet_owner afterward by register()'s own SELF_SERVICE_ROLES
-// whitelist), so the only gap to close is an *existing* admin/enterprise
-// account sharing a phone number with whoever is calling this.
-const RESERVED_ROLES = ['admin', 'enterprise_admin', 'enterprise_user'];
-
-// POST /api/v1/auth/verify-otp
-exports.verifyOtp = catchAsync(async (req, res) => {
-  const { phone, otp } = req.body;
-  const isValid = await otpService.verifyOtp(phone, otp);
-  if (!isValid) throw new AppError('Invalid or expired OTP', 400);
-
-  let user = await User.findOne({ phone });
-  let isNewUser = false;
-  if (!user) {
-    user = await User.create({ phone, role: 'customer', isVerified: true });
-    isNewUser = true;
-  } else {
-    if (RESERVED_ROLES.includes(user.role)) {
-      throw new AppError(
-        `This phone number is registered as a${user.role === 'admin' ? 'n' : ''} ${user.role.replace('_', ' ')} account - please use the correct app or portal to sign in.`,
-        403
-      );
-    }
-    user.isVerified = true;
-    await user.save();
-  }
-
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-
-  return success(res, { user, accessToken, refreshToken, isNewUser }, 'OTP verified');
-});
 
 // Which roles each mobile app is allowed to authenticate/create through
 // firebase-session below. Reserved roles (admin, enterprise_admin,
@@ -129,46 +83,6 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   const refreshToken = signRefreshToken(user);
 
   return success(res, { user, accessToken, refreshToken, isNewUser }, 'Firebase session established');
-});
-
-// POST /api/v1/auth/register  (complete profile after OTP verification)
-// Issues fresh tokens reflecting any role change, not just the profile
-// update - a role is baked into the JWT payload at sign time (see
-// signAccessToken above), so if this only updated the DB and kept handing
-// back the original OTP-verify token, every subsequent request would still
-// authorize against the stale pre-registration role until that token
-// naturally expired. This bit the driver app's new-driver signup flow
-// specifically: the OTP-verify step always creates new users as
-// role:'customer' by default, and this endpoint is what promotes them to
-// 'driver' - without a fresh token, every /driver/* call after signup
-// would 403 even though the database was already correct.
-// Self-service roles only - this endpoint must never be able to grant
-// admin/enterprise_admin/enterprise_user, since it's reachable by any
-// authenticated user completing their own profile right after OTP/Firebase
-// verification (see otp_login_screen.dart / email_auth_screen.dart in both
-// mobile apps).
-const SELF_SERVICE_ROLES = ['customer', 'driver', 'fleet_owner'];
-
-exports.register = catchAsync(async (req, res) => {
-  const { name, email, role } = req.body;
-  if (role && !SELF_SERVICE_ROLES.includes(role)) {
-    throw new AppError(`role must be one of: ${SELF_SERVICE_ROLES.join(', ')}`, 400);
-  }
-
-  // req.user.id (from the caller's own verified JWT), never a userId taken
-  // from the request body - otherwise any caller could update ANY user's
-  // name/email/role by guessing/knowing their Mongo _id, not just their own.
-  const user = await User.findByIdAndUpdate(
-    req.user.id,
-    { name, email, role: role || 'customer' },
-    { new: true }
-  );
-  if (!user) throw new AppError('User not found', 404);
-
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-
-  return success(res, { user, accessToken, refreshToken }, 'Profile updated');
 });
 
 // POST /api/v1/auth/login (email/password - used by Admin/Enterprise)

@@ -14,40 +14,6 @@ class AuthResult {
 class AuthService {
   final _dio = DioClient.instance;
 
-  Future<void> sendOtp(String phone) async {
-    await _dio.post('/auth/send-otp', data: {'phone': phone});
-  }
-
-  Future<AuthResult> verifyOtp(String phone, String otp) async {
-    final response = await _dio.post('/auth/verify-otp', data: {'phone': phone, 'otp': otp});
-    final data = response.data['data'];
-    return AuthResult(
-      accessToken: data['accessToken'] as String,
-      refreshToken: data['refreshToken'] as String,
-      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
-      isNewUser: data['isNewUser'] as bool? ?? false,
-    );
-  }
-
-  // role: 'driver' or 'fleet_owner', set by RoleSelectionScreen via
-  // selectedRoleProvider - distinguishes from the customer app's
-  // completeProfile, which leaves role at its 'customer' default. Returns
-  // fresh tokens: the backend now reissues them here since this is what
-  // actually promotes a brand-new signup from the OTP-verify default of
-  // 'customer' to the selected role - reusing the original OTP-verify
-  // token would keep authorizing against the stale pre-registration role
-  // until it expired.
-  Future<AuthResult> completeProfile({required String userId, required String name, required String role}) async {
-    final response = await _dio.post('/auth/register', data: {'userId': userId, 'name': name, 'role': role});
-    final data = response.data['data'];
-    return AuthResult(
-      accessToken: data['accessToken'] as String,
-      refreshToken: data['refreshToken'] as String,
-      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
-      isNewUser: false,
-    );
-  }
-
   Future<UserModel> updateProfile({
     String? name,
     String? email,
@@ -78,8 +44,7 @@ class AuthService {
   // Firebase owns credential storage + email verification state; this
   // backend never sees the password. Once Firebase confirms the email is
   // verified, syncFirebaseSession() exchanges the Firebase ID token for this
-  // app's own JWT session (same AuthResult shape as verifyOtp above), so
-  // everything downstream of login is identical regardless of auth method.
+  // app's own JWT session.
   final _firebaseAuth = fb.FirebaseAuth.instance;
 
   Future<fb.User> registerWithEmail(String email, String password) async {
@@ -105,8 +70,7 @@ class AuthService {
   }
 
   // role: 'driver' or 'fleet_owner', set by RoleSelectionScreen via
-  // selectedRoleProvider - same distinction completeProfile() makes above,
-  // only used when this creates a brand-new local user.
+  // selectedRoleProvider - only used when this creates a brand-new local user.
   Future<AuthResult> syncFirebaseSession({String? role}) async {
     final idToken = await _firebaseAuth.currentUser!.getIdToken(true);
     final response = await _dio.post('/auth/firebase-session', data: {

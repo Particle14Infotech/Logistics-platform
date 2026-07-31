@@ -6,7 +6,6 @@ import '../providers/driver_provider.dart';
 import '../providers/fleet_provider.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/role_selection/role_selection_screen.dart';
-import '../features/auth/otp_login_screen.dart';
 import '../features/auth/email_auth_screen.dart';
 import '../features/profile/change_password_screen.dart';
 import '../features/profile/notification_settings_screen.dart';
@@ -42,8 +41,8 @@ class _RouterRefreshNotifier extends ChangeNotifier {
 // Router reacts to auth state AND role-specific profile state: a driver
 // with no Driver record yet goes to vehicle setup; a fleet_owner with no
 // Fleet record yet goes to fleet setup instead - two parallel onboarding
-// paths sharing the same OTP login screen, split by RoleSelectionScreen's
-// choice (see providers/selected_role_provider.dart).
+// paths sharing the same email/password login screen, split by
+// RoleSelectionScreen's choice (see providers/selected_role_provider.dart).
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = _RouterRefreshNotifier(ref);
   ref.onDispose(refreshNotifier.dispose);
@@ -60,7 +59,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final loggedIn = authState.isAuthenticated;
-      final isAuthRoute = loc == '/role-selection' || loc == '/login' || loc == '/login-otp';
+      final isAuthRoute = loc == '/role-selection' || loc == '/login';
       final isFleetOwner = authState.user?.role == 'fleet_owner';
 
       if (!loggedIn) {
@@ -120,10 +119,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/role-selection', builder: (context, state) => const RoleSelectionScreen()),
       GoRoute(path: '/login', builder: (context, state) => const EmailAuthScreen()),
-      // Phone-OTP login is kept fully functional but unlinked from the UI -
-      // no button routes here anymore, it's only reachable by direct
-      // navigation (e.g. re-enabling it later just means adding a link back).
-      GoRoute(path: '/login-otp', builder: (context, state) => const OtpLoginScreen()),
       GoRoute(path: '/vehicle-setup', builder: (context, state) => const VehicleSetupScreen()),
       GoRoute(path: '/fleet-setup', builder: (context, state) => const FleetSetupScreen()),
       GoRoute(path: '/fleet-dashboard', builder: (context, state) => const FleetDashboardScreen()),

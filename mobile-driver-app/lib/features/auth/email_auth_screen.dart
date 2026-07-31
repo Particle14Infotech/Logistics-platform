@@ -12,13 +12,11 @@ import '../../widgets/auth_text_field.dart';
 
 enum _Step { login, register, verifyEmail, personalDetails }
 
-// Email/password login is the default, visible auth path (phone OTP stays
-// in the codebase at /login-otp, just unlinked from the UI - see
-// app_router.dart). Firebase owns the credential and email-verification
-// state; this screen only calls AuthService.syncFirebaseSession() once
-// Firebase confirms the email is verified, which exchanges the Firebase ID
-// token for this app's own JWT session (identical shape to the OTP flow),
-// so router redirects (vehicle-setup/fleet-setup/dashboard) work unchanged.
+// Email/password login is the only auth path - Firebase owns the credential
+// and email-verification state; this screen only calls
+// AuthService.syncFirebaseSession() once Firebase confirms the email is
+// verified, which exchanges the Firebase ID token for this app's own JWT
+// session, so router redirects (vehicle-setup/fleet-setup/dashboard) work.
 class EmailAuthScreen extends ConsumerStatefulWidget {
   const EmailAuthScreen({super.key});
 
@@ -41,7 +39,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   DateTime? _dob;
   // Tokens from syncFirebaseSession() for a brand-new user - held here
   // rather than committed via setSession() until the personal-details step
-  // completes, same reasoning as otp_login_screen.dart's _pendingUserId.
+  // completes.
   AuthResult? _pendingAuthResult;
 
   @override
@@ -165,7 +163,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       // before the personal-details step below (which calls
       // /auth/profile) ever runs. updateAccessToken() only stashes the
       // token (for DioClient's interceptor) without touching `user`, so
-      // isAuthenticated stays false - same pattern as otp_login_screen.dart.
+      // isAuthenticated stays false until the personal-details step below.
       _pendingAuthResult = result;
       await ref.read(authProvider.notifier).updateAccessToken(result.accessToken);
       setState(() => _step = _Step.personalDetails);

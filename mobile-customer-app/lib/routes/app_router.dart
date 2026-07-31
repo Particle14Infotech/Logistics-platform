@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
-import '../features/auth/otp_login_screen.dart';
 import '../features/auth/email_auth_screen.dart';
 import '../features/main/main_screen.dart';
 import '../features/booking/locations_screen.dart';
@@ -38,7 +37,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return loggedIn ? '/home' : '/onboarding';
       }
 
-      final isAuthRoute = loc == '/onboarding' || loc == '/login' || loc == '/login-otp';
+      final isAuthRoute = loc == '/onboarding' || loc == '/login';
       if (!loggedIn && !isAuthRoute) return '/login';
       if (loggedIn && isAuthRoute) return '/home';
       return null;
@@ -47,10 +46,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: '/login', builder: (context, state) => const EmailAuthScreen()),
-      // Phone-OTP login is kept fully functional but unlinked from the UI -
-      // no button routes here anymore, it's only reachable by direct
-      // navigation (e.g. re-enabling it later just means adding a link back).
-      GoRoute(path: '/login-otp', builder: (context, state) => const OtpLoginScreen()),
       // /home now renders the bottom-tab shell (Home/Orders/Profile as
       // IndexedStack tabs) - see features/main/main_screen.dart. The two
       // routes below stay registered as standalone fallbacks (deep-linking,
