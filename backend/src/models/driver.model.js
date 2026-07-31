@@ -26,6 +26,11 @@ const driverSchema = new mongoose.Schema(
     rating: { type: Number, default: 5, min: 1, max: 5 },
     totalTrips: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
+    // Spendable/payable-out balance - unlike totalEarnings (a lifetime
+    // counter that never decreases), this drops on each payout. Kept
+    // denormalized here for fast reads; walletTransaction.model.js is the
+    // source-of-truth ledger this is derived from.
+    walletBalance: { type: Number, default: 0 },
     documents: {
       licenseUrl: String,
       rcUrl: String,

@@ -19,5 +19,7 @@ router.put('/orders/:id/status', ctrl.updateOrderStatus);
 router.post('/pod/:bookingId', ctrl.uploadPod);
 
 router.get('/earnings', ctrl.earnings);
+router.get('/wallet', ctrl.wallet);
+router.put('/bank-details', ctrl.updateBankDetails);
 
 module.exports = router;
