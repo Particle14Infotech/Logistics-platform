@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
+import PlacesAutocompleteInput from '../../shared/components/PlacesAutocompleteInput.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { useAuthStore } from '../../shared/store/authStore.js';
 import { ENTERPRISE_NAV } from '../enterpriseNav.js';
@@ -85,17 +86,27 @@ export default function EnterpriseBulkBookingPage() {
       <div className="space-y-3">
         {rows.map((row, i) => (
           <div key={i} className="bg-panel border border-line rounded-lg p-3 grid md:grid-cols-6 gap-2 items-center">
-            <input
+            <PlacesAutocompleteInput
               placeholder="Pickup address"
               value={row.pickupAddress}
-              onChange={(e) => updateRow(i, 'pickupAddress', e.target.value)}
-              className="md:col-span-1 bg-ink border border-line rounded-md px-3 py-2 text-sm placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+              onChange={(v) => updateRow(i, 'pickupAddress', v)}
+              onPlaceSelected={(details) => {
+                updateRow(i, 'pickupLat', details.lat);
+                updateRow(i, 'pickupLng', details.lng);
+              }}
+              containerClassName="md:col-span-1"
+              className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
             />
-            <input
+            <PlacesAutocompleteInput
               placeholder="Drop address"
               value={row.dropAddress}
-              onChange={(e) => updateRow(i, 'dropAddress', e.target.value)}
-              className="md:col-span-1 bg-ink border border-line rounded-md px-3 py-2 text-sm placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+              onChange={(v) => updateRow(i, 'dropAddress', v)}
+              onPlaceSelected={(details) => {
+                updateRow(i, 'dropLat', details.lat);
+                updateRow(i, 'dropLng', details.lng);
+              }}
+              containerClassName="md:col-span-1"
+              className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
             />
             <select
               value={row.vehicleType}

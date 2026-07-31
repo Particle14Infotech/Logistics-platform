@@ -307,6 +307,17 @@ exports.listOrders = catchAsync(async (req, res) => {
     Order.countDocuments(filter),
   ]);
 
+  // Same reveal-only-when-relevant rule as booking.controller.js's getById:
+  // startOtp only matters while picked_up (needed to start the trip);
+  // deliveryOtp matters from picked_up through in_transit (shown early so
+  // whoever's handing off the shipment has it ready before the driver
+  // arrives). No frontend for this existed before now - enterprise orders
+  // had no way to hand these codes to the driver at all.
+  for (const order of orders) {
+    if (!['picked_up', 'in_transit'].includes(order.status)) delete order.deliveryOtp;
+    if (order.status !== 'picked_up') delete order.startOtp;
+  }
+
   return success(res, { orders, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } });
 });
 
@@ -341,11 +352,22 @@ exports.bulkBooking = catchAsync(async (req, res) => {
       }
       const price = VEHICLE_BASE_PRICE[row.vehicleType] + weightKg * 0.5;
 
+      // Coordinates come from the Places autocomplete selection on the
+      // frontend, when available - falls back to [0, 0] (no real
+      // geolocation) for a plain typed address with no selected suggestion,
+      // same as before this was wired up.
+      const pickupCoords = Number.isFinite(row.pickupLng) && Number.isFinite(row.pickupLat)
+        ? [row.pickupLng, row.pickupLat]
+        : [0, 0];
+      const dropCoords = Number.isFinite(row.dropLng) && Number.isFinite(row.dropLat)
+        ? [row.dropLng, row.dropLat]
+        : [0, 0];
+
       await Order.create({
         customerId: req.user.id,
         enterpriseId: enterprise._id,
-        pickupLocation: { type: 'Point', coordinates: [0, 0], address: row.pickupAddress },
-        dropLocation: { type: 'Point', coordinates: [0, 0], address: row.dropAddress },
+        pickupLocation: { type: 'Point', coordinates: pickupCoords, address: row.pickupAddress },
+        dropLocation: { type: 'Point', coordinates: dropCoords, address: row.dropAddress },
         vehicleType: row.vehicleType,
         goodsType: row.goodsType || 'General cargo',
         weightKg,

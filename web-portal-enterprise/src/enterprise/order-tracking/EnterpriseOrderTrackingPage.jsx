@@ -47,6 +47,22 @@ export default function EnterpriseOrderTrackingPage() {
     { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="capitalize text-xs">{r.vehicleType.replace('_', ' ')}</span> },
     { key: 'driver', label: 'Driver', render: (r) => (r.driverId ? r.driverId.userId?.name ?? r.driverId.vehicleNumber : <span className="text-mist text-xs">Unassigned</span>) },
     { key: 'status', label: 'Status', render: (r) => <StatusBadge status={r.status} /> },
+    {
+      // Backend only sends these when relevant to the order's current
+      // status (see enterprise.controller.js's listOrders) - there was
+      // previously no way at all to hand these codes to the driver for a
+      // shipment booked through this portal instead of the customer app.
+      key: 'code',
+      label: 'Code for driver',
+      render: (r) =>
+        r.startOtp ? (
+          <span className="font-mono text-xs" title="Give this to the driver to start the trip">Start: {r.startOtp}</span>
+        ) : r.deliveryOtp ? (
+          <span className="font-mono text-xs" title="Give this to the driver to confirm delivery">Delivery: {r.deliveryOtp}</span>
+        ) : (
+          <span className="text-mist text-xs">—</span>
+        ),
+    },
     { key: 'price', label: 'Amount', render: (r) => <span className="font-mono">₹{r.price.toLocaleString('en-IN')}</span> },
   ];
 
