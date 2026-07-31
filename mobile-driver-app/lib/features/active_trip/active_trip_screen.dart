@@ -35,6 +35,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   String? _error;
   bool _updating = false;
   final _otpController = TextEditingController();
+  final _startOtpController = TextEditingController();
 
   final _socketService = SocketService();
   Timer? _gpsTimer;
@@ -55,6 +56,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     _socketService.leaveBookingRoom(widget.tripId);
     _socketService.dispose();
     _otpController.dispose();
+    _startOtpController.dispose();
     super.dispose();
   }
 
@@ -137,13 +139,13 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
   }
 
-  Future<void> _advanceStatus(String status, {String? note}) async {
+  Future<void> _advanceStatus(String status, {String? note, String? otp}) async {
     setState(() {
       _updating = true;
       _error = null;
     });
     try {
-      final trip = await ref.read(driverServiceProvider).advanceTripStatus(widget.tripId, status, note: note);
+      final trip = await ref.read(driverServiceProvider).advanceTripStatus(widget.tripId, status, note: note, otp: otp);
       if (mounted) setState(() => _trip = trip);
     } catch (e) {
       // Surface the backend's actual validation message (e.g. "Cannot move
@@ -164,6 +166,15 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     if (code != null && mounted) {
       _advanceStatus('picked_up', note: code);
     }
+  }
+
+  Future<void> _startTrip() async {
+    final otp = _startOtpController.text.trim();
+    if (otp.length != 6) {
+      setState(() => _error = 'Ask the customer for their 6-digit start code.');
+      return;
+    }
+    await _advanceStatus('in_transit', otp: otp);
   }
 
   Future<void> _confirmDelivery() async {
@@ -317,10 +328,26 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           ],
         );
       case 'picked_up':
-        return FilledButton.icon(
-          onPressed: _updating ? null : () => _advanceStatus('in_transit'),
-          icon: const Icon(Icons.local_shipping),
-          label: Text(_updating ? 'Updating…' : 'Start trip'),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text("Ask the customer for their start code to begin the trip:", textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _startOtpController,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 24, letterSpacing: 8),
+              decoration: const InputDecoration(counterText: '', border: OutlineInputBorder(), hintText: '000000'),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: _updating ? null : _startTrip,
+              icon: const Icon(Icons.local_shipping),
+              label: Text(_updating ? 'Starting…' : 'Start trip'),
+            ),
+          ],
         );
       case 'in_transit':
         return Column(

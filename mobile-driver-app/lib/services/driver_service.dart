@@ -36,11 +36,13 @@ class DriverService {
     required String vehicleType,
     required String vehicleNumber,
     required String licenseNumber,
+    String? enterpriseInviteCode,
   }) async {
     final response = await _dio.post('/driver/profile', data: {
       'vehicleType': vehicleType,
       'vehicleNumber': vehicleNumber,
       'licenseNumber': licenseNumber,
+      if (enterpriseInviteCode != null && enterpriseInviteCode.isNotEmpty) 'enterpriseInviteCode': enterpriseInviteCode,
     });
     return DriverProfile.fromJson(response.data['data']['driver'] as Map<String, dynamic>);
   }
@@ -89,10 +91,11 @@ class DriverService {
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }
 
-  Future<TripModel> advanceTripStatus(String id, String status, {String? note}) async {
+  Future<TripModel> advanceTripStatus(String id, String status, {String? note, String? otp}) async {
     final response = await _dio.put('/driver/orders/$id/status', data: {
       'status': status,
       if (note != null) 'note': note,
+      if (otp != null) 'otp': otp,
     });
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }

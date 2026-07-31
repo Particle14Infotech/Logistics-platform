@@ -54,8 +54,9 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     if (_trips == null) return [];
     final status = _kFilters[_filterIndex].status;
     if (status == null) return _trips!;
-    if (status == 'active')
+    if (status == 'active') {
       return _trips!.where((t) => _kActiveStatuses.contains(t.status)).toList();
+    }
     return _trips!.where((t) => t.status == status).toList();
   }
 
@@ -102,8 +103,6 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                           itemCount: _filtered.length,
                           itemBuilder: (context, i) {
                             final trip = _filtered[i];
-                            final isActive =
-                                _kActiveStatuses.contains(trip.status);
                             return Card(
                               elevation: 0,
                               margin: const EdgeInsets.only(bottom: 10),
@@ -112,9 +111,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                                   side: const BorderSide(
                                       color: AppTheme.borderColor)),
                               child: InkWell(
-                                onTap: isActive
-                                    ? () => context.push('/trip/${trip.id}')
-                                    : null,
+                                onTap: () => context.push('/trip/${trip.id}'),
                                 borderRadius: BorderRadius.circular(14),
                                 child: Padding(
                                   padding: const EdgeInsets.all(14),

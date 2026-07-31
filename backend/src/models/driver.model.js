@@ -4,6 +4,13 @@ const driverSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     fleetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fleet', default: null }, // null = independent driver, set = fleet-owned vehicle
+    // Set when this driver registered with an enterprise's driver invite
+    // code (Enterprise.driverInviteCode) - null = drives for the public
+    // marketplace. driver.controller.js's availableOrders/acceptOrder
+    // partition strictly on this: an enterprise-linked driver only ever
+    // sees/accepts that same enterprise's own orders, never the public
+    // pool, and vice versa - a dedicated private fleet, not a preference.
+    enterpriseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enterprise', default: null },
     vehicleType: {
       type: String,
       enum: ['bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'],

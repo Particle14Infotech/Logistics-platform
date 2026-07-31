@@ -167,25 +167,120 @@ exports.analytics = catchAsync(async (req, res) => {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const [ordersToday, revenueAgg, activeDrivers, deliveredToday, cancelledToday] = await Promise.all([
+  const sevenDaysAgo = new Date(todayStart);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 7 days inclusive of today
+
+  const [
+    ordersToday,
+    revenueAgg,
+    activeDrivers,
+    totalDrivers,
+    deliveredToday,
+    cancelledToday,
+    dailyAgg,
+    activeOrders,
+    activeTrips,
+    statusAgg,
+    vehicleAgg,
+  ] = await Promise.all([
     Order.countDocuments({ createdAt: { $gte: todayStart } }),
     Order.aggregate([
       { $match: { createdAt: { $gte: todayStart }, paymentStatus: 'paid' } },
       { $group: { _id: null, total: { $sum: '$price' } } },
     ]),
     Driver.countDocuments({ isAvailable: true, isApproved: true }),
+    Driver.countDocuments({ isApproved: true }),
     Order.countDocuments({ createdAt: { $gte: todayStart }, status: 'delivered' }),
     Order.countDocuments({ createdAt: { $gte: todayStart }, status: 'cancelled' }),
+    // Powers the dashboard's "last 7 days" charts - grouped by calendar day
+    // rather than fetched per-day in a loop, one aggregation for the whole
+    // window.
+    // timezone: 'Asia/Kolkata' - matches todayStart above, which is built
+    // from the server's local clock (IST). Without pinning this, Mongo
+    // groups by UTC calendar day while the fill-loop below (and the
+    // weekday label) use local time, so "today" silently lands in
+    // yesterday's bucket whenever local time is ahead of UTC.
+    Order.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Asia/Kolkata' } },
+          orders: { $sum: 1 },
+          revenue: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$price', 0] } },
+        },
+      },
+    ]),
+    // "Active" here means still moving through the pipeline right now,
+    // regardless of when it was created - unlike ordersToday, a shipment
+    // booked yesterday that's still in_transit today is still active.
+    Order.countDocuments({ status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit'] } }),
+    // Subset of the above that's actually assigned to a driver and moving
+    // (excludes 'pending', which is still waiting for a driver to accept).
+    Order.countDocuments({ status: { $in: ['accepted', 'picked_up', 'in_transit'] } }),
+    Order.aggregate([
+      { $match: { status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit'] } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    Driver.aggregate([{ $match: { isApproved: true } }, { $group: { _id: '$vehicleType', count: { $sum: 1 } } }]),
   ]);
 
   const completedToday = deliveredToday + cancelledToday;
   const successRate = completedToday > 0 ? (deliveredToday / completedToday) * 100 : 0;
 
+  const statusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0 };
+  statusAgg.forEach((s) => { statusCounts[s._id] = s.count; });
+  const ordersByStatus = [
+    { status: 'pending', label: 'Pending', count: statusCounts.pending },
+    { status: 'accepted', label: 'Accepted', count: statusCounts.accepted },
+    { status: 'picked_up', label: 'Picked up', count: statusCounts.picked_up },
+    { status: 'in_transit', label: 'In transit', count: statusCounts.in_transit },
+    { status: 'delivered', label: 'Delivered (today)', count: deliveredToday },
+    { status: 'cancelled', label: 'Cancelled (today)', count: cancelledToday },
+  ];
+
+  const VEHICLE_TYPE_LABELS = {
+    bike: 'Bike',
+    auto: 'Auto',
+    mini_truck: 'Mini truck',
+    medium_truck: 'Medium truck',
+    large_truck: 'Large truck',
+  };
+  const vehicleCounts = Object.fromEntries(vehicleAgg.map((v) => [v._id, v.count]));
+  const fleetByVehicleType = Object.entries(VEHICLE_TYPE_LABELS).map(([type, label]) => ({
+    type,
+    label,
+    count: vehicleCounts[type] ?? 0,
+  }));
+
+  // Fill in any day with zero orders so the chart always shows exactly 7
+  // evenly-spaced points instead of gaps. Built from local date parts, not
+  // toISOString() (which converts to UTC and would disagree with the
+  // Asia/Kolkata-grouped keys above whenever local time is ahead of UTC).
+  const last7Days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(todayStart);
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const found = dailyAgg.find((x) => x._id === key);
+    last7Days.push({
+      date: key,
+      label: d.toLocaleDateString('en-IN', { weekday: 'short' }),
+      orders: found?.orders ?? 0,
+      revenue: found?.revenue ?? 0,
+    });
+  }
+
   return success(res, {
     ordersToday,
     revenueToday: revenueAgg[0]?.total ?? 0,
     activeDrivers,
+    totalDrivers,
+    activeOrders,
+    activeTrips,
     deliverySuccessRate: Math.round(successRate * 10) / 10,
+    last7Days,
+    ordersByStatus,
+    fleetByVehicleType,
   });
 });
 

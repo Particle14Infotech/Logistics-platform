@@ -54,6 +54,7 @@ const orderSchema = new mongoose.Schema(
     paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
     razorpayOrderId: String,
 
+    startOtp: String,
     deliveryOtp: String,
     podImageUrl: String,
 

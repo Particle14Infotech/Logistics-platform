@@ -6,6 +6,7 @@ const { signAccessToken, signRefreshToken } = require('../utils/jwt');
 const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const User = require('../models/user.model');
 const Enterprise = require('../models/enterprise.model');
+const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
 const Invoice = require('../models/invoice.model');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
@@ -163,7 +164,19 @@ exports.dashboard = catchAsync(async (req, res) => {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const [spendAgg, activeShipments, topDestinationsAgg, pendingInvoices] = await Promise.all([
+  const sixMonthsAgo = new Date(monthStart);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // 6 months inclusive of the current one
+
+  const [
+    spendAgg,
+    activeShipments,
+    topDestinationsAgg,
+    pendingInvoices,
+    monthlyAgg,
+    statusAgg,
+    deliveredThisMonth,
+    cancelledThisMonth,
+  ] = await Promise.all([
     Order.aggregate([
       { $match: { enterpriseId: enterprise._id, createdAt: { $gte: monthStart } } },
       { $group: { _id: null, total: { $sum: '$price' } } },
@@ -176,9 +189,60 @@ exports.dashboard = catchAsync(async (req, res) => {
       { $limit: 5 },
     ]),
     Invoice.countDocuments({ enterpriseId: enterprise._id, status: { $in: ['sent', 'draft'] } }),
+    // Powers the dashboard's spend-trend chart - grouped by calendar month
+    // in one aggregation rather than fetched per-month in a loop.
+    // timezone: 'Asia/Kolkata' - matches monthStart above (built from the
+    // server's local clock); without pinning this, Mongo groups by UTC
+    // calendar month while the fill-loop below uses local time, silently
+    // shifting every bucket by a month whenever local time is ahead of UTC.
+    Order.aggregate([
+      { $match: { enterpriseId: enterprise._id, createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$createdAt', timezone: 'Asia/Kolkata' } },
+          spend: { $sum: '$price' },
+        },
+      },
+    ]),
+    // Live shipment pipeline, same shape as admin.controller.js's
+    // ordersByStatus - a shipment created last month that's still
+    // in_transit today is still "active" regardless of when it was booked.
+    Order.aggregate([
+      { $match: { enterpriseId: enterprise._id, status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit'] } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    Order.countDocuments({ enterpriseId: enterprise._id, createdAt: { $gte: monthStart }, status: 'delivered' }),
+    Order.countDocuments({ enterpriseId: enterprise._id, createdAt: { $gte: monthStart }, status: 'cancelled' }),
   ]);
 
   const totalDestOrders = topDestinationsAgg.reduce((s, d) => s + d.orders, 0) || 1;
+
+  const shipmentStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0 };
+  statusAgg.forEach((s) => { shipmentStatusCounts[s._id] = s.count; });
+  const shipmentsByStatus = [
+    { status: 'pending', label: 'Pending', count: shipmentStatusCounts.pending },
+    { status: 'accepted', label: 'Accepted', count: shipmentStatusCounts.accepted },
+    { status: 'picked_up', label: 'Picked up', count: shipmentStatusCounts.picked_up },
+    { status: 'in_transit', label: 'In transit', count: shipmentStatusCounts.in_transit },
+    { status: 'delivered', label: 'Delivered (this month)', count: deliveredThisMonth },
+    { status: 'cancelled', label: 'Cancelled (this month)', count: cancelledThisMonth },
+  ];
+
+  // Fill in any month with no orders so the chart always shows exactly 6
+  // evenly-spaced points instead of gaps. Built from local date parts, not
+  // toISOString() (see timezone note above).
+  const spendTrend = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(monthStart);
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const found = monthlyAgg.find((x) => x._id === key);
+    spendTrend.push({
+      month: key,
+      label: d.toLocaleDateString('en-IN', { month: 'short' }),
+      spend: found?.spend ?? 0,
+    });
+  }
 
   return success(res, {
     companyName: enterprise.companyName,
@@ -190,6 +254,8 @@ exports.dashboard = catchAsync(async (req, res) => {
       orders: d.orders,
       share: Math.round((d.orders / totalDestOrders) * 100),
     })),
+    spendTrend,
+    shipmentsByStatus,
   });
 });
 
@@ -375,4 +441,41 @@ exports.regenerateApiKey = catchAsync(async (req, res) => {
 
   // Full key is only ever shown once, right after generation
   return success(res, { apiKey: newKey }, 'API key regenerated - copy it now, it will not be shown again');
+});
+
+const generateDriverInviteCode = () => `ENT-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+// GET /api/v1/enterprise/driver-invite-code - lazily generates one on first
+// fetch. Unlike the API key this isn't secret - it's meant to be handed out
+// to drivers, so it's always returned in full (no masking).
+exports.getDriverInviteCode = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id);
+  if (!enterprise.driverInviteCode) {
+    enterprise.driverInviteCode = generateDriverInviteCode();
+    await enterprise.save();
+  }
+  return success(res, { driverInviteCode: enterprise.driverInviteCode });
+});
+
+// POST /api/v1/enterprise/driver-invite-code/regenerate - old code stops
+// linking new drivers immediately; already-linked drivers are unaffected
+// (enterpriseId was already written to their Driver doc).
+exports.regenerateDriverInviteCode = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id);
+  enterprise.driverInviteCode = generateDriverInviteCode();
+  await enterprise.save();
+  return success(
+    res,
+    { driverInviteCode: enterprise.driverInviteCode },
+    'Driver invite code regenerated - the old code no longer links new drivers to your account'
+  );
+});
+
+// GET /api/v1/enterprise/drivers - this enterprise's own dedicated fleet
+exports.listDrivers = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id);
+  const drivers = await Driver.find({ enterpriseId: enterprise._id })
+    .populate('userId', 'name phone')
+    .sort({ createdAt: -1 });
+  return success(res, { drivers });
 });

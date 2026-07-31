@@ -9,6 +9,7 @@ import EnterpriseUsersPage from './enterprise/users/EnterpriseUsersPage.jsx';
 import EnterpriseInvoicesPage from './enterprise/invoices/EnterpriseInvoicesPage.jsx';
 import EnterpriseContractsPage from './enterprise/contracts/EnterpriseContractsPage.jsx';
 import EnterpriseApiKeysPage from './enterprise/api-keys/EnterpriseApiKeysPage.jsx';
+import EnterpriseDriversPage from './enterprise/drivers/EnterpriseDriversPage.jsx';
 import ProtectedRoute from './shared/routes/ProtectedRoute.jsx';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/dashboard" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseDashboardPage /></ProtectedRoute>} />
         <Route path="/bulk-booking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseBulkBookingPage /></ProtectedRoute>} />
         <Route path="/order-tracking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseOrderTrackingPage /></ProtectedRoute>} />
+        <Route path="/drivers" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseDriversPage /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseUsersPage /></ProtectedRoute>} />
         <Route path="/invoices" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseInvoicesPage /></ProtectedRoute>} />
         <Route path="/contracts" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseContractsPage /></ProtectedRoute>} />

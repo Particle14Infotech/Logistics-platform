@@ -11,6 +11,10 @@ const enterpriseSchema = new mongoose.Schema(
     billingEmail: String,
     creditLimit: { type: Number, default: 0 },
     apiKey: { type: String, select: false },
+    // Shared with drivers (not secret like apiKey) so they can link their
+    // registration to this enterprise's private fleet - see
+    // driver.controller.js's createProfile.
+    driverInviteCode: { type: String, unique: true, sparse: true },
     // Approval gate: a brand-new enterprise (self-signup or self-promote via
     // /enterprise/create) starts inactive until an admin approves it via
     // PUT /admin/enterprises/:id/status - see resolveEnterprise() in

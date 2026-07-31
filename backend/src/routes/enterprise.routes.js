@@ -27,4 +27,8 @@ router.put('/contract-pricing', protect, adminOnly, ctrl.updateContractPricing);
 router.get('/api-key', protect, adminOnly, ctrl.getApiKey);
 router.post('/api-key/regenerate', protect, adminOnly, ctrl.regenerateApiKey);
 
+router.get('/driver-invite-code', protect, adminOnly, ctrl.getDriverInviteCode);
+router.post('/driver-invite-code/regenerate', protect, adminOnly, ctrl.regenerateDriverInviteCode);
+router.get('/drivers', protect, enterpriseRoles, ctrl.listDrivers);
+
 module.exports = router;

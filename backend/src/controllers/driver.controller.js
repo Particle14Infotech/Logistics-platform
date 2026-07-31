@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
+const Enterprise = require('../models/enterprise.model');
 const { sendToUser } = require('../services/notification.service');
 
 // Local-disk storage for dev (uploads/ served statically by app.js). Swap
@@ -87,9 +88,23 @@ exports.createProfile = catchAsync(async (req, res) => {
   const existing = await Driver.findOne({ userId: req.user.id });
   if (existing) throw new AppError('A driver profile already exists for this account', 400);
 
-  const { vehicleType, vehicleNumber, licenseNumber } = req.body;
+  const { vehicleType, vehicleNumber, licenseNumber, enterpriseInviteCode } = req.body;
   if (!vehicleType || !vehicleNumber || !licenseNumber) {
     throw new AppError('vehicleType, vehicleNumber, and licenseNumber are required', 400);
+  }
+
+  // Optional - links this driver to an enterprise's private fleet instead
+  // of the public marketplace (see Driver.enterpriseId). A code that
+  // doesn't match rejects loudly rather than silently registering the
+  // driver as independent, so a typo doesn't quietly misroute them.
+  let enterpriseId = null;
+  if (enterpriseInviteCode) {
+    const enterprise = await Enterprise.findOne({
+      driverInviteCode: enterpriseInviteCode.trim().toUpperCase(),
+      isActive: true,
+    });
+    if (!enterprise) throw new AppError('Invalid enterprise invite code', 400);
+    enterpriseId = enterprise._id;
   }
 
   const driver = await Driver.create({
@@ -97,6 +112,7 @@ exports.createProfile = catchAsync(async (req, res) => {
     vehicleType,
     vehicleNumber,
     licenseNumber,
+    enterpriseId,
     isApproved: false,
     isAvailable: false,
   });
@@ -120,6 +136,11 @@ exports.availableOrders = catchAsync(async (req, res) => {
     driverId: null,
     vehicleType: driver.vehicleType,
     rejectedDriverIds: { $ne: driver._id },
+    // Dedicated enterprise drivers only see that enterprise's own orders;
+    // independent drivers only see the public marketplace pool. Orders
+    // placed by an enterprise are reserved for that enterprise's private
+    // fleet, not the shared pool, and vice versa.
+    enterpriseId: driver.enterpriseId ?? null,
   })
     .populate('customerId', 'name phone')
     .sort({ createdAt: 1 })
@@ -138,6 +159,14 @@ exports.acceptOrder = catchAsync(async (req, res) => {
   if (!orderCheck) throw new AppError('Booking not found', 404);
   if (orderCheck.vehicleType !== driver.vehicleType) {
     throw new AppError('Vehicle type mismatch', 400);
+  }
+  // Belt-and-suspenders on top of availableOrders' filtering - a direct
+  // API call must not be able to cross the enterprise/public-pool
+  // boundary just because availableOrders never surfaced this order.
+  const orderEnterpriseId = orderCheck.enterpriseId ? String(orderCheck.enterpriseId) : null;
+  const driverEnterpriseId = driver.enterpriseId ? String(driver.enterpriseId) : null;
+  if (orderEnterpriseId !== driverEnterpriseId) {
+    throw new AppError('This booking is not available to your account', 403);
   }
 
   // Atomic compare-and-swap: without this, two drivers hitting Accept on the
@@ -231,13 +260,17 @@ exports.getOrder = catchAsync(async (req, res) => {
   return success(res, { order });
 });
 
-// PUT /api/v1/driver/orders/:id/status  { status: 'picked_up' | 'in_transit' }
+// PUT /api/v1/driver/orders/:id/status  { status: 'picked_up' | 'in_transit', otp? }
 // Delivered is handled separately by uploadPod below, since it needs OTP
-// verification. Generates a delivery OTP when moving to picked_up, which
-// booking.controller.js's getById exposes back to the customer so they can
-// hand the code to the driver in person - a stand-in for SMS delivery.
+// verification. Generates a start OTP and a delivery OTP when moving to
+// picked_up (both up front, so the customer has them ready) -
+// booking.controller.js's getById exposes each back to the customer at the
+// right time, a stand-in for SMS delivery. The start OTP mirrors the
+// delivery OTP but confirms the driver is actually beginning the trip
+// (picked_up -> in_transit, the "Start trip" action) rather than final
+// drop-off - previously that transition had no verification at all.
 exports.updateOrderStatus = catchAsync(async (req, res) => {
-  const { status, note } = req.body;
+  const { status, note, otp } = req.body;
   if (!['picked_up', 'in_transit'].includes(status)) {
     throw new AppError('status must be picked_up or in_transit', 400);
   }
@@ -251,12 +284,19 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
     throw new AppError(`Cannot move from "${order.status}" to "${status}"`, 400);
   }
 
+  if (status === 'in_transit' && (!otp || otp !== order.startOtp)) {
+    throw new AppError('Incorrect start code', 400);
+  }
+
   order.status = status;
   if (status === 'picked_up' && !order.deliveryOtp) {
     order.deliveryOtp = generateOtp();
+    order.startOtp = generateOtp();
   }
-  const baseNote = `Marked ${status.replace('_', ' ')} by driver`;
-  order.timeline.push({ status, note: note ? `${baseNote} (barcode: ${note})` : baseNote });
+  let baseNote = `Marked ${status.replace('_', ' ')} by driver`;
+  if (status === 'picked_up' && note) baseNote += ` (barcode: ${note})`;
+  if (status === 'in_transit') baseNote = 'Trip started (start code verified)';
+  order.timeline.push({ status, note: baseNote });
   await order.save();
 
   const io = req.app.get('io');

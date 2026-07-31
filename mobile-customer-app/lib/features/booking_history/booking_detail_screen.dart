@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/order_model.dart';
 import '../../services/socket_service.dart';
 import '../../widgets/status_pill.dart';
+import '../../widgets/pay_now_button.dart';
 
 const _kLiveStatuses = ['accepted', 'picked_up', 'in_transit'];
 
@@ -235,6 +236,25 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           ],
                         ),
                       ),
+                    if (order.startOtp != null) ...[
+                      const SizedBox(height: 12),
+                      _InfoCard(
+                        color: const Color(0xFFFFF8E1),
+                        child: Column(
+                          children: [
+                            Text('Give this code to your driver to start the trip',
+                                style: GoogleFonts.poppins(fontSize: 13),
+                                textAlign: TextAlign.center),
+                            const SizedBox(height: 8),
+                            Text(order.startOtp!,
+                                style: GoogleFonts.poppins(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 8)),
+                          ],
+                        ),
+                      ),
+                    ],
                     if (order.deliveryOtp != null) ...[
                       const SizedBox(height: 12),
                       _InfoCard(
@@ -289,6 +309,14 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         ],
                       ),
                     ),
+                    if (order.paymentStatus == 'unpaid' &&
+                        order.status != 'cancelled') ...[
+                      const SizedBox(height: 16),
+                      PayNowButton(
+                        orderId: order.id,
+                        onPaid: _load,
+                      ),
+                    ],
                     if (_error != null) ...[
                       const SizedBox(height: 12),
                       Text(_error!,

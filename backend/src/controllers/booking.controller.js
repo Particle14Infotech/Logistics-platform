@@ -164,9 +164,15 @@ exports.getById = catchAsync(async (req, res) => {
   // Delivery OTP is only meaningful (and only shown) once the driver has
   // picked up - it's how the customer proves receipt at drop-off, standing
   // in for a real SMS-delivered code since no SMS gateway is wired here.
+  // Start OTP serves the same purpose one step earlier: proves the trip is
+  // genuinely starting, so it's only shown while the order is 'picked_up'
+  // (before the driver taps "Start trip") - already consumed once in_transit.
   const orderObj = order.toObject();
   if (!['picked_up', 'in_transit'].includes(order.status)) {
     delete orderObj.deliveryOtp;
+  }
+  if (order.status !== 'picked_up') {
+    delete orderObj.startOtp;
   }
 
   return success(res, { order: orderObj });

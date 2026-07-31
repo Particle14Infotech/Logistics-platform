@@ -28,6 +28,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   String? _vehicleType;
   final _vehicleNumberController = TextEditingController();
   final _licenseController = TextEditingController();
+  final _enterpriseCodeController = TextEditingController();
   bool _submitting = false;
   String? _error;
   bool _roleConflict = false;
@@ -57,6 +58,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   void dispose() {
     _vehicleNumberController.dispose();
     _licenseController.dispose();
+    _enterpriseCodeController.dispose();
     super.dispose();
   }
 
@@ -74,6 +76,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
             vehicleType: _vehicleType!,
             vehicleNumber: _vehicleNumberController.text.trim(),
             licenseNumber: _licenseController.text.trim(),
+            enterpriseInviteCode: _enterpriseCodeController.text.trim(),
           );
       setState(() => _step = _SetupStep.selfie);
     } on DioException catch (e) {
@@ -83,6 +86,11 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
           _roleConflict = true;
           _error = 'This phone number is already registered under a different role (e.g. as a customer). '
               'Sign out and use a different phone number to sign up as a driver.';
+        });
+      } else if (e.response?.statusCode == 400 && (serverMessage?.contains('Invalid enterprise invite code') ?? false)) {
+        setState(() {
+          _roleConflict = false;
+          _error = "That enterprise code isn't valid. Check it with your company, or leave it blank to drive independently.";
         });
       } else if (e.response?.statusCode == 400 && (serverMessage?.contains('already exists') ?? false)) {
         // A profile was already created for this account in an earlier
@@ -165,6 +173,16 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
             TextField(
               controller: _licenseController,
               decoration: const InputDecoration(labelText: 'Driving license number', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _enterpriseCodeController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                labelText: 'Enterprise invite code (optional)',
+                hintText: 'e.g. ENT-A1B2C3D4 - only if a company gave you one',
+                border: OutlineInputBorder(),
+              ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
