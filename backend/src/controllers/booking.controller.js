@@ -1,10 +1,14 @@
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
+const Payment = require('../models/payment.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
 const { sendToUser, sendToUsers } = require('../services/notification.service');
+const razorpayService = require('../services/razorpay.service');
+const { applyWalletTransaction } = require('../services/wallet.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
+const { calculateCappedHalf } = require('../utils/pricingRules');
 
 function assertWeightWithinCapacity(vehicleType, weightKg) {
   const maxWeight = VEHICLE_MAX_WEIGHT_KG[vehicleType];
@@ -96,16 +100,25 @@ exports.create = catchAsync(async (req, res) => {
     isFragile,
     insuranceOpted,
     distanceKm,
+    paymentMethod,
   } = req.body;
 
   if (!pickupLocation?.address || !dropLocation?.address || !vehicleType) {
     throw new AppError('pickupLocation, dropLocation, and vehicleType are required', 400);
   }
   if (weightKg) assertWeightWithinCapacity(vehicleType, weightKg);
+  if (paymentMethod && !['online', 'cod'].includes(paymentMethod)) {
+    throw new AppError("paymentMethod must be 'online' or 'cod'", 400);
+  }
 
   const finalDistanceKm = distanceKm || 10;
   // Price is always recalculated server-side - never trust a client-sent price.
   const { estimatedPrice } = await calculateFare({ vehicleType, distanceKm: finalDistanceKm, weightKg });
+  const finalPaymentMethod = paymentMethod || 'online';
+  // cod orders only charge this smaller advance online at booking time -
+  // the rest is collected in cash at delivery. See order.model.js's
+  // codAdvanceAmount comment.
+  const codAdvanceAmount = finalPaymentMethod === 'cod' ? calculateCappedHalf(estimatedPrice) : 0;
 
   const order = await Order.create({
     customerId: req.user.id,
@@ -127,6 +140,8 @@ exports.create = catchAsync(async (req, res) => {
     insuranceOpted: Boolean(insuranceOpted),
     distanceKm: finalDistanceKm,
     price: estimatedPrice,
+    paymentMethod: finalPaymentMethod,
+    codAdvanceAmount,
     status: 'pending',
     timeline: [{ status: 'pending', note: 'Booking created' }],
   });
@@ -216,14 +231,67 @@ exports.cancel = catchAsync(async (req, res) => {
     throw new AppError(`Cannot cancel a booking that is already ${order.status}`, 400);
   }
 
+  // Only charge the driver-compensation fee once a driver has actually
+  // accepted the job - nothing to compensate if cancelled while still
+  // 'pending' with no driver assigned yet.
+  const driverWasAssigned = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
+  const cancellationFee = driverWasAssigned ? calculateCappedHalf(order.price) : 0;
+
+  // If the customer already paid, refund immediately minus the fee - the
+  // fee itself gets credited to the driver's wallet below instead of
+  // staying with the platform. Based on what was actually captured
+  // (payment.amount), not order.price - for a cod order that's only the
+  // advance (itself sized via the same calculateCappedHalf formula), so a
+  // cancellation after driver acceptance correctly zeroes the refund
+  // instead of trying to refund more than was ever charged. A refund
+  // failure shouldn't block the cancellation itself - the booking still
+  // needs to come off the driver's job list - so it's logged on the
+  // timeline for manual follow-up instead.
+  if (cancellationFee > 0 && order.paymentStatus === 'paid') {
+    const payment = await Payment.findOne({ orderId: order._id, status: 'captured' });
+    if (payment) {
+      const refundAmountPaise = payment.amount - Math.round(cancellationFee * 100);
+      if (refundAmountPaise > 0) {
+        try {
+          const refund = await razorpayService.refundPayment(payment.razorpayPaymentId, refundAmountPaise);
+          payment.status = 'refunded';
+          payment.refundId = refund.id;
+          payment.refundedAmount = refundAmountPaise;
+          await payment.save();
+          order.paymentStatus = 'refunded';
+        } catch (err) {
+          order.timeline.push({ status: 'cancelled', note: `Refund failed (₹${cancellationFee} driver fee applies) - needs manual follow-up` });
+        }
+      } else {
+        // The whole captured amount (e.g. a cod advance) is consumed by
+        // the driver's compensation - nothing left to refund.
+        payment.status = 'refunded';
+        payment.refundedAmount = 0;
+        await payment.save();
+        order.paymentStatus = 'refunded';
+      }
+    }
+  }
+
+  if (cancellationFee > 0 && order.driverId) {
+    await applyWalletTransaction({
+      driverId: order.driverId,
+      type: 'cancellation_compensation',
+      amount: cancellationFee,
+      orderId: order._id,
+      note: 'Customer cancelled after accepting',
+    });
+  }
+
   order.status = 'cancelled';
+  order.cancellationFeeAmount = cancellationFee;
   order.timeline.push({ status: 'cancelled', note: 'Cancelled by customer' });
   await order.save();
 
   const io = req.app.get('io');
   if (io) io.to(`booking:${order._id}`).emit('status_broadcast', { bookingId: order._id, status: 'cancelled', timestamp: Date.now() });
 
-  return success(res, { order }, 'Booking cancelled');
+  return success(res, { order, cancellationFee }, 'Booking cancelled');
 });
 
 // GET /api/v1/booking/:id/track

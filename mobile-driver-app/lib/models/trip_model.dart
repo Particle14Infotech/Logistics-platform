@@ -10,6 +10,8 @@ class TripModel {
   final double? distanceKm;
   final num price;
   final String status;
+  final String paymentMethod;
+  final num codAdvanceAmount;
   final String? customerName;
   final String? customerPhone;
   final DateTime createdAt;
@@ -24,6 +26,8 @@ class TripModel {
     this.distanceKm,
     required this.price,
     required this.status,
+    this.paymentMethod = 'online',
+    this.codAdvanceAmount = 0,
     this.customerName,
     this.customerPhone,
     required this.createdAt,
@@ -40,6 +44,8 @@ class TripModel {
       distanceKm: distanceKm,
       price: price,
       status: status ?? this.status,
+      paymentMethod: paymentMethod,
+      codAdvanceAmount: codAdvanceAmount,
       customerName: customerName,
       customerPhone: customerPhone,
       createdAt: createdAt,
@@ -58,6 +64,8 @@ class TripModel {
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),
       price: json['price'] as num,
       status: json['status'] as String,
+      paymentMethod: json['paymentMethod'] as String? ?? 'online',
+      codAdvanceAmount: json['codAdvanceAmount'] as num? ?? 0,
       customerName: customer is Map<String, dynamic> ? customer['name'] as String? : null,
       customerPhone: customer is Map<String, dynamic> ? customer['phone'] as String? : null,
       createdAt: DateTime.parse(json['createdAt'] as String),

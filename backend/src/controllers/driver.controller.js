@@ -5,7 +5,9 @@ const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
 const Enterprise = require('../models/enterprise.model');
+const WalletTransaction = require('../models/walletTransaction.model');
 const { sendToUser } = require('../services/notification.service');
+const { applyWalletTransaction } = require('../services/wallet.service');
 
 // Local-disk storage for dev (uploads/ served statically by app.js). Swap
 // for an S3 multer-storage adapter in production using the AWS_* vars
@@ -141,6 +143,11 @@ exports.availableOrders = catchAsync(async (req, res) => {
     // placed by an enterprise are reserved for that enterprise's private
     // fleet, not the shared pool, and vice versa.
     enterpriseId: driver.enterpriseId ?? null,
+    // A cod order isn't shown to drivers until its advance is actually
+    // paid - that's the whole point of the advance (no-show/fraud
+    // protection), so it can't be skipped by just never paying it. Online
+    // orders are unaffected, matching existing behavior.
+    $or: [{ paymentMethod: 'online' }, { paymentMethod: 'cod', paymentStatus: 'paid' }],
   })
     .populate('customerId', 'name phone')
     .sort({ createdAt: 1 })
@@ -167,6 +174,12 @@ exports.acceptOrder = catchAsync(async (req, res) => {
   const driverEnterpriseId = driver.enterpriseId ? String(driver.enterpriseId) : null;
   if (orderEnterpriseId !== driverEnterpriseId) {
     throw new AppError('This booking is not available to your account', 403);
+  }
+  // Same belt-and-suspenders for cod's advance-paid gate as the
+  // enterprise check above - a direct API call must not be able to accept
+  // an unpaid cod order just because availableOrders never surfaced it.
+  if (orderCheck.paymentMethod === 'cod' && orderCheck.paymentStatus !== 'paid') {
+    throw new AppError('This booking is not available yet - the customer has not paid the advance', 400);
   }
 
   // Atomic compare-and-swap: without this, two drivers hitting Accept on the
@@ -314,22 +327,41 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
   return success(res, { order }, 'Status updated');
 });
 
-// POST /api/v1/driver/pod/:bookingId  { otp }
+// POST /api/v1/driver/pod/:bookingId  { otp, cashCollected? }
 exports.uploadPod = catchAsync(async (req, res) => {
-  const { otp } = req.body;
+  const { otp, cashCollected } = req.body;
   const driver = await getOwnDriverDoc(req.user.id);
   const order = await Order.findOne({ _id: req.params.bookingId, driverId: driver._id });
   if (!order) throw new AppError('Trip not found', 404);
   if (order.status !== 'in_transit') throw new AppError('Trip must be in transit before delivery can be confirmed', 400);
   if (!otp || otp !== order.deliveryOtp) throw new AppError('Incorrect delivery code', 400);
+  // The remaining cash must be physically collected before a cod delivery
+  // can be finalized - closes the loop with an explicit record, rather
+  // than just assuming it happened.
+  if (order.paymentMethod === 'cod' && !cashCollected) {
+    throw new AppError(`Confirm you've collected the remaining ₹${order.price - order.codAdvanceAmount} cash before completing delivery`, 400);
+  }
 
   order.status = 'delivered';
+  if (order.paymentMethod === 'cod') order.codCashCollected = true;
   order.timeline.push({ status: 'delivered', note: 'Delivery confirmed via OTP' });
   await order.save();
 
   driver.totalTrips += 1;
   driver.totalEarnings += order.price;
   await driver.save();
+
+  // For a cod order the driver already has the cash portion physically in
+  // hand - only the advance (which the platform actually collected via
+  // Razorpay) is money the platform owes back to the driver.
+  const walletCredit = order.paymentMethod === 'cod' ? order.codAdvanceAmount : order.price;
+  await applyWalletTransaction({
+    driverId: driver._id,
+    type: 'trip_earning',
+    amount: walletCredit,
+    orderId: order._id,
+    note: order.paymentMethod === 'cod' ? 'Trip fare (advance - remainder collected in cash)' : 'Trip fare',
+  });
 
   const io = req.app.get('io');
   if (io) io.to(`booking:${order._id}`).emit('status_broadcast', { bookingId: order._id, status: 'delivered', timestamp: Date.now() });
@@ -369,4 +401,33 @@ exports.earnings = catchAsync(async (req, res) => {
     thisWeek: { total: weekAgg[0]?.total ?? 0, trips: weekAgg[0]?.trips ?? 0 },
     thisMonth: { total: monthAgg[0]?.total ?? 0, trips: monthAgg[0]?.trips ?? 0 },
   });
+});
+
+// GET /api/v1/driver/wallet - balance + recent ledger entries (trip
+// earnings, cancellation compensation, payouts). Pagination isn't needed
+// yet at expected transaction volumes; revisit if this list gets long.
+exports.wallet = catchAsync(async (req, res) => {
+  const driver = await getOwnDriverDoc(req.user.id);
+  const transactions = await WalletTransaction.find({ driverId: driver._id })
+    .sort({ createdAt: -1 })
+    .limit(100);
+
+  return success(res, { balance: driver.walletBalance, transactions });
+});
+
+// PUT /api/v1/driver/bank-details  { accountNumber, ifsc, accountHolderName }
+// Used by admin.controller.js's payoutDriver as the reference for where a
+// manual bank transfer actually went - no automated payout integration
+// reads this directly.
+exports.updateBankDetails = catchAsync(async (req, res) => {
+  const driver = await getOwnDriverDoc(req.user.id);
+  const { accountNumber, ifsc, accountHolderName } = req.body;
+  if (!accountNumber || !ifsc || !accountHolderName) {
+    throw new AppError('accountNumber, ifsc, and accountHolderName are all required', 400);
+  }
+
+  driver.bankDetails = { accountNumber, ifsc, accountHolderName };
+  await driver.save();
+
+  return success(res, { driver }, 'Bank details updated');
 });

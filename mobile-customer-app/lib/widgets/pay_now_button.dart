@@ -11,7 +11,8 @@ import '../services/razorpay_checkout_helper.dart';
 class PayNowButton extends ConsumerStatefulWidget {
   final String orderId;
   final VoidCallback onPaid;
-  const PayNowButton({super.key, required this.orderId, required this.onPaid});
+  final bool isCodAdvance;
+  const PayNowButton({super.key, required this.orderId, required this.onPaid, this.isCodAdvance = false});
 
   @override
   ConsumerState<PayNowButton> createState() => _PayNowButtonState();
@@ -70,7 +71,7 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
           icon: _paying
               ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.payment),
-          label: Text(_paying ? 'Opening payment…' : 'Pay Now'),
+          label: Text(_paying ? 'Opening payment…' : (widget.isCodAdvance ? 'Pay Advance' : 'Pay Now')),
         ),
         if (_error != null) ...[
           const SizedBox(height: 8),

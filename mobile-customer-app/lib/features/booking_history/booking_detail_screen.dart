@@ -95,12 +95,26 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     });
   }
 
+  // Mirrors the backend's driver-compensation formula (booking.controller.js's
+  // cancel()) purely to preview the fee before the customer confirms - the
+  // backend recomputes and enforces it independently, this is just so the
+  // warning shown here isn't a surprise after the fact.
+  static const _driverCompensationCap = 300;
+
   Future<void> _cancel() async {
+    final order = _order!;
+    final driverAssigned = ['accepted', 'picked_up', 'in_transit'].contains(order.status);
+    final fee = driverAssigned
+        ? (order.price * 0.5).clamp(0, _driverCompensationCap).round()
+        : 0;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel booking?'),
-        content: const Text('This cannot be undone.'),
+        content: Text(fee > 0
+            ? 'A driver has already accepted this job. A ₹$fee cancellation fee will be deducted from your refund as driver compensation.'
+            : 'This cannot be undone.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -291,6 +305,20 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           if (order.weightKg != null)
                             _DetailRow(
                                 label: 'Weight', value: '${order.weightKg} kg'),
+                          if (order.paymentMethod == 'cod') ...[
+                            _DetailRow(
+                                label: 'Payment Method',
+                                value: 'Cash on Delivery'),
+                            _DetailRow(
+                                label: order.paymentStatus == 'paid'
+                                    ? 'Advance Paid'
+                                    : 'Advance Due Now',
+                                value: '₹${order.codAdvanceAmount}'),
+                            _DetailRow(
+                                label: 'Due in Cash at Delivery',
+                                value:
+                                    '₹${order.price - order.codAdvanceAmount}'),
+                          ],
                           const Divider(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -315,6 +343,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       PayNowButton(
                         orderId: order.id,
                         onPaid: _load,
+                        isCodAdvance: order.paymentMethod == 'cod',
                       ),
                     ],
                     if (_error != null) ...[

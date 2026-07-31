@@ -11,9 +11,13 @@ exports.createOrder = catchAsync(async (req, res) => {
   const order = await Order.findById(orderId);
   if (!order) throw new AppError('Booking not found', 404);
   if (String(order.customerId) !== String(req.user.id)) throw new AppError('Not authorized', 403);
-  if (order.paymentStatus === 'paid') throw new AppError('This booking is already paid', 400);
+  if (order.paymentStatus === 'paid') {
+    throw new AppError(order.paymentMethod === 'cod' ? 'The advance for this booking is already paid' : 'This booking is already paid', 400);
+  }
 
-  const amountPaise = Math.round(order.price * 100);
+  // cod only charges the smaller upfront advance here - the rest is
+  // collected in cash at delivery (see order.model.js's codAdvanceAmount).
+  const amountPaise = Math.round((order.paymentMethod === 'cod' ? order.codAdvanceAmount : order.price) * 100);
 
   let razorpayOrder;
   try {

@@ -18,6 +18,7 @@ class FareEstimateScreen extends ConsumerStatefulWidget {
 class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
   bool _confirming = false;
   String? _error;
+  String _paymentMethod = 'online';
 
   Future<void> _confirmBooking() async {
     final draft = ref.read(bookingDraftProvider);
@@ -38,6 +39,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
             isFragile: draft.isFragile,
             insuranceOpted: draft.insuranceOpted,
             distanceKm: draft.estimate!.distanceKm,
+            paymentMethod: _paymentMethod,
           );
       ref.read(bookingDraftProvider.notifier).reset();
       if (mounted) context.pushReplacement('/booking/confirmation/${order.id}');
@@ -119,6 +121,12 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  _PaymentMethodCard(
+                    selected: _paymentMethod,
+                    price: estimate.estimatedPrice,
+                    onChanged: (value) => setState(() => _paymentMethod = value),
+                  ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error)),
@@ -198,6 +206,99 @@ class _FareRow extends StatelessWidget {
           Text(label, style: GoogleFonts.poppins(fontSize: 13, color: color ?? Colors.grey.shade600)),
           if (value != null) Text('₹$value', style: GoogleFonts.poppins(fontSize: 13, color: color)),
         ],
+      ),
+    );
+  }
+}
+
+class _PaymentMethodCard extends StatelessWidget {
+  final String selected;
+  final num price;
+  final ValueChanged<String> onChanged;
+  const _PaymentMethodCard({required this.selected, required this.price, required this.onChanged});
+
+  // Mirrors the backend's calculateCappedHalf (pricingRules.js) purely for
+  // preview - the backend recomputes and enforces the real advance amount
+  // independently at booking creation.
+  num get _codAdvance => (price * 0.5).clamp(0, 300).round();
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Payment Method', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+          const SizedBox(height: 10),
+          _PaymentOptionTile(
+            title: 'Pay Online',
+            subtitle: 'Pay the full amount now via card/UPI',
+            icon: Icons.credit_card_outlined,
+            value: 'online',
+            groupValue: selected,
+            onTap: () => onChanged('online'),
+          ),
+          const SizedBox(height: 8),
+          _PaymentOptionTile(
+            title: 'Cash on Delivery',
+            subtitle: '₹$_codAdvance due now online, remaining ₹${price - _codAdvance} in cash at delivery',
+            icon: Icons.payments_outlined,
+            value: 'cod',
+            groupValue: selected,
+            onTap: () => onChanged('cod'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentOptionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String value;
+  final String groupValue;
+  final VoidCallback onTap;
+  const _PaymentOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.value,
+    required this.groupValue,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == groupValue;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppTheme.primary : AppTheme.borderColor, width: isSelected ? 1.5 : 1),
+          color: isSelected ? AppTheme.primary.withValues(alpha: 0.06) : null,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? AppTheme.primary : Colors.grey.shade500, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600)),
+                ],
+              ),
+            ),
+            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: isSelected ? AppTheme.primary : Colors.grey.shade400, size: 20),
+          ],
+        ),
       ),
     );
   }

@@ -53,6 +53,20 @@ const orderSchema = new mongoose.Schema(
     },
     paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
     razorpayOrderId: String,
+    // Driver cancellation-compensation withheld from the customer's refund -
+    // only ever set on cancellation, see booking.controller.js's cancel().
+    cancellationFeeAmount: { type: Number, default: 0 },
+
+    // 'online' pays the full price via Razorpay, as before. 'cod' only
+    // charges a smaller advance online at booking time (see
+    // pricingRules.calculateCappedHalf) - fraud/no-show protection - with
+    // the remainder collected in cash at delivery. paymentStatus 'paid' on
+    // a cod order means the *advance* was captured, not the full price.
+    paymentMethod: { type: String, enum: ['online', 'cod'], default: 'online' },
+    codAdvanceAmount: { type: Number, default: 0 },
+    // Driver-confirmed at delivery (see driver.controller.js's uploadPod) -
+    // required before a cod order can be marked delivered.
+    codCashCollected: { type: Boolean, default: false },
 
     startOtp: String,
     deliveryOtp: String,

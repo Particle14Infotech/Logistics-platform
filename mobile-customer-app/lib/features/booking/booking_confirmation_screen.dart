@@ -121,6 +121,14 @@ class _BookingConfirmationScreenState
                                     color: AppTheme.primary)),
                           ],
                         ),
+                        if (order.paymentMethod == 'cod') ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pay ₹${order.codAdvanceAmount} now, ₹${order.price - order.codAdvanceAmount} in cash at delivery',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, color: Colors.grey.shade500),
+                          ),
+                        ],
                       ] else
                         const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),
@@ -134,6 +142,7 @@ class _BookingConfirmationScreenState
                 PayNowButton(
                   orderId: order.id,
                   onPaid: _load,
+                  isCodAdvance: order.paymentMethod == 'cod',
                 ),
                 const SizedBox(height: 8),
               ],

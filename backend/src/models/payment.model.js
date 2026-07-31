@@ -11,6 +11,9 @@ const paymentSchema = new mongoose.Schema(
     currency: { type: String, default: 'INR' },
     status: { type: String, enum: ['created', 'captured', 'failed', 'refunded'], default: 'created' },
     refundId: String,
+    // In paise, same unit as amount - absent/equal to amount for a full
+    // refund, less than amount when a driver cancellation fee was withheld.
+    refundedAmount: Number,
   },
   { timestamps: true }
 );

@@ -36,6 +36,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   bool _updating = false;
   final _otpController = TextEditingController();
   final _startOtpController = TextEditingController();
+  bool _cashCollected = false;
 
   final _socketService = SocketService();
   Timer? _gpsTimer;
@@ -183,12 +184,16 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       setState(() => _error = 'Ask the customer for their 6-digit delivery code.');
       return;
     }
+    if (_trip?.paymentMethod == 'cod' && !_cashCollected) {
+      setState(() => _error = 'Confirm you\'ve collected the remaining cash before completing delivery.');
+      return;
+    }
     setState(() {
       _updating = true;
       _error = null;
     });
     try {
-      await ref.read(driverServiceProvider).confirmDelivery(widget.tripId, otp);
+      await ref.read(driverServiceProvider).confirmDelivery(widget.tripId, otp, cashCollected: _cashCollected);
       _gpsTimer?.cancel();
       ref.invalidate(driverProfileProvider); // picks up updated totalTrips/earnings
       if (mounted) context.go('/dashboard');
@@ -264,6 +269,47 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                         Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 10), Expanded(child: Text(trip.pickupLocation.address))]),
                         const SizedBox(height: 10),
                         Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 10), Expanded(child: Text(trip.dropLocation.address))]),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Order #${trip.id.substring(trip.id.length - 8).toUpperCase()}',
+                                style: const TextStyle(fontWeight: FontWeight.w600)),
+                            Text(
+                              '${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}',
+                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 20),
+                        _DetailRow(icon: Icons.local_shipping_outlined, label: 'Vehicle', value: trip.vehicleType),
+                        if (trip.goodsType != null) ...[
+                          const SizedBox(height: 8),
+                          _DetailRow(icon: Icons.inventory_2_outlined, label: 'Goods', value: trip.goodsType!),
+                        ],
+                        if (trip.weightKg != null) ...[
+                          const SizedBox(height: 8),
+                          _DetailRow(icon: Icons.scale_outlined, label: 'Weight', value: '${trip.weightKg!.toStringAsFixed(0)} kg'),
+                        ],
+                        if (trip.distanceKm != null) ...[
+                          const SizedBox(height: 8),
+                          _DetailRow(icon: Icons.route_outlined, label: 'Distance', value: '${trip.distanceKm!.toStringAsFixed(1)} km'),
+                        ],
+                        if (trip.paymentMethod == 'cod') ...[
+                          const SizedBox(height: 8),
+                          _DetailRow(
+                            icon: Icons.payments_outlined,
+                            label: 'Cash to collect',
+                            value: '₹${trip.price - trip.codAdvanceAmount}',
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -350,6 +396,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           ],
         );
       case 'in_transit':
+        final codRemaining = trip.price - trip.codAdvanceAmount;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -363,6 +410,16 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               style: const TextStyle(fontSize: 24, letterSpacing: 8),
               decoration: const InputDecoration(counterText: '', border: OutlineInputBorder(), hintText: '000000'),
             ),
+            if (trip.paymentMethod == 'cod') ...[
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                value: _cashCollected,
+                onChanged: (value) => setState(() => _cashCollected = value ?? false),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+                title: Text('I have collected ₹$codRemaining in cash from the customer'),
+              ),
+            ],
             const SizedBox(height: 8),
             FilledButton.icon(
               onPressed: _updating ? null : _confirmDelivery,
@@ -385,6 +442,26 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       default:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _DetailRow({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey.shade500),
+        const SizedBox(width: 10),
+        Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+        const Spacer(),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+      ],
+    );
   }
 }
 

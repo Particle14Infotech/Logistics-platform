@@ -100,8 +100,8 @@ class DriverService {
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }
 
-  Future<TripModel> confirmDelivery(String bookingId, String otp) async {
-    final response = await _dio.post('/driver/pod/$bookingId', data: {'otp': otp});
+  Future<TripModel> confirmDelivery(String bookingId, String otp, {bool cashCollected = false}) async {
+    final response = await _dio.post('/driver/pod/$bookingId', data: {'otp': otp, 'cashCollected': cashCollected});
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }
 
@@ -115,6 +115,62 @@ class DriverService {
       weekTrips: data['thisWeek']['trips'] as int,
       monthTotal: data['thisMonth']['total'] as num,
       monthTrips: data['thisMonth']['trips'] as int,
+    );
+  }
+
+  Future<WalletSummary> getWallet() async {
+    final response = await _dio.get('/driver/wallet');
+    final data = response.data['data'];
+    return WalletSummary(
+      balance: data['balance'] as num,
+      transactions: (data['transactions'] as List)
+          .map((t) => WalletTransaction.fromJson(t as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Future<DriverProfile> updateBankDetails({
+    required String accountNumber,
+    required String ifsc,
+    required String accountHolderName,
+  }) async {
+    final response = await _dio.put('/driver/bank-details', data: {
+      'accountNumber': accountNumber,
+      'ifsc': ifsc,
+      'accountHolderName': accountHolderName,
+    });
+    return DriverProfile.fromJson(response.data['data']['driver'] as Map<String, dynamic>);
+  }
+}
+
+class WalletSummary {
+  final num balance;
+  final List<WalletTransaction> transactions;
+  WalletSummary({required this.balance, required this.transactions});
+}
+
+class WalletTransaction {
+  final String type;
+  final num amount;
+  final num balanceAfter;
+  final String? note;
+  final DateTime createdAt;
+
+  WalletTransaction({
+    required this.type,
+    required this.amount,
+    required this.balanceAfter,
+    this.note,
+    required this.createdAt,
+  });
+
+  factory WalletTransaction.fromJson(Map<String, dynamic> json) {
+    return WalletTransaction(
+      type: json['type'] as String,
+      amount: json['amount'] as num,
+      balanceAfter: json['balanceAfter'] as num,
+      note: json['note'] as String?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 }

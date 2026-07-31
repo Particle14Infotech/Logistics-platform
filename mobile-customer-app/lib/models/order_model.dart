@@ -11,6 +11,9 @@ class OrderModel {
   final num price;
   final String status;
   final String paymentStatus;
+  final String paymentMethod;
+  final num codAdvanceAmount;
+  final bool codCashCollected;
   final String? driverName;
   final String? driverPhone;
   final String? vehicleNumber;
@@ -30,6 +33,9 @@ class OrderModel {
     required this.price,
     required this.status,
     required this.paymentStatus,
+    this.paymentMethod = 'online',
+    this.codAdvanceAmount = 0,
+    this.codCashCollected = false,
     this.driverName,
     this.driverPhone,
     this.vehicleNumber,
@@ -54,6 +60,9 @@ class OrderModel {
       price: json['price'] as num,
       status: json['status'] as String,
       paymentStatus: json['paymentStatus'] as String,
+      paymentMethod: json['paymentMethod'] as String? ?? 'online',
+      codAdvanceAmount: json['codAdvanceAmount'] as num? ?? 0,
+      codCashCollected: json['codCashCollected'] as bool? ?? false,
       driverName: driverUser is Map<String, dynamic> ? driverUser['name'] as String? : null,
       driverPhone: driverUser is Map<String, dynamic> ? driverUser['phone'] as String? : null,
       vehicleNumber: driver is Map<String, dynamic> ? driver['vehicleNumber'] as String? : null,

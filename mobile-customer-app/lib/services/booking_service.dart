@@ -42,6 +42,7 @@ class BookingService {
     bool isFragile = false,
     bool insuranceOpted = false,
     required double distanceKm,
+    String paymentMethod = 'online',
   }) async {
     final response = await _dio.post('/booking/create', data: {
       'pickupLocation': pickup.toJson(),
@@ -52,6 +53,7 @@ class BookingService {
       'isFragile': isFragile,
       'insuranceOpted': insuranceOpted,
       'distanceKm': distanceKm,
+      'paymentMethod': paymentMethod,
     });
     return OrderModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }
