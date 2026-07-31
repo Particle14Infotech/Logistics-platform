@@ -1,7 +1,9 @@
+const PDFDocument = require('pdfkit');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
 const Payment = require('../models/payment.model');
+const Message = require('../models/message.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
 const { sendToUser, sendToUsers } = require('../services/notification.service');
@@ -191,6 +193,77 @@ exports.getById = catchAsync(async (req, res) => {
   }
 
   return success(res, { order: orderObj });
+});
+
+// GET /api/v1/booking/:id/invoice - generates a simple receipt PDF on the
+// fly, for individual (non-enterprise) orders. Mirrors the shape of
+// enterprise.controller.js's downloadInvoicePdf, but scoped to one order
+// and its actual Payment (rather than an aggregated Invoice) - only
+// available once a payment has actually been captured, and only to that
+// order's own customer (or admin).
+exports.downloadInvoicePdf = catchAsync(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new AppError('Booking not found', 404);
+
+  const isOwner = String(order.customerId) === String(req.user.id);
+  if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to view this booking', 403);
+
+  const payment = await Payment.findOne({ orderId: order._id, status: 'captured' }).sort({ createdAt: -1 });
+  if (!payment) throw new AppError('No completed payment found for this booking yet', 400);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="receipt-${order._id}.pdf"`);
+
+  const doc = new PDFDocument({ margin: 50 });
+  doc.pipe(res);
+
+  doc.fontSize(18).text('Pan-India Logistics Platform', { align: 'left' });
+  doc.fontSize(10).fillColor('#555').text('Payment Receipt', { align: 'left' });
+  doc.moveDown(1.5);
+
+  doc.fontSize(12).fillColor('#000').text(`Order: ${order._id.toString().slice(-8).toUpperCase()}`);
+  doc.text(`Date: ${order.createdAt.toLocaleDateString('en-IN')}`);
+  doc.text(`Route: ${order.pickupLocation?.address ?? '—'} -> ${order.dropLocation?.address ?? '—'}`);
+  doc.text(`Vehicle: ${order.vehicleType.replace('_', ' ')}`);
+  doc.text(`Goods: ${order.goodsType}${order.weightKg ? ` (${order.weightKg} kg)` : ''}`);
+  doc.moveDown();
+
+  doc.fontSize(11).text('Payment', { underline: true });
+  doc.moveDown(0.5);
+  doc.fontSize(10).text(`Order price: Rs ${order.price}`);
+  if (order.paymentMethod === 'cod') {
+    doc.text(`Payment method: Cash on delivery (advance paid online)`);
+    doc.text(`Advance paid online: Rs ${(payment.amount / 100).toFixed(2)}`);
+    doc.text(`Remainder collected in cash: Rs ${(order.price - order.codAdvanceAmount).toFixed(2)}`);
+  } else {
+    doc.text(`Payment method: Online`);
+    doc.text(`Amount paid: Rs ${(payment.amount / 100).toFixed(2)}`);
+  }
+  if (payment.refundedAmount) doc.text(`Refunded: Rs ${(payment.refundedAmount / 100).toFixed(2)}`);
+  doc.text(`Razorpay payment ID: ${payment.razorpayPaymentId ?? '—'}`);
+  doc.moveDown();
+
+  doc.fontSize(9).fillColor('#888').text('This is a system-generated receipt.', { align: 'left' });
+
+  doc.end();
+});
+
+// GET /api/v1/booking/:id/messages - chat history for one booking. Real-time
+// delivery is the Socket.IO 'chat_message' event (sockets/tracking.socket.js);
+// this is for populating history when the chat screen first opens, or
+// catching up on messages sent while offline.
+exports.listMessages = catchAsync(async (req, res) => {
+  const order = await Order.findById(req.params.id).populate('driverId', 'userId');
+  if (!order) throw new AppError('Booking not found', 404);
+
+  const isCustomer = String(order.customerId) === String(req.user.id);
+  const isDriver = order.driverId?.userId && String(order.driverId.userId) === String(req.user.id);
+  if (!isCustomer && !isDriver && req.user.role !== 'admin') {
+    throw new AppError('Not authorized to view this conversation', 403);
+  }
+
+  const messages = await Message.find({ bookingId: order._id }).sort({ createdAt: 1 });
+  return success(res, { messages });
 });
 
 // GET /api/v1/booking/user/:userId?status=&page=&limit=

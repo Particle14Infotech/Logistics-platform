@@ -1,8 +1,15 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../chat/chat_screen.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -37,10 +44,12 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   OrderModel? _order;
   String? _error;
   bool _cancelling = false;
+  bool _downloadingInvoice = false;
 
   final _socketService = SocketService();
   LatLng? _driverPosition;
   final _mapController = MapController();
+  Timer? _customerLocationTimer;
 
   @override
   void initState() {
@@ -50,9 +59,29 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
 
   @override
   void dispose() {
+    _customerLocationTimer?.cancel();
     _socketService.leaveBookingRoom(widget.orderId);
     _socketService.dispose();
     super.dispose();
+  }
+
+  // Broadcasts the customer's own position while the trip is active - a
+  // stand-in for pickup precision (e.g. a driver seeing "customer is 200m
+  // away"), symmetric with the driver app already broadcasting its own
+  // position. A single failed GPS read isn't worth surfacing to the UI,
+  // same as the driver app's equivalent - the next tick just tries again.
+  void _startCustomerLocationBroadcast() {
+    _customerLocationTimer?.cancel();
+    _customerLocationTimer = Timer.periodic(const Duration(seconds: 8), (_) async {
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        );
+        _socketService.sendCustomerLocation(widget.orderId, position.latitude, position.longitude);
+      } catch (_) {
+        // Ignored - next tick retries.
+      }
+    });
   }
 
   Future<void> _load() async {
@@ -76,6 +105,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
 
     _socketService.connect(accessToken);
     _socketService.joinBookingRoom(widget.orderId);
+    _startCustomerLocationBroadcast();
 
     _socketService.onLocationBroadcast((data) {
       final lat = (data['lat'] as num?)?.toDouble();
@@ -90,6 +120,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
       if (status == null || !mounted) return;
       if (!_kLiveStatuses.contains(status)) {
         _socketService.leaveBookingRoom(widget.orderId);
+        _customerLocationTimer?.cancel();
       }
       _load();
     });
@@ -100,6 +131,21 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   // backend recomputes and enforces it independently, this is just so the
   // warning shown here isn't a surprise after the fact.
   static const _driverCompensationCap = 300;
+
+  Future<void> _downloadInvoice() async {
+    setState(() => _downloadingInvoice = true);
+    try {
+      final bytes = await ref.read(bookingServiceProvider).downloadInvoice(widget.orderId);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/receipt-${widget.orderId}.pdf');
+      await file.writeAsBytes(bytes);
+      if (mounted) await Share.shareXFiles([XFile(file.path)], text: 'Your delivery receipt');
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Could not download the invoice.');
+    } finally {
+      if (mounted) setState(() => _downloadingInvoice = false);
+    }
+  }
 
   Future<void> _cancel() async {
     final order = _order!;
@@ -231,10 +277,16 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                             if (order.driverPhone != null) ...[
                               _CircleIconButton(
                                   icon: Icons.chat_bubble_outline,
-                                  onTap: () {}),
+                                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                                        builder: (_) => ChatScreen(
+                                          bookingId: order.id,
+                                          driverName: order.driverName,
+                                        ),
+                                      ))),
                               const SizedBox(width: 8),
                               _CircleIconButton(
-                                  icon: Icons.call_outlined, onTap: () {}),
+                                  icon: Icons.call_outlined,
+                                  onTap: () => launchUrl(Uri(scheme: 'tel', path: order.driverPhone))),
                             ],
                           ],
                         ),
@@ -344,6 +396,14 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         orderId: order.id,
                         onPaid: _load,
                         isCodAdvance: order.paymentMethod == 'cod',
+                      ),
+                    ],
+                    if (order.paymentStatus == 'paid') ...[
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: _downloadingInvoice ? null : _downloadInvoice,
+                        icon: const Icon(Icons.receipt_long_outlined),
+                        label: Text(_downloadingInvoice ? 'Preparing…' : 'Download invoice'),
                       ),
                     ],
                     if (_error != null) ...[

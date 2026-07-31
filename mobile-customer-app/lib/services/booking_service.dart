@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../core/network/dio_client.dart';
 import '../models/location_model.dart';
 import '../models/order_model.dart';
@@ -73,5 +74,15 @@ class BookingService {
 
   Future<void> cancelBooking(String id) async {
     await _dio.put('/booking/$id/cancel');
+  }
+
+  // Raw PDF bytes - caller saves to a temp file and shares/opens it, since
+  // there's no browser to hand a download to on mobile.
+  Future<List<int>> downloadInvoice(String id) async {
+    final response = await _dio.get<List<int>>(
+      '/booking/$id/invoice',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return response.data!;
   }
 }
