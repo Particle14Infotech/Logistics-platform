@@ -99,6 +99,22 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
     }
   }
 
+  // Full-detail view of a not-yet-accepted job - uses the data already in
+  // hand from availableOrders() rather than a backend round-trip, since
+  // driver.controller.js's getOrder only returns orders already assigned to
+  // this driver (driverId must match), which isn't true before acceptance.
+  Future<void> _openDetail(TripModel job) async {
+    final action = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => _JobDetailScreen(job: job)),
+    );
+    if (!mounted || action == null) return;
+    if (action == 'accept') {
+      _accept(job);
+    } else if (action == 'reject') {
+      _reject(job);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -122,54 +138,157 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
                     final job = _jobs![i];
                     final acting = _actingOnId == job.id;
                     return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(vehicleIcon(job.vehicleType)),
-                                const SizedBox(width: 8),
-                                Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600)),
-                                const Spacer(),
-                                Text('₹${job.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.pickupLocation.address))]),
-                            const SizedBox(height: 4),
-                            Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.dropLocation.address))]),
-                            if (job.weightKg != null) ...[
+                      child: InkWell(
+                        onTap: () => _openDetail(job),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(vehicleIcon(job.vehicleType)),
+                                  const SizedBox(width: 8),
+                                  Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  const Spacer(),
+                                  Text('₹${job.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.pickupLocation.address))]),
                               const SizedBox(height: 4),
-                              Text('${job.goodsType ?? 'Cargo'} · ${job.weightKg} kg', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                            ],
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: acting ? null : () => _reject(job),
-                                    child: const Text('Pass'),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: FilledButton(
-                                    onPressed: acting ? null : () => _accept(job),
-                                    child: acting
-                                        ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                        : const Text('Accept'),
-                                  ),
-                                ),
+                              Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.dropLocation.address))]),
+                              if (job.weightKg != null) ...[
+                                const SizedBox(height: 4),
+                                Text('${job.goodsType ?? 'Cargo'} · ${job.weightKg} kg', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                               ],
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: acting ? null : () => _reject(job),
+                                      child: const Text('Pass'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: FilledButton(
+                                      onPressed: acting ? null : () => _accept(job),
+                                      child: acting
+                                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                          : const Text('Accept'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
                   },
                 ),
+    );
+  }
+}
+
+// Read-only expanded view of a job the driver hasn't accepted yet - pops
+// with 'accept'/'reject' so the parent list can run the actual API call
+// and stays the single source of truth for _jobs/_actingOnId state.
+class _JobDetailScreen extends StatelessWidget {
+  final TripModel job;
+  const _JobDetailScreen({required this.job});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Job Details')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(vehicleIcon(job.vehicleType)),
+                        const SizedBox(width: 8),
+                        Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                        const Spacer(),
+                        Text('₹${job.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                      ],
+                    ),
+                    if (job.paymentMethod == 'cod') ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Cash on Delivery - ₹${job.price - job.codAdvanceAmount} to collect at drop-off',
+                        style: TextStyle(color: Colors.orange.shade800, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                    const Divider(height: 24),
+                    Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.pickupLocation.address))]),
+                    const SizedBox(height: 8),
+                    Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.dropLocation.address))]),
+                    const Divider(height: 24),
+                    if (job.goodsType != null) _DetailRow(label: 'Goods', value: job.goodsType!),
+                    if (job.weightKg != null) _DetailRow(label: 'Weight', value: '${job.weightKg} kg'),
+                    if (job.distanceKm != null) _DetailRow(label: 'Distance', value: '${job.distanceKm!.toStringAsFixed(1)} km'),
+                    if (job.customerName != null) _DetailRow(label: 'Customer', value: job.customerName!),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop('reject'),
+                  child: const Text('Pass'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop('accept'),
+                  child: const Text('Accept'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }

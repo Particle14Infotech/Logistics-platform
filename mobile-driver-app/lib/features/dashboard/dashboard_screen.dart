@@ -30,12 +30,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool _togglingAvailability = false;
   EarningsSummary? _earnings;
   List<TripModel>? _recentTrips;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadEarnings();
     _loadTrips();
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool _matchesSearch(TripModel trip) {
+    if (_searchQuery.isEmpty) return true;
+    return trip.id.toLowerCase().contains(_searchQuery) ||
+        trip.pickupLocation.address.toLowerCase().contains(_searchQuery) ||
+        trip.dropLocation.address.toLowerCase().contains(_searchQuery);
   }
 
   Future<void> _loadEarnings() async {
@@ -94,7 +112,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             }
 
             final activeTrips = (_recentTrips ?? []).where((t) => _kActiveStatuses.contains(t.status)).toList();
-            final recent = (_recentTrips ?? []).take(5).toList();
+            final searching = _searchQuery.isNotEmpty;
+            final filtered = (_recentTrips ?? []).where(_matchesSearch).toList();
+            final recent = searching ? filtered : filtered.take(5).toList();
 
             return RefreshIndicator(
               onRefresh: () async {
@@ -149,7 +169,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   const SizedBox(height: 22),
 
-                  // Search bar - filters recent trips below by pickup/drop text
+                  // Search bar - filters trips below by waybill no. or pickup/drop text
                   Container(
                     height: 48,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -158,7 +178,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       children: [
                         Icon(Icons.search, color: AppTheme.textGrey, size: 20),
                         const SizedBox(width: 10),
-                        Expanded(child: Text('Search trips, waybill no.', style: GoogleFonts.poppins(color: AppTheme.textGrey, fontSize: 13))),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textDark),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              hintText: 'Search trips, waybill no.',
+                              hintStyle: GoogleFonts.poppins(color: AppTheme.textGrey, fontSize: 13),
+                            ),
+                          ),
+                        ),
+                        if (_searchQuery.isNotEmpty)
+                          InkWell(
+                            onTap: () => _searchController.clear(),
+                            child: Icon(Icons.close, color: AppTheme.textGrey, size: 18),
+                          ),
                       ],
                     ),
                   ),
@@ -188,17 +224,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Recent trips', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                      TextButton(
-                        onPressed: () => _goToTab(2, '/history'),
-                        child: Text('View All', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.amber, fontWeight: FontWeight.w600)),
-                      ),
+                      Text(searching ? 'Search results' : 'Recent trips', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                      if (!searching)
+                        TextButton(
+                          onPressed: () => _goToTab(2, '/history'),
+                          child: Text('View All', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.amber, fontWeight: FontWeight.w600)),
+                        ),
                     ],
                   ),
                   if (_recentTrips == null)
                     const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()))
                   else if (recent.isEmpty)
-                    Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: Text('No trips yet.', style: GoogleFonts.poppins(color: AppTheme.textGrey)))
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(searching ? 'No trips match "$_searchQuery".' : 'No trips yet.', style: GoogleFonts.poppins(color: AppTheme.textGrey)),
+                    )
                   else
                     ...recent.map((trip) => _TripCard(trip: trip, onTap: () => context.push(_kActiveStatuses.contains(trip.status) ? '/trip/${trip.id}' : '/history'))),
                 ],
