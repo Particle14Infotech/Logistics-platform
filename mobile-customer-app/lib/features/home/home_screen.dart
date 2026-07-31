@@ -24,6 +24,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<OrderModel>? _bookings;
   String? _error;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -50,13 +58,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _goToOrders() => widget.onNavigateToTab?.call(1);
 
-  void _comingSoon() => ScaffoldMessenger.of(context)
-      .showSnackBar(const SnackBar(content: Text('Coming soon')));
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
+    final isSearching = _searchQuery.trim().isNotEmpty;
+    final searchResults = isSearching
+        ? (_bookings ?? []).where((o) {
+            final q = _searchQuery.trim().toLowerCase();
+            return o.pickupLocation.address.toLowerCase().contains(q) ||
+                o.dropLocation.address.toLowerCase().contains(q) ||
+                o.id.toLowerCase().contains(q);
+          }).toList()
+        : <OrderModel>[];
     final recentBookings = _bookings?.take(5).toList() ?? [];
+    final displayedBookings = isSearching ? searchResults : recentBookings;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -110,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       boxShadow: AppTheme.cardShadow,
                     ),
                     child: IconButton(
-                        onPressed: _comingSoon,
+                        onPressed: () => context.push('/notifications'),
                         icon: const Icon(Icons.notifications_none, size: 22)),
                   ),
                 ],
@@ -128,9 +143,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Icon(Icons.search, color: Colors.grey.shade400, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
-                        child: Text('Search shipments',
-                            style: GoogleFonts.poppins(
-                                color: Colors.grey.shade500, fontSize: 13))),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                        style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textDark),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          border: InputBorder.none,
+                          hintText: 'Search shipments by waybill or address',
+                          hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500, fontSize: 13),
+                        ),
+                      ),
+                    ),
+                    if (_searchQuery.isNotEmpty)
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _searchController.clear();
+                          _searchQuery = '';
+                        }),
+                        child: Icon(Icons.close, color: Colors.grey.shade400, size: 18),
+                      ),
                   ],
                 ),
               ),
@@ -212,26 +244,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _QuickAction(
                       icon: Icons.support_agent_outlined,
                       label: 'Support',
-                      onTap: _comingSoon),
+                      onTap: () => context.push('/profile/help-support')),
                 ],
               ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Recent Orders',
+                  Text(isSearching ? 'Search results' : 'Recent Orders',
                       style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textDark)),
-                  TextButton(
-                    onPressed: _goToOrders,
-                    child: Text('View All',
-                        style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.w600)),
-                  ),
+                  if (!isSearching)
+                    TextButton(
+                      onPressed: _goToOrders,
+                      child: Text('View All',
+                          style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.w600)),
+                    ),
                 ],
               ),
               if (_error != null)
@@ -243,14 +276,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Padding(
                         padding: EdgeInsets.all(24),
                         child: CircularProgressIndicator())),
-              if (_bookings != null && recentBookings.isEmpty)
+              if (_bookings != null && displayedBookings.isEmpty)
                 Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Text(
-                        'No bookings yet - your first one is just a tap away.',
+                        isSearching
+                            ? 'No shipments match "$_searchQuery".'
+                            : 'No bookings yet - your first one is just a tap away.',
                         style:
                             GoogleFonts.poppins(color: Colors.grey.shade500))),
-              ...recentBookings.map((b) => _BookingCard(order: b)),
+              ...displayedBookings.map((b) => _BookingCard(order: b)),
             ],
           ),
         ),
