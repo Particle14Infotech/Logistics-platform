@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
@@ -23,6 +24,29 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  DateTime? _lastBackPress;
+
+  // Tab switches are local setState, invisible to GoRouter/Navigator - so
+  // without this, system back on any non-Home tab (Jobs/History/Earnings/
+  // Profile) had nothing to pop and exited the app immediately instead of
+  // returning to Home first, which is the standard bottom-nav convention.
+  // On the Home tab itself, a single back press only warns; a second one
+  // within 2s actually exits, so a stray back tap can't kill the app.
+  void _handleBack() {
+    if (_selectedIndex != 0) {
+      setState(() => _selectedIndex = 0);
+      return;
+    }
+    final now = DateTime.now();
+    if (_lastBackPress == null || now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
+      _lastBackPress = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Press back again to exit'), duration: Duration(seconds: 2)),
+      );
+      return;
+    }
+    SystemNavigator.pop();
+  }
 
   @override
   void initState() {
@@ -64,28 +88,34 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.cream,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          DashboardScreen(onNavigateToTab: _onNavigateToTab),
-          const JobRequestsScreen(),
-          const TripHistoryScreen(),
-          const EarningsScreen(),
-          const ProfileScreen(),
-        ],
-      ),
-      bottomNavigationBar: CustomBottomBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavigateToTab,
-        items: const [
-          BottomBarItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
-          BottomBarItem(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: 'Jobs'),
-          BottomBarItem(icon: Icons.history, label: 'History'),
-          BottomBarItem(icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet, label: 'Earnings'),
-          BottomBarItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
-        ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.cream,
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            DashboardScreen(onNavigateToTab: _onNavigateToTab),
+            const JobRequestsScreen(),
+            const TripHistoryScreen(),
+            const EarningsScreen(),
+            const ProfileScreen(),
+          ],
+        ),
+        bottomNavigationBar: CustomBottomBar(
+          currentIndex: _selectedIndex,
+          onTap: _onNavigateToTab,
+          items: const [
+            BottomBarItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
+            BottomBarItem(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: 'Jobs'),
+            BottomBarItem(icon: Icons.history, label: 'History'),
+            BottomBarItem(icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet, label: 'Earnings'),
+            BottomBarItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
+          ],
+        ),
       ),
     );
   }

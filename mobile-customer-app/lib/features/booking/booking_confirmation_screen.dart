@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
 import '../../models/order_model.dart';
+import '../../widgets/pay_now_button.dart';
 
 // Matches the reference design's 'Booking Confirmed!' screen - fetches the
 // real order so the confirmation card shows actual pickup/drop/price
@@ -129,6 +130,13 @@ class _BookingConfirmationScreenState
                 ),
               ),
               const SizedBox(height: 32),
+              if (order != null && order.paymentStatus == 'unpaid') ...[
+                PayNowButton(
+                  orderId: order.id,
+                  onPaid: _load,
+                ),
+                const SizedBox(height: 8),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
