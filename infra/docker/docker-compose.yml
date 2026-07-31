@@ -4,11 +4,10 @@ version: '3.8'
 # 1. Port alignment - backend/.env's PORT must be 5000 to match this file's
 #    mapping and the Dockerfile's EXPOSE 5000 (the dev .env had PORT=5050,
 #    which only matched local-machine testing, not this container setup).
-# 2. MONGO_URI must use the service name 'mongo' as the hostname, not
-#    'localhost' - inside a docker-compose network, containers reach each
-#    other by service name. 'localhost' inside the backend container would
-#    refer to the container itself, not the mongo container, and the
-#    connection would fail.
+# 2. No local 'mongo'/'redis' services - the real data already lives in an
+#    external MongoDB Atlas cluster (backend/.env's MONGO_URI points there
+#    directly), and Redis is never actually referenced anywhere in the
+#    backend source, so both would just be unused/misleading containers.
 # Also removed the dev-only bind-mount volumes (../../backend:/app) - those
 # override the image's built code with whatever's on the host disk, which
 # is meant for hot-reload during development, not production. This runs
@@ -31,24 +30,6 @@ services:
       # --build` / image rebuild. Named volume, not a bind mount, so it
       # survives independently of the host path.
       - uploads_data:/app/uploads
-    depends_on:
-      - mongo
-      - redis
-
-  mongo:
-    image: mongo:7
-    restart: unless-stopped
-    ports:
-      - '127.0.0.1:27017:27017'
-    volumes:
-      - mongo_data:/data/db
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - '127.0.0.1:6379:6379'
 
 volumes:
-  mongo_data:
   uploads_data:
