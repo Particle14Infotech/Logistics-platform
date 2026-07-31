@@ -69,6 +69,16 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   }
 
   if (!user) {
+    // Enterprise has a dedicated signup form (POST /enterprise/firebase-signup)
+    // that collects company details and creates the Enterprise doc alongside
+    // the User - auto-creating a bare User here for a brand-new email would
+    // leave it with no Enterprise record and no way to ever get one, since
+    // firebase-session would just find that same bare User on every later
+    // attempt instead of retrying signup.
+    if (appContext === 'enterprise') {
+      throw new AppError('No account found with this email - use Sign Up to create a new enterprise account.', 404);
+    }
+
     const newRole = role && allowedRoles.includes(role) ? role : allowedRoles[0];
     user = await User.create({
       email: decoded.email,
