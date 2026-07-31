@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,7 +82,12 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
       if (mounted) context.pushReplacement('/trip/${job.id}');
     } catch (e) {
       if (mounted) {
-        setState(() => _error = 'This job is no longer available.');
+        // Surface the backend's actual reason (e.g. "Go online before
+        // accepting jobs", "Vehicle type mismatch") instead of always
+        // showing the same generic line regardless of what actually
+        // went wrong.
+        final serverMessage = e is DioException && e.response?.data is Map ? e.response?.data['message'] as String? : null;
+        setState(() => _error = serverMessage ?? 'This job is no longer available.');
         _load();
       }
     } finally {
