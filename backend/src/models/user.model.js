@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema(
       enum: ['customer', 'driver', 'fleet_owner', 'admin', 'enterprise_admin', 'enterprise_user'],
       default: 'customer',
     },
+    // Only meaningful for role 'enterprise_user' - 'manager' can do
+    // everything an enterprise_user route allows (bulk booking, invoices);
+    // 'viewer' is read-only (invoices/tracking only, no bulk booking) - see
+    // web-portal-enterprise/src/App.jsx's route gating.
+    enterpriseRole: { type: String, enum: ['manager', 'viewer'], default: 'manager' },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     fcmToken: String,

@@ -176,6 +176,7 @@ exports.dashboard = catchAsync(async (req, res) => {
     statusAgg,
     deliveredThisMonth,
     cancelledThisMonth,
+    thisMonthStatusAgg,
   ] = await Promise.all([
     Order.aggregate([
       { $match: { enterpriseId: enterprise._id, createdAt: { $gte: monthStart } } },
@@ -213,6 +214,14 @@ exports.dashboard = catchAsync(async (req, res) => {
     ]),
     Order.countDocuments({ enterpriseId: enterprise._id, createdAt: { $gte: monthStart }, status: 'delivered' }),
     Order.countDocuments({ enterpriseId: enterprise._id, createdAt: { $gte: monthStart }, status: 'cancelled' }),
+    // Distinct from the "live" pipeline above (which mixes regardless-of-
+    // creation-date pending/accepted/picked_up/in_transit with this-month-
+    // only delivered/cancelled into one array) - every shipment actually
+    // created this month, grouped by whatever status it's at right now.
+    Order.aggregate([
+      { $match: { enterpriseId: enterprise._id, createdAt: { $gte: monthStart } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
   ]);
 
   const totalDestOrders = topDestinationsAgg.reduce((s, d) => s + d.orders, 0) || 1;
@@ -226,6 +235,17 @@ exports.dashboard = catchAsync(async (req, res) => {
     { status: 'in_transit', label: 'In transit', count: shipmentStatusCounts.in_transit },
     { status: 'delivered', label: 'Delivered (this month)', count: deliveredThisMonth },
     { status: 'cancelled', label: 'Cancelled (this month)', count: cancelledThisMonth },
+  ];
+
+  const thisMonthStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, delivered: 0, cancelled: 0 };
+  thisMonthStatusAgg.forEach((s) => { thisMonthStatusCounts[s._id] = s.count; });
+  const thisMonthShipmentsByStatus = [
+    { status: 'pending', label: 'Pending', count: thisMonthStatusCounts.pending },
+    { status: 'accepted', label: 'Accepted', count: thisMonthStatusCounts.accepted },
+    { status: 'picked_up', label: 'Picked up', count: thisMonthStatusCounts.picked_up },
+    { status: 'in_transit', label: 'In transit', count: thisMonthStatusCounts.in_transit },
+    { status: 'delivered', label: 'Delivered', count: thisMonthStatusCounts.delivered },
+    { status: 'cancelled', label: 'Cancelled', count: thisMonthStatusCounts.cancelled },
   ];
 
   // Fill in any month with no orders so the chart always shows exactly 6
@@ -256,16 +276,22 @@ exports.dashboard = catchAsync(async (req, res) => {
     })),
     spendTrend,
     shipmentsByStatus,
+    thisMonthShipmentsByStatus,
   });
 });
 
-// GET /api/v1/enterprise/orders?status=&page=&limit=
+// GET /api/v1/enterprise/orders?status=&dateFrom=&dateTo=&page=&limit=
 exports.listOrders = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);
-  const { status, page = 1, limit = 20 } = req.query;
+  const { status, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
 
   const filter = { enterpriseId: enterprise._id };
   if (status) filter.status = status;
+  if (dateFrom || dateTo) {
+    filter.createdAt = {};
+    if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+    if (dateTo) filter.createdAt.$lte = new Date(dateTo);
+  }
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
@@ -287,6 +313,16 @@ exports.listOrders = catchAsync(async (req, res) => {
 // POST /api/v1/enterprise/bulk-booking  { rows: [{ pickupAddress, dropAddress, vehicleType, goodsType, weightKg }] }
 exports.bulkBooking = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);
+  // Belt-and-suspenders on top of the portal's own UI gate - a viewer must
+  // not be able to create bookings via a direct API call either. req.user
+  // only carries {id, role} from the JWT payload, not enterpriseRole, so
+  // this needs an actual lookup rather than trusting the token.
+  if (req.user.role === 'enterprise_user') {
+    const requestingUser = await User.findById(req.user.id).select('enterpriseRole');
+    if (requestingUser?.enterpriseRole === 'viewer') {
+      throw new AppError('Your account has Viewer access - only Managers can create bulk bookings', 403);
+    }
+  }
   const { rows } = req.body;
   if (!Array.isArray(rows) || rows.length === 0) throw new AppError('rows must be a non-empty array', 400);
 
@@ -332,22 +368,32 @@ exports.listUsers = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);
   const populated = await Enterprise.findById(enterprise._id)
     .populate('adminUserId', 'name email phone isBlocked')
-    .populate('subUsers', 'name email phone isBlocked');
+    .populate('subUsers', 'name email phone isBlocked enterpriseRole');
   return success(res, { admin: populated.adminUserId, subUsers: populated.subUsers });
 });
 
-// POST /api/v1/enterprise/users/invite  { name, email }
+// POST /api/v1/enterprise/users/invite  { name, email, role? }
 // NOTE: creates the account directly (no email invite delivery yet - that
 // needs SendGrid wired in notification.service). Sub-user logs in with OTP
 // once they set up a phone number, or via a password reset flow (future work).
 exports.inviteUser = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);
-  const { name, email } = req.body;
+  const { name, email, role } = req.body;
   if (!name || !email) throw new AppError('name and email are required', 400);
+  if (role && !['manager', 'viewer'].includes(role)) {
+    throw new AppError("role must be 'manager' or 'viewer'", 400);
+  }
 
   let user = await User.findOne({ email });
   if (!user) {
-    user = await User.create({ name, email, role: 'enterprise_user', enterpriseId: enterprise._id, isVerified: false });
+    user = await User.create({
+      name,
+      email,
+      role: 'enterprise_user',
+      enterpriseRole: role || 'manager',
+      enterpriseId: enterprise._id,
+      isVerified: false,
+    });
   } else if (String(user.enterpriseId) !== String(enterprise._id)) {
     throw new AppError('This email is already associated with a different account', 400);
   }
@@ -358,6 +404,41 @@ exports.inviteUser = catchAsync(async (req, res) => {
   }
 
   return success(res, { user }, 'Team member added', 201);
+});
+
+// PUT /api/v1/enterprise/users/:id/role  { role }
+exports.updateUserRole = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id);
+  const { role } = req.body;
+  if (!['manager', 'viewer'].includes(role)) {
+    throw new AppError("role must be 'manager' or 'viewer'", 400);
+  }
+  if (!enterprise.subUsers.some((id) => String(id) === req.params.id)) {
+    throw new AppError('Team member not found', 404);
+  }
+
+  const user = await User.findByIdAndUpdate(req.params.id, { enterpriseRole: role }, { new: true });
+  if (!user) throw new AppError('Team member not found', 404);
+
+  return success(res, { user }, 'Role updated');
+});
+
+// DELETE /api/v1/enterprise/users/:id
+// Fully removes the account, not just this enterprise's link to it -
+// inviteUser only ever creates a sub-user fresh and exclusively for this
+// enterprise (never repurposes an unrelated existing account), so there's
+// nothing else the record needs to survive for.
+exports.removeUser = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id);
+  if (!enterprise.subUsers.some((id) => String(id) === req.params.id)) {
+    throw new AppError('Team member not found', 404);
+  }
+
+  enterprise.subUsers = enterprise.subUsers.filter((id) => String(id) !== req.params.id);
+  await enterprise.save();
+  await User.findByIdAndDelete(req.params.id);
+
+  return success(res, null, 'Team member removed');
 });
 
 // GET /api/v1/enterprise/invoices

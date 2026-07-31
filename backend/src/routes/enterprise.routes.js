@@ -17,6 +17,8 @@ router.post('/bulk-booking', protect, enterpriseRoles, ctrl.bulkBooking);
 
 router.get('/users', protect, enterpriseRoles, ctrl.listUsers);
 router.post('/users/invite', protect, adminOnly, ctrl.inviteUser);
+router.put('/users/:id/role', protect, adminOnly, ctrl.updateUserRole);
+router.delete('/users/:id', protect, adminOnly, ctrl.removeUser);
 
 router.get('/invoices', protect, enterpriseRoles, ctrl.listInvoices);
 router.get('/invoices/:id/pdf', protect, enterpriseRoles, ctrl.downloadInvoicePdf);

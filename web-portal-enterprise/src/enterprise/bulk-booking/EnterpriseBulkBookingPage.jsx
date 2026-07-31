@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
+import { useAuthStore } from '../../shared/store/authStore.js';
 import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 
 const VEHICLE_OPTIONS = ['bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'];
@@ -11,6 +12,11 @@ export default function EnterpriseBulkBookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const user = useAuthStore((s) => s.user);
+  // Viewer role can see everything else (tracking/invoices) but not create
+  // bulk bookings - only meaningful for enterprise_user, enterprise_admin
+  // is never a viewer.
+  const isViewer = user?.role === 'enterprise_user' && user?.enterpriseRole === 'viewer';
 
   const updateRow = (index, field, value) => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
@@ -40,6 +46,20 @@ export default function EnterpriseBulkBookingPage() {
       setSubmitting(false);
     }
   };
+
+  if (isViewer) {
+    return (
+      <ConsoleShell navItems={ENTERPRISE_NAV} brandSuffix="ENTERPRISE" footerLabel="Vertex Pharma" loginPath="/login" dateLabel="25 JUL 2026">
+        <div>
+          <span className="eyebrow">Booking</span>
+          <h1 className="font-display text-2xl font-semibold mt-1">Bulk booking</h1>
+        </div>
+        <div className="border border-line bg-panel text-mist text-sm rounded-lg p-6 text-center">
+          Your account has Viewer access - only Managers can create bulk bookings. Ask your admin to change your role under Team & roles if you need this.
+        </div>
+      </ConsoleShell>
+    );
+  }
 
   return (
     <ConsoleShell navItems={ENTERPRISE_NAV} brandSuffix="ENTERPRISE" footerLabel="Vertex Pharma" loginPath="/login" dateLabel="25 JUL 2026">
