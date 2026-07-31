@@ -132,7 +132,7 @@ export default function EnterpriseSignupPage() {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r border-line bg-panel relative overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-signal flex items-center justify-center">
-            <span className="font-display font-bold text-ink text-sm">L</span>
+            <span className="font-display font-bold text-white text-sm">L</span>
           </div>
           <span className="font-display font-semibold tracking-tight">LOGISTICS</span>
         </div>
@@ -148,7 +148,7 @@ export default function EnterpriseSignupPage() {
           </p>
         </div>
 
-        <div className="flex gap-8 font-mono text-xs text-mist">
+        <div className="flex gap-8 text-xs text-mist">
           <div><span className="text-paper text-lg font-display block">GST</span>compliant billing</div>
           <div><span className="text-paper text-lg font-display block">CSV</span>bulk booking</div>
           <div><span className="text-paper text-lg font-display block">API</span>direct integration</div>
@@ -243,12 +243,12 @@ export default function EnterpriseSignupPage() {
                 className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-2 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
               />
 
-              {error && <p className="text-stop text-xs mt-2 mb-4 font-mono">{error}</p>}
+              {error && <p className="text-stop text-xs mt-2 mb-4">{error}</p>}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-signal text-ink font-medium text-sm rounded-md py-2.5 mt-4 hover:brightness-110 disabled:opacity-60 transition-all"
+                className="w-full bg-signal text-white font-medium text-sm rounded-md py-2.5 mt-4 hover:brightness-110 disabled:opacity-60 transition-all"
               >
                 {loading ? 'Creating account…' : 'Create account'}
               </button>
@@ -272,7 +272,7 @@ export default function EnterpriseSignupPage() {
                 type="button"
                 onClick={handleCheckVerified}
                 disabled={loading}
-                className="w-full bg-signal text-ink font-medium text-sm rounded-md py-2.5 hover:brightness-110 disabled:opacity-60 transition-all"
+                className="w-full bg-signal text-white font-medium text-sm rounded-md py-2.5 hover:brightness-110 disabled:opacity-60 transition-all"
               >
                 {loading ? 'Checking…' : "I've verified my email"}
               </button>
@@ -281,7 +281,7 @@ export default function EnterpriseSignupPage() {
                   {resendSent ? 'Verification email sent again' : 'Resend verification email'}
                 </button>
               </div>
-              {error && <p className="text-stop text-xs mt-4 font-mono">{error}</p>}
+              {error && <p className="text-stop text-xs mt-4">{error}</p>}
             </div>
           )}
         </div>
