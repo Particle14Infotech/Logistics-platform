@@ -9,6 +9,9 @@ class DriverProfile {
   final int totalTrips;
   final num totalEarnings;
   final Map<String, String?> documents;
+  final String? bankAccountNumber;
+  final String? bankIfsc;
+  final String? bankAccountHolderName;
 
   DriverProfile({
     required this.id,
@@ -21,6 +24,9 @@ class DriverProfile {
     required this.totalTrips,
     required this.totalEarnings,
     this.documents = const {},
+    this.bankAccountNumber,
+    this.bankIfsc,
+    this.bankAccountHolderName,
   });
 
   DriverProfile copyWith({bool? isAvailable, Map<String, String?>? documents}) {
@@ -51,6 +57,9 @@ class DriverProfile {
       totalTrips: json['totalTrips'] as int? ?? 0,
       totalEarnings: json['totalEarnings'] as num? ?? 0,
       documents: docsJson.map((key, value) => MapEntry(key, value as String?)),
+      bankAccountNumber: json['bankDetails']?['accountNumber'] as String?,
+      bankIfsc: json['bankDetails']?['ifsc'] as String?,
+      bankAccountHolderName: json['bankDetails']?['accountHolderName'] as String?,
     );
   }
 }

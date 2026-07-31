@@ -1,5 +1,38 @@
 import '../core/network/dio_client.dart';
 
+class PaymentRecord {
+  final String id;
+  final num amount; // paise
+  final String status;
+  final String? razorpayPaymentId;
+  final String? orderPickupAddress;
+  final String? orderDropAddress;
+  final DateTime createdAt;
+
+  PaymentRecord({
+    required this.id,
+    required this.amount,
+    required this.status,
+    this.razorpayPaymentId,
+    this.orderPickupAddress,
+    this.orderDropAddress,
+    required this.createdAt,
+  });
+
+  factory PaymentRecord.fromJson(Map<String, dynamic> json) {
+    final order = json['orderId'];
+    return PaymentRecord(
+      id: json['_id'] as String,
+      amount: json['amount'] as num,
+      status: json['status'] as String,
+      razorpayPaymentId: json['razorpayPaymentId'] as String?,
+      orderPickupAddress: order is Map<String, dynamic> ? (order['pickupLocation']?['address'] as String?) : null,
+      orderDropAddress: order is Map<String, dynamic> ? (order['dropLocation']?['address'] as String?) : null,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}
+
 class RazorpayOrderDetails {
   final String razorpayOrderId;
   final int amount; // paise
@@ -45,5 +78,11 @@ class PaymentService {
       'razorpay_payment_id': razorpayPaymentId,
       'razorpay_signature': razorpaySignature,
     });
+  }
+
+  Future<List<PaymentRecord>> getHistory() async {
+    final response = await _dio.get('/payment/history');
+    final payments = response.data['data']['payments'] as List;
+    return payments.map((p) => PaymentRecord.fromJson(p as Map<String, dynamic>)).toList();
   }
 }
