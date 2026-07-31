@@ -17,7 +17,6 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [debugInfo, setDebugInfo] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,7 +24,6 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('[AdminLoginPage] submit fired', { email, passwordLength: password.length });
 
     if (!email.trim() || !password) {
       setError('Enter both email and password.');
@@ -34,7 +32,6 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     setError('');
-    setDebugInfo(null);
     try {
       const { data } = await axiosClient.post('/auth/login', { email: email.trim(), password });
       const { user, accessToken, refreshToken } = data.data;
@@ -49,16 +46,8 @@ export default function AdminLoginPage() {
       const redirectTo = location.state?.from?.pathname ?? '/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      console.error('[AdminLoginPage] login failed', err);
       const message = err.response?.data?.message;
       setError(message || 'Invalid credentials. Check your email and password.');
-      setDebugInfo({
-        requestUrl: `${axiosClient.defaults.baseURL}/auth/login`,
-        requestBody: { email: email.trim(), password: `(${password.length} chars)` },
-        responseStatus: err.response?.status ?? 'NO RESPONSE (network error)',
-        responseBody: err.response?.data ?? null,
-        rawMessage: err.message,
-      });
     } finally {
       setLoading(false);
     }
@@ -139,16 +128,6 @@ export default function AdminLoginPage() {
           </div>
 
           {error && <p className="text-stop text-xs mb-4">{error}</p>}
-
-          {debugInfo && (
-            <div className="mb-4 p-3 rounded-md border border-line bg-panel text-[11px] font-mono text-mist leading-relaxed break-all">
-              <div><span className="text-paper">Called:</span> POST {debugInfo.requestUrl}</div>
-              <div><span className="text-paper">Sent:</span> {JSON.stringify(debugInfo.requestBody)}</div>
-              <div><span className="text-paper">Status:</span> {debugInfo.responseStatus}</div>
-              <div><span className="text-paper">Response:</span> {JSON.stringify(debugInfo.responseBody)}</div>
-              {debugInfo.rawMessage && <div><span className="text-paper">Error:</span> {debugInfo.rawMessage}</div>}
-            </div>
-          )}
 
           <button
             type="submit"
