@@ -55,7 +55,8 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
       ref.invalidate(driverProfileProvider);
       if (mounted) setState(() => _success = 'Bank details saved.');
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not save bank details. Try again.');
+      if (mounted)
+        setState(() => _error = 'Could not save bank details. Try again.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -71,7 +72,8 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
       body: SafeArea(
         child: profileAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, __) => Center(child: Text('Could not load your details.')),
+          error: (e, __) =>
+              const Center(child: Text('Could not load your details.')),
           data: (profile) {
             if (profile != null && !_initialized) {
               _accountController.text = profile.bankAccountNumber ?? '';
@@ -84,27 +86,49 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
               children: [
                 Text(
                   'Used for wallet payouts - make sure this matches your actual bank account.',
-                  style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
+                  style: GoogleFonts.poppins(
+                      fontSize: 13, color: AppTheme.textGrey),
                 ),
                 const SizedBox(height: 20),
-                AuthTextField(controller: _nameController, label: 'Account holder name', hint: 'As per bank records', prefixIcon: Icons.person_outline),
+                AuthTextField(
+                    controller: _nameController,
+                    label: 'Account holder name',
+                    hint: 'As per bank records',
+                    prefixIcon: Icons.person_outline),
                 const SizedBox(height: 14),
-                AuthTextField(controller: _accountController, label: 'Account number', hint: '1234567890', prefixIcon: Icons.account_balance_outlined, keyboardType: TextInputType.number),
+                AuthTextField(
+                    controller: _accountController,
+                    label: 'Account number',
+                    hint: '1234567890',
+                    prefixIcon: Icons.account_balance_outlined,
+                    keyboardType: TextInputType.number),
                 const SizedBox(height: 14),
-                AuthTextField(controller: _ifscController, label: 'IFSC code', hint: 'ABCD0123456', prefixIcon: Icons.pin_outlined),
+                AuthTextField(
+                    controller: _ifscController,
+                    label: 'IFSC code',
+                    hint: 'ABCD0123456',
+                    prefixIcon: Icons.pin_outlined),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error, fontSize: 13)),
+                  Text(_error!,
+                      style: GoogleFonts.poppins(
+                          color: AppTheme.error, fontSize: 13)),
                 ],
                 if (_success != null) ...[
                   const SizedBox(height: 12),
-                  Text(_success!, style: GoogleFonts.poppins(color: AppTheme.success, fontSize: 13)),
+                  Text(_success!,
+                      style: GoogleFonts.poppins(
+                          color: AppTheme.success, fontSize: 13)),
                 ],
                 const SizedBox(height: 20),
                 FilledButton(
                   onPressed: _saving ? null : _save,
                   child: _saving
-                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.black87))
                       : const Text('Save'),
                 ),
               ],

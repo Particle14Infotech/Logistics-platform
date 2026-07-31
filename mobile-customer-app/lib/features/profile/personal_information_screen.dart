@@ -14,10 +14,12 @@ class PersonalInformationScreen extends ConsumerStatefulWidget {
   const PersonalInformationScreen({super.key});
 
   @override
-  ConsumerState<PersonalInformationScreen> createState() => _PersonalInformationScreenState();
+  ConsumerState<PersonalInformationScreen> createState() =>
+      _PersonalInformationScreenState();
 }
 
-class _PersonalInformationScreenState extends ConsumerState<PersonalInformationScreen> {
+class _PersonalInformationScreenState
+    extends ConsumerState<PersonalInformationScreen> {
   final _authService = AuthService();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -63,7 +65,9 @@ class _PersonalInformationScreenState extends ConsumerState<PersonalInformationS
           );
       if (mounted) setState(() => _success = 'Saved.');
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not save changes. Try again.');
+      if (mounted) {
+        setState(() => _error = 'Could not save changes. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -78,24 +82,43 @@ class _PersonalInformationScreenState extends ConsumerState<PersonalInformationS
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            CustomTextField(controller: _nameController, hintText: 'Full name', prefixIcon: Icons.person_outline),
+            CustomTextField(
+                controller: _nameController,
+                hintText: 'Full name',
+                prefixIcon: Icons.person_outline),
             const SizedBox(height: 14),
-            CustomTextField(controller: _emailController, hintText: 'Email', prefixIcon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+            CustomTextField(
+                controller: _emailController,
+                hintText: 'Email',
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 14),
-            CustomTextField(controller: _phoneController, hintText: 'Phone', prefixIcon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+            CustomTextField(
+                controller: _phoneController,
+                hintText: 'Phone',
+                prefixIcon: Icons.phone_outlined,
+                keyboardType: TextInputType.phone),
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error, fontSize: 13)),
+              Text(_error!,
+                  style:
+                      GoogleFonts.poppins(color: AppTheme.error, fontSize: 13)),
             ],
             if (_success != null) ...[
               const SizedBox(height: 12),
-              Text(_success!, style: GoogleFonts.poppins(color: AppTheme.success, fontSize: 13)),
+              Text(_success!,
+                  style: GoogleFonts.poppins(
+                      color: AppTheme.success, fontSize: 13)),
             ],
             const SizedBox(height: 20),
             FilledButton(
               onPressed: _saving ? null : _save,
               child: _saving
-                  ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Text('Save changes'),
             ),
           ],
