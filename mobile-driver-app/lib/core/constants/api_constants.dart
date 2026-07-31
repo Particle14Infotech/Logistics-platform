@@ -13,7 +13,15 @@ class ApiConstants {
   static const bool _useRealDeviceIp = false;
   static const String _realDeviceIp = '192.168.1.45';
 
+  // Flip to true to point the app at the live production server
+  // (https://api.raahmitr.com) instead of a local dev backend.
+  static const bool _useProduction = true;
+  static const String _productionHost = 'api.raahmitr.com';
+
+  static String get _scheme => _useProduction ? 'https' : 'http';
+
   static String get _host {
+    if (_useProduction) return _productionHost;
     if (_useRealDeviceIp) return _realDeviceIp;
     if (kIsWeb) return 'localhost';
     if (Platform.isAndroid) return '10.0.2.2';
@@ -22,7 +30,9 @@ class ApiConstants {
 
   static const String _port = '5050'; // must match backend/.env's PORT
 
-  static String get baseUrl => 'http://$_host:$_port/api/v1';
-  static String get socketUrl => 'http://$_host:$_port';
+  static String get baseUrl =>
+      _useProduction ? '$_scheme://$_host/api/v1' : '$_scheme://$_host:$_port/api/v1';
+  static String get socketUrl =>
+      _useProduction ? '$_scheme://$_host' : '$_scheme://$_host:$_port';
   static const int gpsBroadcastIntervalSeconds = 4;
 }
