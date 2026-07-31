@@ -1,5 +1,6 @@
 const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const User = require('../models/user.model');
+const UserNotification = require('../models/userNotification.model');
 
 // Every send function below no-ops quietly if Firebase isn't configured, so
 // the rest of the app works normally without a Firebase project set up.
@@ -12,6 +13,13 @@ const User = require('../models/user.model');
 // the underlying action (order accepted, status updated, etc.) it's
 // attached to.
 async function sendToUser(userId, { title, body, data = {} }) {
+  // Persisted unconditionally - the in-app inbox (UserNotification) is a
+  // separate surface from the push itself, and should show something even
+  // when the push silently no-ops below (no token, muted, Firebase unset).
+  UserNotification.create({ userId, title, body, data }).catch((err) =>
+    console.error(`[notification.service] Failed to persist inbox entry for ${userId}:`, err.message)
+  );
+
   if (!ensureInitialized()) return;
 
   try {
@@ -32,7 +40,13 @@ async function sendToUser(userId, { title, body, data = {} }) {
 // drivers of a given vehicle type) - used for 'new job available' blasts.
 // Best-effort per-recipient: one failed token doesn't stop the others.
 async function sendToUsers(userIds, { title, body, data = {} }) {
-  if (!ensureInitialized() || userIds.length === 0) return;
+  if (userIds.length === 0) return;
+
+  UserNotification.insertMany(userIds.map((userId) => ({ userId, title, body, data }))).catch((err) =>
+    console.error('[notification.service] Failed to persist inbox entries:', err.message)
+  );
+
+  if (!ensureInitialized()) return;
 
   const users = await User.find({
     _id: { $in: userIds },

@@ -21,6 +21,7 @@ import '../features/profile/notification_settings_screen.dart';
 import '../features/profile/help_support_screen.dart';
 import '../features/profile/settings_screen.dart';
 import '../features/price_calculator/price_calculator_screen.dart';
+import '../features/notifications/notification_center_screen.dart';
 
 // Router is a provider so it can react to auth state changes (login/logout)
 // via the redirect callback below - Riverpod recreates the GoRouter whenever
@@ -67,6 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/help-support', builder: (context, state) => const HelpSupportScreen()),
       GoRoute(path: '/profile/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(path: '/price-calculator', builder: (context, state) => const PriceCalculatorScreen()),
+      GoRoute(path: '/notifications', builder: (context, state) => const NotificationCenterScreen()),
 
       // Booking flow - each step reads/writes bookingDraftProvider
       GoRoute(path: '/booking/locations', builder: (context, state) => const LocationsScreen()),

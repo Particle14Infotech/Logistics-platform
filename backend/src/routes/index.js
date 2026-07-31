@@ -10,5 +10,6 @@ router.use('/places', require('./places.routes'));
 router.use('/admin', require('./admin.routes'));
 router.use('/saved-addresses', require('./savedAddress.routes'));
 router.use('/content', require('./content.routes'));
+router.use('/notifications', require('./notification.routes'));
 
 module.exports = router;
