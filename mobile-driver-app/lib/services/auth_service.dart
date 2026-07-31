@@ -111,6 +111,7 @@ class AuthService {
     final idToken = await _firebaseAuth.currentUser!.getIdToken(true);
     final response = await _dio.post('/auth/firebase-session', data: {
       'idToken': idToken,
+      'appContext': 'driver',
       if (role != null) 'role': role,
     });
     final data = response.data['data'];

@@ -13,6 +13,15 @@ exports.sendOtp = catchAsync(async (req, res) => {
   return success(res, null, 'OTP sent successfully');
 });
 
+// Reserved roles this phone-OTP path (dormant in both apps' UIs, but still
+// a live endpoint) must never authenticate into, regardless of which app's
+// OTP screen called it - mirrors firebase-session's APP_ALLOWED_ROLES guard
+// below. New users here always start as 'customer' (promoted to
+// driver/fleet_owner afterward by register()'s own SELF_SERVICE_ROLES
+// whitelist), so the only gap to close is an *existing* admin/enterprise
+// account sharing a phone number with whoever is calling this.
+const RESERVED_ROLES = ['admin', 'enterprise_admin', 'enterprise_user'];
+
 // POST /api/v1/auth/verify-otp
 exports.verifyOtp = catchAsync(async (req, res) => {
   const { phone, otp } = req.body;
@@ -25,6 +34,12 @@ exports.verifyOtp = catchAsync(async (req, res) => {
     user = await User.create({ phone, role: 'customer', isVerified: true });
     isNewUser = true;
   } else {
+    if (RESERVED_ROLES.includes(user.role)) {
+      throw new AppError(
+        `This phone number is registered as a${user.role === 'admin' ? 'n' : ''} ${user.role.replace('_', ' ')} account - please use the correct app or portal to sign in.`,
+        403
+      );
+    }
     user.isVerified = true;
     await user.save();
   }
@@ -35,15 +50,37 @@ exports.verifyOtp = catchAsync(async (req, res) => {
   return success(res, { user, accessToken, refreshToken, isNewUser }, 'OTP verified');
 });
 
-// POST /api/v1/auth/firebase-session  { idToken, role? }
+// Which roles each mobile app is allowed to authenticate/create through
+// firebase-session below. Reserved roles (admin, enterprise_admin,
+// enterprise_user) are deliberately absent from both lists - they can
+// never be created here, and an existing account with one of those roles
+// gets rejected rather than silently logged in, regardless of which app
+// (customer or driver) it's coming through. Without this, the same shared
+// endpoint would find an existing user by email/firebaseUid and hand back
+// a valid session no matter which app asked - e.g. an enterprise admin's
+// email signing into the customer app "worked" (Firebase itself has no
+// concept of which of our apps is calling), even though nothing downstream
+// intended that account to be usable there.
+const APP_ALLOWED_ROLES = {
+  customer: ['customer'],
+  driver: ['driver', 'fleet_owner'],
+  // The enterprise portal's login page (returning users, not signup) also
+  // exchanges its Firebase session through this same shared endpoint - see
+  // EnterpriseLoginPage.jsx.
+  enterprise: ['enterprise_admin', 'enterprise_user'],
+};
+
+// POST /api/v1/auth/firebase-session  { idToken, appContext, role? }
 // Exchanges a verified Firebase ID token (email/password auth, handled
 // entirely client-side by the Firebase SDK) for this app's own JWT session,
 // so downstream routes/middleware never need to know Firebase exists. Mirrors
 // verifyOtp's shape/response - Firebase is the credential+verification
 // authority, this backend still owns the session.
 exports.firebaseSession = catchAsync(async (req, res) => {
-  const { idToken, role } = req.body;
+  const { idToken, role, appContext } = req.body;
   if (!idToken) throw new AppError('idToken is required', 400);
+  const allowedRoles = APP_ALLOWED_ROLES[appContext];
+  if (!allowedRoles) throw new AppError('appContext must be "customer" or "driver"', 400);
   if (!ensureInitialized()) throw new AppError('Firebase is not configured', 500);
 
   let decoded;
@@ -55,12 +92,22 @@ exports.firebaseSession = catchAsync(async (req, res) => {
 
   if (!decoded.email_verified) throw new AppError('Email not verified', 403);
 
+  const rejectWrongApp = (existingRole) => {
+    throw new AppError(
+      `This email is registered as a${existingRole === 'admin' ? 'n' : ''} ${existingRole.replace('_', ' ')} account - please use the correct app or portal to sign in.`,
+      403
+    );
+  };
+
   let user = await User.findOne({ firebaseUid: decoded.uid });
   let isNewUser = false;
+
+  if (user && !allowedRoles.includes(user.role)) rejectWrongApp(user.role);
 
   if (!user) {
     user = await User.findOne({ email: decoded.email });
     if (user) {
+      if (!allowedRoles.includes(user.role)) rejectWrongApp(user.role);
       user.firebaseUid = decoded.uid;
       user.isVerified = true;
       await user.save();
@@ -68,11 +115,12 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   }
 
   if (!user) {
+    const newRole = role && allowedRoles.includes(role) ? role : allowedRoles[0];
     user = await User.create({
       email: decoded.email,
       firebaseUid: decoded.uid,
       isVerified: true,
-      role: role || 'customer',
+      role: newRole,
     });
     isNewUser = true;
   }
