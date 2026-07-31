@@ -11,6 +11,7 @@ import AdminPaymentsPage from './admin/payments/AdminPaymentsPage.jsx';
 import AdminDisputesPage from './admin/disputes/AdminDisputesPage.jsx';
 import AdminEnterprisesPage from './admin/enterprises/AdminEnterprisesPage.jsx';
 import AdminContentPage from './admin/content/AdminContentPage.jsx';
+import AdminProfilePage from './admin/profile/AdminProfilePage.jsx';
 import ProtectedRoute from './shared/routes/ProtectedRoute.jsx';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/disputes" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminDisputesPage /></ProtectedRoute>} />
         <Route path="/enterprises" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminEnterprisesPage /></ProtectedRoute>} />
         <Route path="/content" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminContentPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminProfilePage /></ProtectedRoute>} />
 
         {/* Catch-all: any unmatched/stale/bookmarked path (e.g. the old
             /admin/* URLs from before this app was split out) redirects

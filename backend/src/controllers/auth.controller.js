@@ -135,6 +135,29 @@ exports.updateProfile = catchAsync(async (req, res) => {
   return success(res, { user }, 'Profile updated');
 });
 
+// PUT /api/v1/auth/change-password  { currentPassword, newPassword }
+// Bcrypt-password accounts only (admin portal - Firebase-based accounts
+// change their password client-side via Firebase's own reauthenticate +
+// updatePassword, which never touches this backend at all).
+exports.changePassword = catchAsync(async (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) throw new AppError('currentPassword and newPassword are required', 400);
+  if (newPassword.length < 8) throw new AppError('New password must be at least 8 characters', 400);
+
+  const user = await User.findById(req.user.id).select('+passwordHash');
+  if (!user || !user.passwordHash) {
+    throw new AppError('This account does not use a password login', 400);
+  }
+
+  const match = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!match) throw new AppError('Current password is incorrect', 401);
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+  return success(res, {}, 'Password changed');
+});
+
 // POST /api/v1/auth/refresh-token
 exports.refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.body;

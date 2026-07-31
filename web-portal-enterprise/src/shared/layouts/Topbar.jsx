@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 /**
  * Top bar: search + live status pill + identity. Kept quiet so the
  * signature fleet ticker and KPI strip below do the visual work.
@@ -30,7 +32,7 @@ export default function Topbar({ userName, userRole, dateLabel, onMenuClick }) {
           <span className="w-1.5 h-1.5 rounded-full bg-go animate-pulse" />
           Live
         </div>
-        <div className="flex items-center gap-2 pl-4 border-l border-line">
+        <Link to="/profile" className="flex items-center gap-2 pl-4 border-l border-line hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 rounded-full bg-panel2 border border-line flex items-center justify-center font-display text-xs font-semibold">
             {userName?.[0] ?? '?'}
           </div>
@@ -38,7 +40,7 @@ export default function Topbar({ userName, userRole, dateLabel, onMenuClick }) {
             <div className="text-sm font-medium">{userName}</div>
             <div className="text-xs text-mist">{userRole}</div>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

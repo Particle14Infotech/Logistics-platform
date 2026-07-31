@@ -10,6 +10,7 @@ import EnterpriseInvoicesPage from './enterprise/invoices/EnterpriseInvoicesPage
 import EnterpriseContractsPage from './enterprise/contracts/EnterpriseContractsPage.jsx';
 import EnterpriseApiKeysPage from './enterprise/api-keys/EnterpriseApiKeysPage.jsx';
 import EnterpriseDriversPage from './enterprise/drivers/EnterpriseDriversPage.jsx';
+import EnterpriseProfilePage from './enterprise/profile/EnterpriseProfilePage.jsx';
 import ProtectedRoute from './shared/routes/ProtectedRoute.jsx';
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/invoices" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseInvoicesPage /></ProtectedRoute>} />
         <Route path="/contracts" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseContractsPage /></ProtectedRoute>} />
         <Route path="/api-keys" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseApiKeysPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseProfilePage /></ProtectedRoute>} />
 
         {/* Catch-all: any unmatched/stale/bookmarked path (e.g. the old
             /enterprise/* URLs from before this app was split out) redirects
