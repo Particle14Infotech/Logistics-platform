@@ -15,10 +15,10 @@ const DOT_COLOR = {
  */
 export default function FleetTicker({ vehicles }) {
   return (
-    <div className="bg-panel border border-line rounded-lg overflow-hidden">
+    <div className="bg-panel border border-line rounded-xl shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-line">
         <span className="eyebrow">Live fleet · {vehicles.length} vehicles reporting</span>
-        <span className="text-xs text-mist font-mono">GPS updates every 4s</span>
+        <span className="text-xs text-mist">Updates every 4s</span>
       </div>
       <div className="flex overflow-x-auto no-scrollbar">
         {vehicles.map((v) => (
@@ -27,13 +27,20 @@ export default function FleetTicker({ vehicles }) {
             className="min-w-[190px] border-r border-line last:border-r-0 px-4 py-3 flex flex-col gap-1.5 hover:bg-panel2 transition-colors cursor-pointer"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm font-medium tracking-wide">{v.plate}</span>
+              <div className="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-mist shrink-0">
+                  <path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                  <circle cx="7" cy="17" r="1.6" stroke="currentColor" strokeWidth="1.4" />
+                  <circle cx="17" cy="17" r="1.6" stroke="currentColor" strokeWidth="1.4" />
+                </svg>
+                <span className="font-mono text-sm font-medium tracking-wide">{v.plate}</span>
+              </div>
               <span className={`w-2 h-2 rounded-full ${DOT_COLOR[v.state] ?? 'bg-mist'}`} />
             </div>
             <div className="text-xs text-mist truncate">{v.route}</div>
-            <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center justify-between text-xs">
               <span className="text-paper/80 capitalize">{v.state.replace('_', ' ')}</span>
-              <span className="text-signal">{v.eta}</span>
+              <span className="text-signal font-medium">{v.eta}</span>
             </div>
           </div>
         ))}

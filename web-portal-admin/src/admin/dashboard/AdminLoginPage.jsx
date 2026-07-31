@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r border-line bg-panel relative overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-signal flex items-center justify-center">
-            <span className="font-display font-bold text-ink text-sm">L</span>
+            <span className="font-display font-bold text-white text-sm">L</span>
           </div>
           <span className="font-display font-semibold tracking-tight">LOGISTICS</span>
         </div>
@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
           </p>
         </div>
 
-        <div className="flex gap-8 font-mono text-xs text-mist">
+        <div className="flex gap-8 text-xs text-mist">
           <div><span className="text-paper text-lg font-display block">10K+</span>concurrent bookings</div>
           <div><span className="text-paper text-lg font-display block">99.5%</span>API uptime</div>
           <div><span className="text-paper text-lg font-display block">&lt;5s</span>tracking latency</div>
@@ -138,7 +138,7 @@ export default function AdminLoginPage() {
             </button>
           </div>
 
-          {error && <p className="text-stop text-xs mb-4 font-mono">{error}</p>}
+          {error && <p className="text-stop text-xs mb-4">{error}</p>}
 
           {debugInfo && (
             <div className="mb-4 p-3 rounded-md border border-line bg-panel text-[11px] font-mono text-mist leading-relaxed break-all">
@@ -153,7 +153,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-signal text-ink font-medium text-sm rounded-md py-2.5 hover:brightness-110 disabled:opacity-60 transition-all"
+            className="w-full bg-signal text-white font-medium text-sm rounded-md py-2.5 hover:brightness-110 disabled:opacity-60 transition-all"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
@@ -165,7 +165,7 @@ export default function AdminLoginPage() {
             </a>
           </p>
 
-          <p className="text-xs text-mist/60 mt-8 text-center font-mono">
+          <p className="text-xs text-mist/60 mt-8 text-center">
             Dev credentials: admin@particle14.com / Admin@12345 (run <code>npm run seed</code>)
           </p>
           <div className="text-center mt-3">

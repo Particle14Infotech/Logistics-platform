@@ -3,7 +3,7 @@
  */
 export default function DataTable({ columns, rows, keyField = 'id', onRowClick }) {
   return (
-    <div className="border border-line rounded-lg overflow-hidden">
+    <div className="border border-line rounded-xl shadow-sm overflow-hidden bg-panel">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-panel2 border-b border-line">

@@ -4,7 +4,7 @@
  */
 export default function Topbar({ userName, userRole, dateLabel }) {
   return (
-    <header className="h-16 flex items-center justify-between gap-4 px-6 border-b border-line bg-ink/80 backdrop-blur sticky top-0 z-10">
+    <header className="h-16 flex items-center justify-between gap-4 px-6 border-b border-line bg-ink/80 backdrop-blur sticky top-0 z-10 shadow-sm">
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <div className="relative w-full">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-mist text-sm">⌕</span>
@@ -18,9 +18,9 @@ export default function Topbar({ userName, userRole, dateLabel }) {
 
       <div className="flex items-center gap-4">
         <span className="hidden sm:block eyebrow">{dateLabel}</span>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-go/10 text-go text-xs font-mono">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-go/10 text-go text-xs font-semibold">
           <span className="w-1.5 h-1.5 rounded-full bg-go animate-pulse" />
-          LIVE
+          Live
         </div>
         <div className="flex items-center gap-2 pl-4 border-l border-line">
           <div className="w-8 h-8 rounded-full bg-panel2 border border-line flex items-center justify-center font-display text-xs font-semibold">

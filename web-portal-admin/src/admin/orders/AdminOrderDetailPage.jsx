@@ -134,7 +134,7 @@ export default function AdminOrderDetailPage() {
                       <button
                         onClick={handleAssign}
                         disabled={!selectedDriverId || assigning}
-                        className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all"
+                        className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all"
                       >
                         {assigning ? 'Assigning…' : 'Assign driver'}
                       </button>

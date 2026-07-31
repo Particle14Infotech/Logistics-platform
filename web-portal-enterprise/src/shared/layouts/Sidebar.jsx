@@ -6,10 +6,10 @@ import { NavLink } from 'react-router-dom';
  */
 export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut }) {
   return (
-    <aside className="hidden md:flex md:w-60 md:flex-col bg-panel border-r border-line shrink-0">
+    <aside className="hidden md:flex md:w-60 md:flex-col bg-panel border-r border-line shrink-0 shadow-sm">
       <div className="h-16 flex items-center gap-2 px-5 border-b border-line">
         <div className="w-7 h-7 rounded bg-signal flex items-center justify-center">
-          <span className="font-display font-bold text-ink text-sm">L</span>
+          <span className="font-display font-bold text-white text-sm">L</span>
         </div>
         <div className="leading-tight">
           <div className="font-display font-semibold text-[15px] tracking-tight">LOGISTICS</div>

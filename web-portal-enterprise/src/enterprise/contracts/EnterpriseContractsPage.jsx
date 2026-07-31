@@ -79,7 +79,7 @@ export default function EnterpriseContractsPage() {
                 <button
                   onClick={() => handleSave(v)}
                   disabled={!dirty || savingKey === v}
-                  className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-40 transition-all"
+                  className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-40 transition-all"
                 >
                   {savingKey === v ? 'Saving…' : 'Save'}
                 </button>

@@ -85,7 +85,7 @@ function PricingRow({ config, onSave }) {
         <button
           onClick={handleSave}
           disabled={!dirty || saving}
-          className="w-full bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-40 transition-all"
+          className="w-full bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-40 transition-all"
         >
           {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
         </button>

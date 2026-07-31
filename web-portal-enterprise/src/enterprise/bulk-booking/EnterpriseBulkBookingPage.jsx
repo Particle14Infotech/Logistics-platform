@@ -109,7 +109,7 @@ export default function EnterpriseBulkBookingPage() {
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all"
+          className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all"
         >
           {submitting ? 'Submitting…' : 'Submit bulk booking'}
         </button>

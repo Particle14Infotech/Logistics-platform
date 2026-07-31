@@ -69,7 +69,7 @@ function BannersTab() {
           <span className="eyebrow block mb-1">Link URL (optional)</span>
           <input value={form.linkUrl} onChange={(e) => setForm((f) => ({ ...f, linkUrl: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
         </div>
-        <button type="submit" className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 transition-all">Add banner</button>
+        <button type="submit" className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 transition-all">Add banner</button>
       </form>
 
       {error && <div className="border border-stop/30 bg-stop/10 text-stop text-sm rounded-lg p-3">{error}</div>}
@@ -144,7 +144,7 @@ function FaqsTab() {
         <input required placeholder="Question" value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
         <textarea required placeholder="Answer" rows={2} value={form.answer} onChange={(e) => setForm((f) => ({ ...f, answer: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm resize-none focus:border-signal focus:outline-none transition-colors" />
         <div className="flex justify-end">
-          <button type="submit" className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 transition-all">Add FAQ</button>
+          <button type="submit" className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 transition-all">Add FAQ</button>
         </div>
       </form>
 
@@ -227,7 +227,7 @@ function AnnouncementsTab() {
             <option value="customer">Customers only</option>
             <option value="driver">Drivers only</option>
           </select>
-          <button type="submit" disabled={sending} className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all">
+          <button type="submit" disabled={sending} className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all">
             {sending ? 'Sending…' : 'Send announcement'}
           </button>
         </div>

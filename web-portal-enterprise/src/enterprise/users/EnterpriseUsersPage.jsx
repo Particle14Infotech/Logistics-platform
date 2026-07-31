@@ -68,7 +68,7 @@ export default function EnterpriseUsersPage() {
           <span className="eyebrow block mb-1">Email</span>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
         </div>
-        <button type="submit" disabled={inviting} className="bg-signal text-ink text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all">
+        <button type="submit" disabled={inviting} className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all">
           {inviting ? 'Adding…' : 'Add team member'}
         </button>
       </form>
