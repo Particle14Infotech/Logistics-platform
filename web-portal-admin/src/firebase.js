@@ -4,13 +4,13 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyC23BDc66pnSxx2i2uGL8HMfIz8VbHxrbQ',
-  authDomain: 'rahmitra-40638.firebaseapp.com',
-  projectId: 'rahmitra-40638',
-  storageBucket: 'rahmitra-40638.firebasestorage.app',
-  messagingSenderId: '768140781082',
-  appId: '1:768140781082:web:8a71cee118162cb1d053a3',
-  measurementId: 'G-VZSWTRE0KC',
+  apiKey: 'AIzaSyCiNw55MzaJPqW409-iMZxUMeUTKfmGqFU',
+  authDomain: 'logix-94060.firebaseapp.com',
+  projectId: 'logix-94060',
+  storageBucket: 'logix-94060.firebasestorage.app',
+  messagingSenderId: '84806642758',
+  appId: '1:84806642758:web:7c9c56e5f196368f292e47',
+  measurementId: 'G-86X42LY6XG',
 };
 
 export const app = initializeApp(firebaseConfig);

@@ -22,20 +22,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC23BDc66pnSxx2i2uGL8HMfIz8VbHxrbQ',
-    appId: '1:768140781082:web:443a5f0cc8d9973ad053a3',
-    messagingSenderId: '768140781082',
-    projectId: 'rahmitra-40638',
-    authDomain: 'rahmitra-40638.firebaseapp.com',
-    storageBucket: 'rahmitra-40638.firebasestorage.app',
-    measurementId: 'G-6381FB3QS9',
+    apiKey: 'AIzaSyCiNw55MzaJPqW409-iMZxUMeUTKfmGqFU',
+    appId: '1:84806642758:web:7c9c56e5f196368f292e47',
+    messagingSenderId: '84806642758',
+    projectId: 'logix-94060',
+    authDomain: 'logix-94060.firebaseapp.com',
+    storageBucket: 'logix-94060.firebasestorage.app',
+    measurementId: 'G-86X42LY6XG',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ',
-    appId: '1:768140781082:android:f0aa7a9718b20a28d053a3',
-    messagingSenderId: '768140781082',
-    projectId: 'rahmitra-40638',
-    storageBucket: 'rahmitra-40638.firebasestorage.app',
+    apiKey: 'AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc',
+    appId: '1:84806642758:android:3c056fd7d2fbe136292e47',
+    messagingSenderId: '84806642758',
+    projectId: 'logix-94060',
+    storageBucket: 'logix-94060.firebasestorage.app',
   );
 }

@@ -1,34 +1,41 @@
 {
   "project_info": {
-    "project_number": "768140781082",
-    "project_id": "rahmitra-40638",
-    "storage_bucket": "rahmitra-40638.firebasestorage.app"
+    "project_number": "84806642758",
+    "project_id": "logix-94060",
+    "storage_bucket": "logix-94060.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:768140781082:android:f0aa7a9718b20a28d053a3",
+        "mobilesdk_app_id": "1:84806642758:android:3c056fd7d2fbe136292e47",
         "android_client_info": {
           "package_name": "com.example.logistics_customer_app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+          "client_id": "84806642758-k6mhr497l9hnibaorafmf02i43ssd8s6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ"
+          "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+              "client_id": "84806642758-k6mhr497l9hnibaorafmf02i43ssd8s6.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "84806642758-5sijo1rprah24u9qk1bbor37ni905pp8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.transportLogix"
+              }
             }
           ]
         }
@@ -36,28 +43,35 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:768140781082:android:ccceebddd6e173f2d053a3",
+        "mobilesdk_app_id": "1:84806642758:android:01be537363c8baad292e47",
         "android_client_info": {
           "package_name": "com.example.logistics_driver_app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+          "client_id": "84806642758-k6mhr497l9hnibaorafmf02i43ssd8s6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDybuxdpsdu1OW-fqSnhvQ6KyBMghG38SQ"
+          "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "768140781082-elae9lgvkidfdg0q48sdvbgs8iatvt81.apps.googleusercontent.com",
+              "client_id": "84806642758-k6mhr497l9hnibaorafmf02i43ssd8s6.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "84806642758-5sijo1rprah24u9qk1bbor37ni905pp8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.transportLogix"
+              }
             }
           ]
         }
