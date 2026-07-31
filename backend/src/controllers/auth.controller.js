@@ -97,6 +97,10 @@ exports.login = catchAsync(async (req, res) => {
 
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
+  // passwordHash was explicitly re-selected above for bcrypt.compare - strip
+  // it before the document goes into the response, or the hash leaks to
+  // the client on every successful login.
+  user.passwordHash = undefined;
   return success(res, { user, accessToken, refreshToken }, 'Login successful');
 });
 
