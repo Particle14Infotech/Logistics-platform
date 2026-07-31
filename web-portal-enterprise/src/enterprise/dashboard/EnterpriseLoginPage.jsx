@@ -24,13 +24,23 @@ const ADMIN_PORTAL_LOGIN_URL = import.meta.env.DEV
 // (the same generic endpoint the mobile apps use), so everything
 // downstream (ProtectedRoute, the pending-approval gate) is unchanged.
 export default function EnterpriseLoginPage() {
-  const [step, setStep] = useState('login'); // 'login' | 'verifyEmail'
+  const [step, setStep] = useState('login'); // 'login' | 'verifyEmail' | 'completeProfile'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendSent, setResendSent] = useState(false);
+  // Recovery path for an account that verified its email/signed in via
+  // Firebase but never finished POST /enterprise/firebase-signup (e.g. hit
+  // "email already in use" on the Signup page after an earlier interrupted
+  // attempt, then came here to log in instead) - firebase-signup creates
+  // the missing Enterprise doc from these instead of leaving the account
+  // permanently stuck with no company profile and no way to add one.
+  const [companyName, setCompanyName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [gstin, setGstin] = useState('');
+  const [billingEmail, setBillingEmail] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,7 +70,16 @@ export default function EnterpriseLoginPage() {
 
     // Pending accounts (self-signup awaiting admin approval) get sent to a
     // dedicated screen instead of the real dashboard.
-    const { data: statusData } = await axiosClient.get('/enterprise/status');
+    let statusData;
+    try {
+      ({ data: statusData } = await axiosClient.get('/enterprise/status'));
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setStep('completeProfile');
+        return;
+      }
+      throw err;
+    }
     setEnterpriseStatus(statusData.data);
 
     if (!statusData.data.isActive) {
@@ -69,6 +88,36 @@ export default function EnterpriseLoginPage() {
     }
     const redirectTo = location.state?.from?.pathname ?? '/dashboard';
     navigate(redirectTo, { replace: true });
+  };
+
+  const handleCompleteProfile = async (e) => {
+    e.preventDefault();
+    if (!companyName.trim() || !contactName.trim()) {
+      setError('Fill in company name and contact name.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const idToken = await auth.currentUser.getIdToken(true);
+      const { data } = await axiosClient.post('/enterprise/firebase-signup', {
+        idToken,
+        companyName: companyName.trim(),
+        contactName: contactName.trim(),
+        gstin: gstin.trim() || undefined,
+        billingEmail: billingEmail.trim() || undefined,
+      });
+      const { user, accessToken, refreshToken, enterprise } = data.data;
+      setAuth({ accessToken, refreshToken, user });
+      setEnterpriseStatus({ companyName: enterprise.companyName, isActive: enterprise.isActive });
+      navigate(enterprise.isActive ? '/dashboard' : '/pending-approval', { replace: true });
+    } catch (err) {
+      console.error('[EnterpriseLoginPage] completing profile failed', err);
+      setError(err.response?.data?.message || 'Could not complete your account. Try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -260,6 +309,63 @@ export default function EnterpriseLoginPage() {
               </div>
               {error && <p className="text-stop text-xs mt-4">{error}</p>}
             </div>
+          )}
+
+          {step === 'completeProfile' && (
+            <form onSubmit={handleCompleteProfile}>
+              <h2 className="font-display text-2xl font-semibold mb-1">Finish setting up your account</h2>
+              <p className="text-mist text-sm mb-8">
+                Your email is verified, but we're missing your company details.
+              </p>
+
+              <label className="block text-xs eyebrow mb-1.5">Company name</label>
+              <input
+                type="text"
+                required
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Vertex Pharma Pvt. Ltd."
+                className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-4 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+              />
+
+              <label className="block text-xs eyebrow mb-1.5">Contact name</label>
+              <input
+                type="text"
+                required
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Your full name"
+                className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-4 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+              />
+
+              <label className="block text-xs eyebrow mb-1.5">GSTIN (optional)</label>
+              <input
+                type="text"
+                value={gstin}
+                onChange={(e) => setGstin(e.target.value)}
+                placeholder="22AAAAA0000A1Z5"
+                className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-4 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+              />
+
+              <label className="block text-xs eyebrow mb-1.5">Billing email (optional)</label>
+              <input
+                type="email"
+                value={billingEmail}
+                onChange={(e) => setBillingEmail(e.target.value)}
+                placeholder="Defaults to your login email"
+                className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-2 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors"
+              />
+
+              {error && <p className="text-stop text-xs mt-2 mb-4">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-signal text-white font-medium text-sm rounded-md py-2.5 mt-4 hover:brightness-110 disabled:opacity-60 transition-all"
+              >
+                {loading ? 'Saving…' : 'Complete setup'}
+              </button>
+            </form>
           )}
         </div>
       </div>
