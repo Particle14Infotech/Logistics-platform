@@ -61,6 +61,12 @@ dev_dependencies:
 
   flutter_launcher_icons: ^0.14.4
 
+# path_provider_android pins jni to 1.0.1, which its own maintainers
+# retracted from pub.dev (breaks the Gradle build with "Could not find
+# method kotlin()") - force the fixed version instead.
+dependency_overrides:
+  jni: ^1.0.3
+
 flutter_launcher_icons:
   android: true
   ios: true
