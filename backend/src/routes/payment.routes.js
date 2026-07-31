@@ -7,5 +7,7 @@ router.post('/verify', ctrl.verify); // hit by the client callback
 router.post('/webhook', ctrl.webhook); // hit by Razorpay's servers directly - signature-authenticated, not JWT
 router.post('/refund', protect, ctrl.refund);
 router.get('/history', protect, ctrl.history);
+router.get('/saved-cards', protect, ctrl.listSavedCards);
+router.delete('/saved-cards/:tokenId', protect, ctrl.deleteSavedCard);
 
 module.exports = router;

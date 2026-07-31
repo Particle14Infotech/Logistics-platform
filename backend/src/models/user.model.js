@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
     notificationsEnabled: { type: Boolean, default: true },
     savedAddresses: [addressSchema],
     enterpriseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enterprise', default: null },
+    // Created lazily on first checkout (see razorpay.service.js's
+    // ensureCustomer) - lets Razorpay Checkout offer "save this card" and
+    // tokenize it against this customer, since Standard Checkout has no
+    // saved-card concept without one.
+    razorpayCustomerId: String,
   },
   { timestamps: true }
 );

@@ -39,6 +39,7 @@ class RazorpayOrderDetails {
   final String currency;
   final String keyId;
   final String paymentId; // our own Payment document id
+  final String? customerId; // Razorpay customer id - lets checkout offer/use saved cards
 
   RazorpayOrderDetails({
     required this.razorpayOrderId,
@@ -46,7 +47,28 @@ class RazorpayOrderDetails {
     required this.currency,
     required this.keyId,
     required this.paymentId,
+    this.customerId,
   });
+}
+
+class SavedCard {
+  final String tokenId;
+  final String last4;
+  final String network;
+  final String? issuer;
+  final String? type;
+
+  SavedCard({required this.tokenId, required this.last4, required this.network, this.issuer, this.type});
+
+  factory SavedCard.fromJson(Map<String, dynamic> json) {
+    return SavedCard(
+      tokenId: json['tokenId'] as String,
+      last4: json['last4'] as String,
+      network: json['network'] as String,
+      issuer: json['issuer'] as String?,
+      type: json['type'] as String?,
+    );
+  }
 }
 
 // Thin wrapper around backend/src/controllers/payment.controller.js.
@@ -65,6 +87,7 @@ class PaymentService {
       currency: data['currency'] as String,
       keyId: data['keyId'] as String,
       paymentId: data['paymentId'] as String,
+      customerId: data['customerId'] as String?,
     );
   }
 
@@ -84,5 +107,15 @@ class PaymentService {
     final response = await _dio.get('/payment/history');
     final payments = response.data['data']['payments'] as List;
     return payments.map((p) => PaymentRecord.fromJson(p as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<SavedCard>> getSavedCards() async {
+    final response = await _dio.get('/payment/saved-cards');
+    final cards = response.data['data']['cards'] as List;
+    return cards.map((c) => SavedCard.fromJson(c as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> deleteSavedCard(String tokenId) async {
+    await _dio.delete('/payment/saved-cards/$tokenId');
   }
 }

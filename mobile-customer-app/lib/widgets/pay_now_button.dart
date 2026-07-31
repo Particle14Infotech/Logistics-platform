@@ -41,6 +41,7 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
         description: 'Shipment payment',
         contact: user?.phone,
         email: user?.email,
+        customerId: orderDetails.customerId,
       );
 
       if (result.success) {

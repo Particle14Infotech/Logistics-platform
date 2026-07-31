@@ -1,6 +1,7 @@
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Payment = require('../models/payment.model');
+const User = require('../models/user.model');
 const razorpayService = require('../services/razorpay.service');
 
 // POST /api/v1/payment/create-order  { orderId }
@@ -42,6 +43,17 @@ exports.createOrder = catchAsync(async (req, res) => {
     { new: true, upsert: true }
   );
 
+  // Best-effort - opening checkout with a customer_id is what lets it offer
+  // "save this card" / show previously-saved cards, but a hiccup creating
+  // the Razorpay customer must never block the actual payment itself.
+  let customerId;
+  try {
+    const user = await User.findById(req.user.id);
+    customerId = await razorpayService.ensureCustomer(user);
+  } catch (err) {
+    console.error('[payment.controller] ensureCustomer failed:', err.message);
+  }
+
   return success(
     res,
     {
@@ -50,6 +62,7 @@ exports.createOrder = catchAsync(async (req, res) => {
       currency: 'INR',
       keyId: process.env.RAZORPAY_KEY_ID,
       paymentId: payment._id,
+      customerId,
     },
     'Payment order created',
     201
@@ -152,4 +165,22 @@ exports.history = catchAsync(async (req, res) => {
     .populate('orderId', 'pickupLocation dropLocation status')
     .sort({ createdAt: -1 });
   return success(res, { payments });
+});
+
+// GET /api/v1/payment/saved-cards
+exports.listSavedCards = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user.razorpayCustomerId) return success(res, { cards: [] });
+
+  const cards = await razorpayService.listSavedCards(user.razorpayCustomerId);
+  return success(res, { cards });
+});
+
+// DELETE /api/v1/payment/saved-cards/:tokenId
+exports.deleteSavedCard = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user.razorpayCustomerId) throw new AppError('No saved cards found', 404);
+
+  await razorpayService.deleteSavedCard(user.razorpayCustomerId, req.params.tokenId);
+  return success(res, {}, 'Card removed');
 });

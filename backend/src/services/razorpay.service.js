@@ -1,5 +1,6 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const User = require('../models/user.model');
 
 let client = null;
 
@@ -42,4 +43,41 @@ exports.verifyWebhookSignature = (rawBody, signature) => {
 
 exports.refundPayment = async (razorpayPaymentId, amountPaise) => {
   return getClient().payments.refund(razorpayPaymentId, amountPaise ? { amount: amountPaise } : {});
+};
+
+// Lazily creates (once) the Razorpay Customer backing this user's saved
+// cards - Standard Checkout only offers "save this card" / shows saved
+// cards when opened with a customer_id. fail_existing: 0 makes this
+// idempotent: if a customer with the same contact/email already exists on
+// Razorpay's side, it returns that one instead of erroring.
+exports.ensureCustomer = async (user) => {
+  if (user.razorpayCustomerId) return user.razorpayCustomerId;
+
+  const customer = await getClient().customers.create({
+    name: user.name || 'Customer',
+    email: user.email || undefined,
+    contact: user.phone || undefined,
+    fail_existing: 0,
+  });
+
+  user.razorpayCustomerId = customer.id;
+  await User.findByIdAndUpdate(user._id, { razorpayCustomerId: customer.id });
+  return customer.id;
+};
+
+exports.listSavedCards = async (customerId) => {
+  const { items } = await getClient().customers.fetchTokens(customerId);
+  return items
+    .filter((token) => token.method === 'card' && token.card)
+    .map((token) => ({
+      tokenId: token.id,
+      last4: token.card.last4,
+      network: token.card.network,
+      issuer: token.card.issuer ?? null,
+      type: token.card.type ?? null,
+    }));
+};
+
+exports.deleteSavedCard = async (customerId, tokenId) => {
+  return getClient().customers.deleteToken(customerId, tokenId);
 };

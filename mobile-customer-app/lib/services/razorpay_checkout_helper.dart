@@ -27,6 +27,7 @@ class RazorpayCheckoutHelper {
     String? description,
     String? contact,
     String? email,
+    String? customerId,
   }) {
     final completer = Completer<RazorpayResult>();
     final razorpay = Razorpay();
@@ -64,6 +65,11 @@ class RazorpayCheckoutHelper {
         if (contact != null) 'contact': contact,
         if (email != null) 'email': email,
       },
+      // customer_id both offers "save this card" (tokenizes against this
+      // Razorpay customer on consent) and, on a later payment, shows any
+      // cards already saved for it - see razorpay.service.js's ensureCustomer.
+      if (customerId != null) 'customer_id': customerId,
+      if (customerId != null) 'save': 1,
     });
 
     return completer.future;
