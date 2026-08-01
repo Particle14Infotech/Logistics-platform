@@ -13,7 +13,7 @@
          silently has nothing to ask for. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="logistics_customer_app"
+        android:label="Raah Mitr"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
