@@ -6,6 +6,8 @@ import AdminOrderDetailPage from './admin/orders/AdminOrderDetailPage.jsx';
 import AdminDriversPage from './admin/drivers/AdminDriversPage.jsx';
 import AdminDriverDetailPage from './admin/drivers/AdminDriverDetailPage.jsx';
 import AdminVehiclesPage from './admin/vehicles/AdminVehiclesPage.jsx';
+import AdminFleetsPage from './admin/fleets/AdminFleetsPage.jsx';
+import AdminFleetDetailPage from './admin/fleets/AdminFleetDetailPage.jsx';
 import AdminPricingPage from './admin/pricing/AdminPricingPage.jsx';
 import AdminPaymentsPage from './admin/payments/AdminPaymentsPage.jsx';
 import AdminDisputesPage from './admin/disputes/AdminDisputesPage.jsx';
@@ -30,6 +32,8 @@ export default function App() {
         <Route path="/drivers" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminDriversPage /></ProtectedRoute>} />
         <Route path="/drivers/:id" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminDriverDetailPage /></ProtectedRoute>} />
         <Route path="/vehicles" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminVehiclesPage /></ProtectedRoute>} />
+        <Route path="/fleets" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminFleetsPage /></ProtectedRoute>} />
+        <Route path="/fleets/:id" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminFleetDetailPage /></ProtectedRoute>} />
         <Route path="/pricing" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminPricingPage /></ProtectedRoute>} />
         <Route path="/payments" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminPaymentsPage /></ProtectedRoute>} />
         <Route path="/disputes" element={<ProtectedRoute roles={['admin']} loginPath="/login"><AdminDisputesPage /></ProtectedRoute>} />

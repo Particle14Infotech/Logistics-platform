@@ -16,6 +16,9 @@ router.post('/drivers/:id/payout', ctrl.payoutDriver);
 
 router.get('/vehicles', ctrl.listVehicles);
 
+router.get('/fleets', ctrl.listFleets);
+router.get('/fleets/:id', ctrl.getFleetById);
+
 router.get('/pricing', ctrl.getPricing);
 router.put('/pricing', ctrl.updatePricing);
 

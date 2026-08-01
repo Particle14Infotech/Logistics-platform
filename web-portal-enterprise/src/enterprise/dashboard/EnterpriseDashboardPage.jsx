@@ -110,7 +110,7 @@ export default function EnterpriseDashboardPage() {
       label: '',
       render: (r) => (
         <button
-          onClick={() => downloadFile(`/invoices/${r._id}/pdf`, `invoice-${r._id.slice(-8)}.pdf`)}
+          onClick={() => downloadFile(`/enterprise/invoices/${r._id}/pdf`, `invoice-${r._id.slice(-8)}.pdf`)}
           className="text-xs text-signal hover:underline"
         >
           Download PDF

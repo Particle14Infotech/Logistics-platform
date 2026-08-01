@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './firebase.js';
 import './index.css';
+import 'leaflet/dist/leaflet.css';
 
 // Global safety nets so nothing ever fails silently during development -
 // any uncaught error or rejected promise anywhere in the app gets logged

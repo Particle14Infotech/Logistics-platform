@@ -5,6 +5,7 @@ import PendingApprovalScreen from './enterprise/dashboard/PendingApprovalScreen.
 import EnterpriseDashboardPage from './enterprise/dashboard/EnterpriseDashboardPage.jsx';
 import EnterpriseBulkBookingPage from './enterprise/bulk-booking/EnterpriseBulkBookingPage.jsx';
 import EnterpriseOrderTrackingPage from './enterprise/order-tracking/EnterpriseOrderTrackingPage.jsx';
+import EnterpriseOrderDetailPage from './enterprise/order-tracking/EnterpriseOrderDetailPage.jsx';
 import EnterpriseUsersPage from './enterprise/users/EnterpriseUsersPage.jsx';
 import EnterpriseInvoicesPage from './enterprise/invoices/EnterpriseInvoicesPage.jsx';
 import EnterpriseContractsPage from './enterprise/contracts/EnterpriseContractsPage.jsx';
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/dashboard" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseDashboardPage /></ProtectedRoute>} />
         <Route path="/bulk-booking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseBulkBookingPage /></ProtectedRoute>} />
         <Route path="/order-tracking" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseOrderTrackingPage /></ProtectedRoute>} />
+        <Route path="/order-tracking/:orderId" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseOrderDetailPage /></ProtectedRoute>} />
         <Route path="/drivers" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseDriversPage /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute roles={['enterprise_admin']} loginPath="/login"><EnterpriseUsersPage /></ProtectedRoute>} />
         <Route path="/invoices" element={<ProtectedRoute roles={['enterprise_admin', 'enterprise_user']} loginPath="/login"><EnterpriseInvoicesPage /></ProtectedRoute>} />

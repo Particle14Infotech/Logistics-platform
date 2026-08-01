@@ -326,6 +326,29 @@ exports.listOrders = catchAsync(async (req, res) => {
   return success(res, { orders, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } });
 });
 
+// GET /api/v1/enterprise/orders/:id - single order detail, scoped to the
+// caller's whole enterprise (same filter as listOrders above) rather than
+// just orders they personally booked, so any teammate can look up a
+// shipment via direct link/refresh, not only via the list.
+exports.getOrderById = catchAsync(async (req, res) => {
+  const enterprise = await resolveEnterprise(req.user.id);
+
+  const order = await Order.findOne({ _id: req.params.id, enterpriseId: enterprise._id })
+    .populate('customerId', 'name email')
+    .populate({
+      path: 'driverId',
+      select: 'vehicleNumber vehicleType currentLocation',
+      populate: { path: 'userId', select: 'name phone' },
+    })
+    .lean();
+  if (!order) throw new AppError('Order not found', 404);
+
+  if (!['picked_up', 'in_transit'].includes(order.status)) delete order.deliveryOtp;
+  if (order.status !== 'picked_up') delete order.startOtp;
+
+  return success(res, { order });
+});
+
 // POST /api/v1/enterprise/bulk-booking  { rows: [{ pickupAddress, dropAddress, vehicleType, goodsType, weightKg }] }
 exports.bulkBooking = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);

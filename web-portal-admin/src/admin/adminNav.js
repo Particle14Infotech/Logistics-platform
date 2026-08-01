@@ -3,6 +3,7 @@ export const ADMIN_NAV = [
   { to: '/orders', label: 'Orders', icon: '▤' },
   { to: '/drivers', label: 'Drivers', icon: '◑' },
   { to: '/vehicles', label: 'Vehicles', icon: '▭' },
+  { to: '/fleets', label: 'Fleets', icon: '⬡' },
   { to: '/pricing', label: 'Pricing', icon: '₹' },
   { to: '/payments', label: 'Payments', icon: '◈' },
   { to: '/disputes', label: 'Disputes', icon: '!' },

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import DataTable from '../../shared/components/DataTable.jsx';
 import StatusBadge from '../../shared/components/StatusBadge.jsx';
@@ -11,6 +11,7 @@ const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'd
 export default function EnterpriseOrderTrackingPage() {
   // Lets the dashboard's KPI cards/chart bars link straight here
   // pre-filtered instead of just dumping the user on an unfiltered list.
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
@@ -85,7 +86,7 @@ export default function EnterpriseOrderTrackingPage() {
         <div className="text-center py-16 text-mist text-sm">Loading orders…</div>
       ) : (
         <>
-          <DataTable columns={columns} rows={orders} keyField="_id" />
+          <DataTable columns={columns} rows={orders} keyField="_id" onRowClick={(row) => navigate(`/order-tracking/${row._id}`)} />
           <div className="flex items-center justify-between text-sm text-mist">
             <span>{pagination.total} order{pagination.total !== 1 ? 's' : ''} · page {pagination.page} of {Math.max(1, pagination.pages)}</span>
             <div className="flex gap-2">

@@ -9,6 +9,7 @@ const Banner = require('../models/banner.model');
 const Faq = require('../models/faq.model');
 const Notification = require('../models/notification.model');
 const Enterprise = require('../models/enterprise.model');
+const Fleet = require('../models/fleet.model');
 const WalletTransaction = require('../models/walletTransaction.model');
 const Invoice = require('../models/invoice.model');
 const { applyWalletTransaction } = require('../services/wallet.service');
@@ -413,6 +414,74 @@ exports.listVehicles = catchAsync(async (req, res) => {
   });
 
   return success(res, { vehicles, pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) } });
+});
+
+// GET /api/v1/admin/fleets?search=&page=&limit= - fleet-owner oversight list
+exports.listFleets = catchAsync(async (req, res) => {
+  const { search, page = 1, limit = 20 } = req.query;
+
+  const filter = {};
+  if (search) filter.companyName = { $regex: search, $options: 'i' };
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+  const [fleets, total] = await Promise.all([
+    Fleet.find(filter)
+      .populate('ownerId', 'name phone email')
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean(),
+    Fleet.countDocuments(filter),
+  ]);
+
+  const fleetsWithCounts = await Promise.all(
+    fleets.map(async (fleet) => {
+      const vehicles = await Driver.find({ fleetId: fleet._id }, 'isApproved documents').lean();
+      const needsAttention = vehicles.filter(
+        (v) => !v.isApproved || ['rcUrl', 'insuranceUrl', 'pollutionCertUrl'].some((k) => !v.documents?.[k])
+      ).length;
+      return {
+        _id: fleet._id,
+        companyName: fleet.companyName,
+        owner: fleet.ownerId,
+        createdAt: fleet.createdAt,
+        vehicleCount: vehicles.length,
+        needsAttention,
+      };
+    })
+  );
+
+  return success(res, {
+    fleets: fleetsWithCounts,
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) },
+  });
+});
+
+// GET /api/v1/admin/fleets/:id - one fleet's owner + every vehicle/driver under it
+exports.getFleetById = catchAsync(async (req, res) => {
+  const fleet = await Fleet.findById(req.params.id).populate('ownerId', 'name phone email createdAt');
+  if (!fleet) throw new AppError('Fleet not found', 404);
+
+  const drivers = await Driver.find({ fleetId: fleet._id }).populate('userId', 'name phone email').lean();
+  const vehicles = drivers.map((d) => {
+    const missingCompliance = ['rcUrl', 'insuranceUrl', 'pollutionCertUrl'].filter((k) => !d.documents?.[k]);
+    return {
+      _id: d._id,
+      vehicleNumber: d.vehicleNumber,
+      vehicleType: d.vehicleType,
+      isApproved: d.isApproved,
+      isAvailable: d.isAvailable,
+      rating: d.rating,
+      driver: d.userId,
+      documentsUploaded: Object.values(d.documents || {}).filter(Boolean).length,
+      documentsTotal: Object.keys(d.documents || {}).length || 8,
+      missingCompliance,
+    };
+  });
+
+  return success(res, { fleet, vehicles });
 });
 
 // GET /api/v1/admin/pricing - current rate card for every vehicle type

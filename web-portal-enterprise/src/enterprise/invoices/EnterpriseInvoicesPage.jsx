@@ -32,7 +32,7 @@ export default function EnterpriseInvoicesPage() {
   const handleDownload = async (invoiceId) => {
     setDownloadingId(invoiceId);
     try {
-      await downloadFile(`/invoices/${invoiceId}/pdf`, `invoice-${invoiceId.slice(-8)}.pdf`);
+      await downloadFile(`/enterprise/invoices/${invoiceId}/pdf`, `invoice-${invoiceId.slice(-8)}.pdf`);
     } catch (err) {
       console.error('[EnterpriseInvoicesPage] download failed', err);
       setError('Could not download this invoice.');

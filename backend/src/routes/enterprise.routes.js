@@ -13,6 +13,7 @@ router.post('/create', protect, ctrl.createAccount);
 router.get('/dashboard', protect, enterpriseRoles, ctrl.dashboard);
 
 router.get('/orders', protect, enterpriseRoles, ctrl.listOrders);
+router.get('/orders/:id', protect, enterpriseRoles, ctrl.getOrderById);
 router.post('/bulk-booking', protect, enterpriseRoles, ctrl.bulkBooking);
 
 router.get('/users', protect, enterpriseRoles, ctrl.listUsers);

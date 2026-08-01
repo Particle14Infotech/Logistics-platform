@@ -215,7 +215,7 @@ function AnnouncementsTab() {
   return (
     <div className="space-y-4">
       <div className="border border-hold/30 bg-hold/10 text-hold text-xs rounded-lg p-3">
-        Push delivery via Firebase isn't wired in this environment yet — announcements are recorded and queued here, but not actually delivered to devices.
+        Announcements are always recorded here and delivered to each recipient's in-app notification inbox. Push delivery to devices additionally requires Firebase to be configured on the backend — if it isn't, recipients will still see the announcement next time they open the app.
       </div>
 
       <form onSubmit={handleSend} className="bg-panel border border-line rounded-lg p-4 space-y-3">
