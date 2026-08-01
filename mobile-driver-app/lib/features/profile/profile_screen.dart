@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/vehicle_types.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
 import '../../services/auth_service.dart';
@@ -25,9 +26,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String? _error;
   final _nameController = TextEditingController();
 
+  bool _editingVehicle = false;
+  bool _savingVehicle = false;
+  String? _vehicleError;
+  String? _vehicleType;
+  final _vehicleNumberController = TextEditingController();
+
   @override
   void dispose() {
     _nameController.dispose();
+    _vehicleNumberController.dispose();
     super.dispose();
   }
 
@@ -55,6 +63,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _saveVehicle() async {
+    final vehicleNumber = _vehicleNumberController.text.trim();
+    if (_vehicleType == null || vehicleNumber.isEmpty) {
+      setState(() => _vehicleError = 'Choose a vehicle type and enter a vehicle number.');
+      return;
+    }
+    setState(() {
+      _savingVehicle = true;
+      _vehicleError = null;
+    });
+    try {
+      await ref.read(driverServiceProvider).updateVehicle(
+            vehicleType: _vehicleType!,
+            vehicleNumber: vehicleNumber,
+          );
+      ref.invalidate(driverProfileProvider);
+      if (mounted) {
+        setState(() => _editingVehicle = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vehicle updated - pending re-approval by admin.')),
+        );
+      }
+    } catch (e) {
+      setState(() => _vehicleError = 'Could not save changes. Try again.');
+    } finally {
+      if (mounted) setState(() => _savingVehicle = false);
+    }
+  }
+
+  Future<void> _confirmSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text("You'll need to log in again to continue."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(authProvider.notifier).logout();
+    if (mounted) context.go('/role-selection');
   }
 
   @override
@@ -137,29 +191,91 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             data: (profile) => profile == null
                 ? const SizedBox.shrink()
                 : Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.local_shipping_outlined),
-                      title: Text(profile.vehicleNumber),
-                      subtitle: Text(profile.vehicleType.replaceAll('_', ' ')),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_editingVehicle) ...[
+                            DropdownButtonFormField<String>(
+                              initialValue: _vehicleType,
+                              decoration: const InputDecoration(labelText: 'Vehicle type', border: OutlineInputBorder()),
+                              items: kVehicleTypes.map((v) => DropdownMenuItem(value: v.value, child: Text(v.label))).toList(),
+                              onChanged: (v) => setState(() => _vehicleType = v),
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _vehicleNumberController,
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: const InputDecoration(labelText: 'Vehicle registration number', border: OutlineInputBorder()),
+                            ),
+                            if (_vehicleError != null) ...[
+                              const SizedBox(height: 8),
+                              Text(_vehicleError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                            ],
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: _savingVehicle ? null : () => setState(() => _editingVehicle = false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton(
+                                    onPressed: _savingVehicle ? null : _saveVehicle,
+                                    child: _savingVehicle
+                                        ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
+                                        : const Text('Save'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else
+                            Row(
+                              children: [
+                                const Icon(Icons.local_shipping_outlined),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(profile.vehicleNumber),
+                                      Text(profile.vehicleType.replaceAll('_', ' '), style: TextStyle(color: Colors.grey.shade600)),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined),
+                                  onPressed: () {
+                                    _vehicleType = profile.vehicleType;
+                                    _vehicleNumberController.text = profile.vehicleNumber;
+                                    setState(() => _editingVehicle = true);
+                                  },
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
                     ),
                   ),
           ),
           const SizedBox(height: 8),
           _ProfileRow(icon: Icons.folder_shared_outlined, label: 'My Documents', onTap: () => context.push('/documents')),
           _ProfileRow(icon: Icons.account_balance_outlined, label: 'Bank Details', onTap: () => context.push('/profile/bank-details')),
-          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => context.push('/profile/notifications')),
+          _ProfileRow(icon: Icons.notifications, label: 'Notifications', onTap: () => context.push('/notifications')),
+          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notification Settings', onTap: () => context.push('/profile/notifications')),
           _ProfileRow(icon: Icons.password_outlined, label: 'Change Password', onTap: () => context.push('/profile/change-password')),
           _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => context.push('/profile/help-support')),
-          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => context.push('/profile/settings')),
+          _ProfileRow(icon: Icons.info_outline, label: 'About', onTap: () => context.push('/profile/about')),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Sign out', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) context.go('/role-selection');
-              },
+              onTap: _confirmSignOut,
             ),
           ),
         ],

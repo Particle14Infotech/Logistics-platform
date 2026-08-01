@@ -50,6 +50,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _confirmSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text("You'll need to log in again to continue."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(authProvider.notifier).logout();
+    if (mounted) context.go('/onboarding');
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
@@ -130,19 +147,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _ProfileRow(icon: Icons.person_outline, label: 'Personal Information', onTap: () => context.push('/profile/personal-information')),
           _ProfileRow(icon: Icons.location_on_outlined, label: 'Addresses', onTap: () => context.push('/profile/addresses')),
           _ProfileRow(icon: Icons.payment_outlined, label: 'Payment Methods', onTap: () => context.push('/profile/payment-history')),
-          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notifications', onTap: () => context.push('/profile/notifications')),
+          _ProfileRow(icon: Icons.notifications, label: 'Notifications', onTap: () => context.push('/notifications')),
+          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notification Settings', onTap: () => context.push('/profile/notifications')),
           _ProfileRow(icon: Icons.password_outlined, label: 'Change Password', onTap: () => context.push('/profile/change-password')),
           _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => context.push('/profile/help-support')),
-          _ProfileRow(icon: Icons.settings_outlined, label: 'Settings', onTap: () => context.push('/profile/settings')),
+          _ProfileRow(icon: Icons.info_outline, label: 'About', onTap: () => context.push('/profile/about')),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Sign out', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) context.go('/onboarding');
-              },
+              onTap: _confirmSignOut,
             ),
           ),
         ],

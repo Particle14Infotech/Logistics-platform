@@ -230,9 +230,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _QuickAction(
-                      icon: Icons.location_searching,
-                      label: 'Track Order',
-                      onTap: _goToOrders),
+                      icon: Icons.notifications_none,
+                      label: 'Notifications',
+                      onTap: () => context.push('/notifications')),
                   _QuickAction(
                       icon: Icons.calculate_outlined,
                       label: 'Price Calculator',

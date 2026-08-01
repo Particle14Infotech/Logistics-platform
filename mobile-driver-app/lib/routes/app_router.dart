@@ -11,7 +11,7 @@ import '../features/profile/change_password_screen.dart';
 import '../features/profile/notification_settings_screen.dart';
 import '../features/profile/bank_details_screen.dart';
 import '../features/profile/help_support_screen.dart';
-import '../features/profile/settings_screen.dart';
+import '../features/profile/about_screen.dart';
 import '../features/vehicle_setup/vehicle_setup_screen.dart';
 import '../features/fleet/fleet_setup_screen.dart';
 import '../features/fleet/fleet_dashboard_screen.dart';
@@ -146,7 +146,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationSettingsScreen()),
       GoRoute(path: '/profile/bank-details', builder: (context, state) => const BankDetailsScreen()),
       GoRoute(path: '/profile/help-support', builder: (context, state) => const HelpSupportScreen()),
-      GoRoute(path: '/profile/settings', builder: (context, state) => const SettingsScreen()),
+      GoRoute(path: '/profile/about', builder: (context, state) => const AboutScreen()),
     ],
   );
 });

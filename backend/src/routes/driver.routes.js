@@ -22,5 +22,6 @@ router.post('/pod/:bookingId', ctrl.uploadPod);
 router.get('/earnings', ctrl.earnings);
 router.get('/wallet', ctrl.wallet);
 router.put('/bank-details', ctrl.updateBankDetails);
+router.put('/vehicle', ctrl.updateVehicle);
 
 module.exports = router;

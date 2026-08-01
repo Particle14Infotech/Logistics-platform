@@ -72,19 +72,58 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
     }
   }
 
+  Future<void> _confirmSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text("You'll need to log in again to continue."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(authProvider.notifier).logout();
+    if (mounted) context.go('/role-selection');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(_stats?.companyName ?? 'Fleet'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) context.go('/role-selection');
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'notifications':
+                  context.push('/notifications');
+                  break;
+                case 'notification-settings':
+                  context.push('/profile/notifications');
+                  break;
+                case 'change-password':
+                  context.push('/profile/change-password');
+                  break;
+                case 'help-support':
+                  context.push('/profile/help-support');
+                  break;
+                case 'sign-out':
+                  _confirmSignOut();
+                  break;
+              }
             },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'notifications', child: Text('Notifications')),
+              PopupMenuItem(value: 'notification-settings', child: Text('Notification settings')),
+              PopupMenuItem(value: 'change-password', child: Text('Change password')),
+              PopupMenuItem(value: 'help-support', child: Text('Help & Support')),
+              PopupMenuDivider(),
+              PopupMenuItem(value: 'sign-out', child: Text('Sign out', style: TextStyle(color: Colors.red))),
+            ],
           ),
         ],
       ),

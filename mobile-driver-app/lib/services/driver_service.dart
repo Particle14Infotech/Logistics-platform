@@ -141,6 +141,17 @@ class DriverService {
     });
     return DriverProfile.fromJson(response.data['data']['driver'] as Map<String, dynamic>);
   }
+
+  Future<DriverProfile> updateVehicle({
+    required String vehicleType,
+    required String vehicleNumber,
+  }) async {
+    final response = await _dio.put('/driver/vehicle', data: {
+      'vehicleType': vehicleType,
+      'vehicleNumber': vehicleNumber,
+    });
+    return DriverProfile.fromJson(response.data['data']['driver'] as Map<String, dynamic>);
+  }
 }
 
 class WalletSummary {

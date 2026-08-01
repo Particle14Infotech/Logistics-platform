@@ -122,6 +122,26 @@ exports.createProfile = catchAsync(async (req, res) => {
   return success(res, { driver }, 'Profile submitted - pending admin approval', 201);
 });
 
+// PUT /api/v1/driver/vehicle  { vehicleType, vehicleNumber }
+// Changing vehicle info resets isApproved to false, same reasoning as a
+// fresh KYC submission - the admin's approval was for a specific
+// vehicle/plate, so a change needs a quick re-review, mirroring how
+// document re-uploads already require re-approval.
+exports.updateVehicle = catchAsync(async (req, res) => {
+  const driver = await Driver.findOne({ userId: req.user.id });
+  if (!driver) throw new AppError('No driver profile found', 404);
+
+  const { vehicleType, vehicleNumber } = req.body;
+  if (!vehicleType || !vehicleNumber) throw new AppError('vehicleType and vehicleNumber are required', 400);
+
+  driver.vehicleType = vehicleType;
+  driver.vehicleNumber = vehicleNumber;
+  driver.isApproved = false;
+  await driver.save();
+
+  return success(res, { driver }, 'Vehicle updated - pending re-approval');
+});
+
 // GET /api/v1/driver/available-orders
 // NOTE: filters to pending, unassigned orders matching the driver's vehicle
 // type, excluding orders this driver already passed on (rejectedDriverIds,
