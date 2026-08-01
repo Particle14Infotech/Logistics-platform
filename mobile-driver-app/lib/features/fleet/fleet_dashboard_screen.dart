@@ -45,6 +45,33 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
     if (added == true) _load();
   }
 
+  // Detaches the vehicle from this fleet rather than deleting its history -
+  // to hand it to a different driver, remove it here then add it fresh for
+  // them via "Add vehicle" (see fleet.controller.js's removeVehicle for why
+  // this is deliberately two steps, not one "transfer" action).
+  Future<void> _removeVehicle(FleetVehicle vehicle) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove vehicle?'),
+        content: Text(
+            '${vehicle.vehicleNumber} will be removed from your fleet. ${vehicle.driverName ?? 'The driver'} keeps their account as an independent driver - this does not delete anything, just detaches it from your fleet.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Remove')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(fleetServiceProvider).removeVehicle(vehicle.id);
+      _load();
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Could not remove that vehicle.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,10 +127,25 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
                         child: ListTile(
                           leading: Icon(vehicleIcon(v.vehicleType)),
                           title: Text(v.vehicleNumber),
-                          subtitle: Text('${v.driverName ?? 'Unassigned'} · ${v.totalTrips} trips · ₹${v.totalEarnings}'),
-                          trailing: Chip(
-                            label: Text(v.isApproved ? (v.isAvailable ? 'Online' : 'Offline') : 'Pending', style: const TextStyle(fontSize: 11)),
-                            backgroundColor: v.isApproved ? (v.isAvailable ? Colors.green.shade100 : Colors.grey.shade200) : Colors.amber.shade100,
+                          subtitle: Text(
+                              '${v.driverName ?? 'Unassigned'} · ${v.totalTrips} trips · ₹${v.totalEarnings} · KYC docs ${v.documentsUploaded}/${v.documentsTotal}'),
+                          isThreeLine: false,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Chip(
+                                label: Text(v.isApproved ? (v.isAvailable ? 'Online' : 'Offline') : 'Pending', style: const TextStyle(fontSize: 11)),
+                                backgroundColor: v.isApproved ? (v.isAvailable ? Colors.green.shade100 : Colors.grey.shade200) : Colors.amber.shade100,
+                              ),
+                              PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'remove') _removeVehicle(v);
+                                },
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(value: 'remove', child: Text('Remove from fleet')),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       )),

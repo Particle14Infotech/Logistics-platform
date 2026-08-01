@@ -38,6 +38,10 @@ class FleetService {
     });
   }
 
+  Future<void> removeVehicle(String vehicleId) async {
+    await _dio.delete('/fleet/vehicles/$vehicleId');
+  }
+
   Future<FleetDashboardStats> getDashboard() async {
     final response = await _dio.get('/fleet/dashboard');
     return FleetDashboardStats.fromJson(response.data['data'] as Map<String, dynamic>);

@@ -72,6 +72,29 @@ exports.addVehicle = catchAsync(async (req, res) => {
   return success(res, { driver }, 'Vehicle added - pending admin approval', 201);
 });
 
+// DELETE /api/v1/fleet/vehicles/:id
+// Detaches this vehicle from the fleet rather than deleting the Driver
+// document outright - fleetId: null is the schema's own existing meaning
+// for "independent driver" (see driver.model.js), so this doesn't orphan
+// that driver's trip/earnings/wallet history or any Order.driverId
+// references to it. To hand the same vehicle to a different person,
+// remove it here, then add it fresh for the new driver via addVehicle -
+// deliberately not a single "transfer" operation, since that would raise
+// a real question this app has no answer to (does the new driver inherit
+// the old one's accumulated earnings/wallet balance? no - they start
+// fresh, same as any newly added vehicle).
+exports.removeVehicle = catchAsync(async (req, res) => {
+  const fleet = await getOwnFleet(req.user.id);
+  const driver = await Driver.findOne({ _id: req.params.id, fleetId: fleet._id });
+  if (!driver) throw new AppError('Vehicle not found in your fleet', 404);
+
+  driver.fleetId = null;
+  driver.isAvailable = false;
+  await driver.save();
+
+  return success(res, {}, 'Vehicle removed from your fleet');
+});
+
 // GET /api/v1/fleet/dashboard - aggregate stats across every vehicle in the fleet
 exports.dashboard = catchAsync(async (req, res) => {
   const fleet = await getOwnFleet(req.user.id);

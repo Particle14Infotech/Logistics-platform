@@ -9,6 +9,17 @@ class FleetProfile {
   }
 }
 
+const _kDocumentFields = [
+  'licenseUrl',
+  'rcUrl',
+  'aadhaarUrl',
+  'photoUrl',
+  'insuranceUrl',
+  'permitUrl',
+  'pollutionCertUrl',
+  'panCardUrl',
+];
+
 class FleetVehicle {
   final String id;
   final String vehicleType;
@@ -19,6 +30,8 @@ class FleetVehicle {
   final String? driverPhone;
   final int totalTrips;
   final num totalEarnings;
+  final int documentsUploaded;
+  final int documentsTotal;
 
   FleetVehicle({
     required this.id,
@@ -30,10 +43,13 @@ class FleetVehicle {
     this.driverPhone,
     required this.totalTrips,
     required this.totalEarnings,
+    required this.documentsUploaded,
+    required this.documentsTotal,
   });
 
   factory FleetVehicle.fromJson(Map<String, dynamic> json) {
     final user = json['userId'];
+    final documents = (json['documents'] as Map?)?.cast<String, dynamic>() ?? {};
     return FleetVehicle(
       id: json['_id'] as String,
       vehicleType: json['vehicleType'] as String,
@@ -44,6 +60,8 @@ class FleetVehicle {
       driverPhone: user is Map<String, dynamic> ? user['phone'] as String? : null,
       totalTrips: json['totalTrips'] as int? ?? 0,
       totalEarnings: json['totalEarnings'] as num? ?? 0,
+      documentsUploaded: _kDocumentFields.where((f) => documents[f] != null).length,
+      documentsTotal: _kDocumentFields.length,
     );
   }
 }

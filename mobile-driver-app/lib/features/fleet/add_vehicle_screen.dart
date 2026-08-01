@@ -55,7 +55,25 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
             vehicleNumber: _vehicleNumberController.text.trim(),
             licenseNumber: _licenseController.text.trim(),
           );
-      if (mounted) Navigator.of(context).pop(true); // signal caller to refresh the vehicle list
+      if (mounted) {
+        // This screen has no camera step of its own - a selfie has to come
+        // from the driver's own device/face, not something a fleet owner
+        // can submit on their behalf. Previously this just popped silently,
+        // leaving the fleet owner with no idea the vehicle wasn't actually
+        // done yet.
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Vehicle added'),
+            content: Text(
+                "${_driverNameController.text.trim()} still needs to sign in on their own phone and complete their KYC selfie before this vehicle can be approved - that step can't be done from here."),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Got it')),
+            ],
+          ),
+        );
+        if (mounted) Navigator.of(context).pop(true); // signal caller to refresh the vehicle list
+      }
     } catch (e) {
       setState(() => _error = 'Could not add this vehicle. The phone number may already be registered under a different role.');
     } finally {
