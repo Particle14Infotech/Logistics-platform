@@ -6,6 +6,13 @@
     <!-- GPS location - broadcasting driver position during an active trip -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Keeps GPS broadcast running if the driver backgrounds the app or the
+         OS tries to reclaim it mid-trip - see active_trip_screen.dart's
+         foreground-service-backed location broadcast (flutter_foreground_task). -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <!-- Camera - selfie capture for KYC and barcode scanning at pickup -->
     <uses-permission android:name="android.permission.CAMERA"/>
@@ -42,6 +49,15 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Do not rename - flutter_foreground_task's plugin code refers to
+             this exact service name. foregroundServiceType="location" is the
+             Android 14+ (API 34) requirement for a service that continuously
+             accesses device location. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
     </application>
     <queries>
         <intent>

@@ -91,10 +91,10 @@ class DriverService {
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }
 
-  Future<TripModel> advanceTripStatus(String id, String status, {String? note, String? otp}) async {
+  Future<TripModel> advanceTripStatus(String id, String status, {String? pickupCode, String? otp}) async {
     final response = await _dio.put('/driver/orders/$id/status', data: {
       'status': status,
-      if (note != null) 'note': note,
+      if (pickupCode != null) 'pickupCode': pickupCode,
       if (otp != null) 'otp': otp,
     });
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);

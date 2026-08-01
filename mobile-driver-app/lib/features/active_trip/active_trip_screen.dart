@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../chat/chat_screen.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/driver_provider.dart';
@@ -14,6 +16,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/trip_model.dart';
 import '../../models/location_model.dart';
 import '../../services/socket_service.dart';
+import '../../services/background_location_service.dart';
 import '../../widgets/status_pill.dart';
 
 const _kLiveStatuses = ['accepted', 'picked_up', 'in_transit'];
@@ -54,6 +57,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   @override
   void dispose() {
     _gpsTimer?.cancel();
+    BackgroundLocationService.stop();
     _socketService.leaveBookingRoom(widget.tripId);
     _socketService.dispose();
     _otpController.dispose();
@@ -94,6 +98,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       final status = data['status'] as String?;
       if (status == 'cancelled' && mounted) {
         _gpsTimer?.cancel();
+        BackgroundLocationService.stop();
         setState(() {
           _error = 'This booking was cancelled.';
           _trip = _trip?.copyWith(status: 'cancelled');
@@ -103,6 +108,12 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
 
     _broadcastOnce(); // send an immediate fix rather than waiting a full interval
     _gpsTimer = Timer.periodic(const Duration(seconds: ApiConstants.gpsBroadcastIntervalSeconds), (_) => _broadcastOnce());
+
+    // Foreground-service-backed broadcast, so location keeps reaching the
+    // customer even if this screen is backgrounded or the OS reclaims the
+    // app mid-trip - the Timer above only runs while this screen is alive.
+    await BackgroundLocationService.requestPermissions();
+    await BackgroundLocationService.start(widget.tripId);
   }
 
   Future<void> _broadcastOnce() async {
@@ -140,13 +151,13 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
   }
 
-  Future<void> _advanceStatus(String status, {String? note, String? otp}) async {
+  Future<void> _advanceStatus(String status, {String? pickupCode, String? otp}) async {
     setState(() {
       _updating = true;
       _error = null;
     });
     try {
-      final trip = await ref.read(driverServiceProvider).advanceTripStatus(widget.tripId, status, note: note, otp: otp);
+      final trip = await ref.read(driverServiceProvider).advanceTripStatus(widget.tripId, status, pickupCode: pickupCode, otp: otp);
       if (mounted) setState(() => _trip = trip);
     } catch (e) {
       // Surface the backend's actual validation message (e.g. "Cannot move
@@ -165,7 +176,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       MaterialPageRoute(builder: (_) => const _BarcodeScanScreen()),
     );
     if (code != null && mounted) {
-      _advanceStatus('picked_up', note: code);
+      _advanceStatus('picked_up', pickupCode: code);
     }
   }
 
@@ -195,6 +206,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     try {
       await ref.read(driverServiceProvider).confirmDelivery(widget.tripId, otp, cashCollected: _cashCollected);
       _gpsTimer?.cancel();
+      BackgroundLocationService.stop();
       ref.invalidate(driverProfileProvider); // picks up updated totalTrips/earnings
       if (mounted) context.go('/dashboard');
     } catch (e) {
@@ -329,7 +341,20 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                               ],
                             ),
                           ),
-                          if (trip.customerPhone != null) _CircleIconButton(icon: Icons.call_outlined, onTap: () {}),
+                          _CircleIconButton(
+                              icon: Icons.chat_bubble_outline,
+                              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (_) => ChatScreen(
+                                      bookingId: widget.tripId,
+                                      customerName: trip.customerName,
+                                    ),
+                                  ))),
+                          if (trip.customerPhone != null) ...[
+                            const SizedBox(width: 8),
+                            _CircleIconButton(
+                                icon: Icons.call_outlined,
+                                onTap: () => launchUrl(Uri(scheme: 'tel', path: trip.customerPhone))),
+                          ],
                         ],
                       ),
                     ),
@@ -361,15 +386,14 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // The scanned code is now actually checked against this order's
+            // real id server-side - a "mark picked up manually, no scan"
+            // bypass would defeat the whole point, so there isn't one
+            // anymore. Ask the customer to show the QR from their app.
             FilledButton.icon(
               onPressed: _updating ? null : _scanBarcodeAndPickup,
               icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Scan package barcode'),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _updating ? null : () => _advanceStatus('picked_up'),
-              child: Text(_updating ? 'Updating…' : 'No barcode - mark picked up manually'),
+              label: Text(_updating ? 'Updating…' : 'Scan pickup QR code'),
             ),
           ],
         );

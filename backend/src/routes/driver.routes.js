@@ -8,6 +8,7 @@ router.get('/profile', ctrl.getProfile);
 router.post('/profile', ctrl.createProfile);
 router.post('/documents/:documentType', ctrl.uploadMiddleware, ctrl.uploadDocument);
 router.put('/status', ctrl.updateStatus);
+router.put('/location', ctrl.updateLocation);
 
 router.get('/available-orders', ctrl.availableOrders);
 router.post('/accept/:bookingId', ctrl.acceptOrder);

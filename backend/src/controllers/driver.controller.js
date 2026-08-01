@@ -242,6 +242,35 @@ exports.updateStatus = catchAsync(async (req, res) => {
   return success(res, { driver }, isAvailable ? "You're online" : "You're offline");
 });
 
+// PUT /api/v1/driver/location  { bookingId, lat, lng }
+// A plain REST fallback for driver_location_update (the Socket.IO event
+// active_trip_screen.dart normally uses) - the background foreground-service
+// task handler runs in its own isolate with no access to the app's live
+// socket connection, so it calls this instead. Same effect either way:
+// persists Driver.currentLocation and broadcasts to the booking room.
+exports.updateLocation = catchAsync(async (req, res) => {
+  const { bookingId, lat, lng } = req.body;
+  if (!bookingId || lat == null || lng == null) {
+    throw new AppError('bookingId, lat, and lng are required', 400);
+  }
+
+  const driver = await getOwnDriverDoc(req.user.id);
+  driver.currentLocation = { type: 'Point', coordinates: [lng, lat] };
+  await driver.save();
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`booking:${bookingId}`).emit('location_broadcast', {
+      bookingId,
+      lat,
+      lng,
+      timestamp: Date.now(),
+    });
+  }
+
+  return success(res, {}, 'Location updated');
+});
+
 // GET /api/v1/driver/orders?status=&page=&limit= - this driver's assigned trips
 exports.listMyOrders = catchAsync(async (req, res) => {
   const driver = await getOwnDriverDoc(req.user.id);
@@ -273,7 +302,7 @@ exports.getOrder = catchAsync(async (req, res) => {
   return success(res, { order });
 });
 
-// PUT /api/v1/driver/orders/:id/status  { status: 'picked_up' | 'in_transit', otp? }
+// PUT /api/v1/driver/orders/:id/status  { status: 'picked_up' | 'in_transit', pickupCode?, otp? }
 // Delivered is handled separately by uploadPod below, since it needs OTP
 // verification. Generates a start OTP and a delivery OTP when moving to
 // picked_up (both up front, so the customer has them ready) -
@@ -282,8 +311,12 @@ exports.getOrder = catchAsync(async (req, res) => {
 // delivery OTP but confirms the driver is actually beginning the trip
 // (picked_up -> in_transit, the "Start trip" action) rather than final
 // drop-off - previously that transition had no verification at all.
+//
+// pickupCode is the order's own id, shown as a QR in the customer app and
+// scanned here - previously a scanned barcode was just logged as free text
+// on the timeline note, never actually checked against anything.
 exports.updateOrderStatus = catchAsync(async (req, res) => {
-  const { status, note, otp } = req.body;
+  const { status, pickupCode, otp } = req.body;
   if (!['picked_up', 'in_transit'].includes(status)) {
     throw new AppError('status must be picked_up or in_transit', 400);
   }
@@ -297,6 +330,9 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
     throw new AppError(`Cannot move from "${order.status}" to "${status}"`, 400);
   }
 
+  if (status === 'picked_up' && pickupCode !== order._id.toString()) {
+    throw new AppError("Incorrect pickup code - scan the QR code shown in the customer's app", 400);
+  }
   if (status === 'in_transit' && (!otp || otp !== order.startOtp)) {
     throw new AppError('Incorrect start code', 400);
   }
@@ -307,7 +343,7 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
     order.startOtp = generateOtp();
   }
   let baseNote = `Marked ${status.replace('_', ' ')} by driver`;
-  if (status === 'picked_up' && note) baseNote += ` (barcode: ${note})`;
+  if (status === 'picked_up') baseNote = 'Picked up (pickup code verified)';
   if (status === 'in_transit') baseNote = 'Trip started (start code verified)';
   order.timeline.push({ status, note: baseNote });
   await order.save();

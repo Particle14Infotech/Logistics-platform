@@ -51,6 +51,14 @@ class SocketService {
     _socket?.on('status_broadcast', (data) => callback(Map<String, dynamic>.from(data as Map)));
   }
 
+  void sendChatMessage(String bookingId, String text) {
+    _socket?.emit('chat_message', {'bookingId': bookingId, 'text': text});
+  }
+
+  void onChatMessage(void Function(Map<String, dynamic>) callback) {
+    _socket?.on('chat_message', (data) => callback(Map<String, dynamic>.from(data as Map)));
+  }
+
   void dispose() {
     _socket?.disconnect();
     _socket?.dispose();

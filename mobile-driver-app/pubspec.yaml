@@ -50,6 +50,18 @@ dependencies:
   # have yet - broke the Android build outright.
   # Barcode/QR scanning for proof-of-pickup confirmation
   mobile_scanner: ^5.2.3
+  # Native dialer for the customer call button
+  url_launcher: ^6.3.1
+  # Custom sound + a persistent notification for new job alerts (previously
+  # just SystemSound + haptic, nothing left behind if missed)
+  flutter_local_notifications: ^19.4.0
+  # Real background GPS broadcast - a persistent foreground-service
+  # notification keeps the app process (and its existing Socket.IO
+  # connection) alive while a trip is active, even if the driver backgrounds
+  # the app. background_locator_2 was removed earlier for an unrelated
+  # broken-dependency reason; this is a different, actively maintained
+  # package, not a resurrection of that one.
+  flutter_foreground_task: ^8.17.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../chat/chat_screen.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
@@ -213,6 +214,10 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                                 fontSize: 13, color: Colors.grey.shade500)),
                       ],
                     ),
+                    if (order.status == 'accepted') ...[
+                      const SizedBox(height: 16),
+                      _PickupQrCard(orderId: order.id),
+                    ],
                     if (showLiveMap) ...[
                       const SizedBox(height: 16),
                       _LiveMapCard(
@@ -487,6 +492,29 @@ class _DetailRow extends StatelessWidget {
           Text(value,
               style: GoogleFonts.poppins(
                   fontSize: 13, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+// Shown once a driver is assigned (before pickup) so they can scan it -
+// backend/src/controllers/driver.controller.js's updateOrderStatus now
+// actually validates the scanned code equals this order's own id, instead
+// of just logging whatever the driver scanned as free text.
+class _PickupQrCard extends StatelessWidget {
+  final String orderId;
+  const _PickupQrCard({required this.orderId});
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoCard(
+      child: Column(
+        children: [
+          Text('Show this to your driver at pickup',
+              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          QrImageView(data: orderId, size: 160),
         ],
       ),
     );
