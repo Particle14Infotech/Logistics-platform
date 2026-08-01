@@ -39,8 +39,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    // Don't dispose the socket here - it's a shared singleton and the
+    // Active Trip screen underneath this one still needs it connected
+    // for live GPS broadcast.
     _socketService.leaveBookingRoom(widget.bookingId);
-    _socketService.dispose();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -81,6 +83,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _send() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
+    if (!_socketService.isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Not connected - couldn't send that message. Check your connection and try again.")),
+      );
+      return;
+    }
     _socketService.sendChatMessage(widget.bookingId, text);
     _textController.clear();
   }

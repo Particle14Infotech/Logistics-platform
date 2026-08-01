@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
+import '../services/socket_service.dart';
 
 class AuthState {
   final String? accessToken;
@@ -75,6 +76,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    SocketService().dispose();
     await _storage.deleteAll();
     // Backend session and Firebase session are two independent systems
     // (see auth_service.dart) - clearing only secure storage left

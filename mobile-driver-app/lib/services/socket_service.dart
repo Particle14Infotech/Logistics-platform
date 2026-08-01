@@ -6,12 +6,17 @@ import '../core/constants/api_constants.dart';
 // join_booking_room / leave_booking_room / driver_location_update (emit) /
 // status_broadcast (listen, in case the order gets cancelled from elsewhere).
 class SocketService {
+  static final SocketService _instance = SocketService._internal();
+  factory SocketService() => _instance;
+  SocketService._internal();
+
   io.Socket? _socket;
 
   bool get isConnected => _socket?.connected ?? false;
 
   void connect(String accessToken) {
-    if (_socket != null) return;
+    if (_socket != null && _socket!.connected) return;
+    _socket?.dispose();
     _socket = io.io(
       ApiConstants.socketUrl,
       io.OptionBuilder()
