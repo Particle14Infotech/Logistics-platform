@@ -21,6 +21,7 @@ import '../features/active_trip/active_trip_screen.dart';
 import '../features/trip_history/trip_history_screen.dart';
 import '../features/earnings/earnings_screen.dart';
 import '../features/documents/documents_screen.dart';
+import '../features/notifications/notification_center_screen.dart';
 
 // Notifies GoRouter to re-run `redirect` whenever auth/profile state
 // changes, WITHOUT recreating the GoRouter itself. Rebuilding the router on
@@ -140,6 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/history', builder: (context, state) => const TripHistoryScreen()),
       GoRoute(path: '/earnings', builder: (context, state) => const EarningsScreen()),
       GoRoute(path: '/documents', builder: (context, state) => const DocumentsScreen()),
+      GoRoute(path: '/notifications', builder: (context, state) => const NotificationCenterScreen()),
       GoRoute(path: '/profile/change-password', builder: (context, state) => const ChangePasswordScreen()),
       GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationSettingsScreen()),
       GoRoute(path: '/profile/bank-details', builder: (context, state) => const BankDetailsScreen()),

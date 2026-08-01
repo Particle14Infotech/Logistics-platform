@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'routes/app_router.dart';
+import 'services/background_location_service.dart';
+import 'services/local_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +14,8 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Firebase init skipped (not configured yet): $e');
   }
+  BackgroundLocationService.init();
+  await LocalNotificationService.init();
   runApp(const ProviderScope(child: DriverApp()));
 }
 

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/driver_provider.dart';
 import '../../models/trip_model.dart';
 import '../../core/constants/vehicle_types.dart';
+import '../../services/local_notification_service.dart';
 
 // Incoming job requests: accept/reject fixed-price jobs (SRS 3.2.4 Job Management).
 class JobRequestsScreen extends StatelessWidget {
@@ -68,11 +69,17 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
   }
 
   void _alertNewJob() {
-    // No custom sound asset bundled - SystemSound + haptic feedback needs
-    // zero extra assets and works on every platform. Swap in an
-    // audioplayers-based custom tone here if a branded sound is added later.
+    // Immediate in-app cue while this screen is actually open...
     SystemSound.play(SystemSoundType.alert);
     HapticFeedback.vibrate();
+    // ...plus a real, persistent OS notification (own high-importance
+    // channel + default notification sound + vibration) so a job isn't
+    // silently missed if the driver wasn't looking at the screen right
+    // when it appeared - previously nothing was left behind at all.
+    LocalNotificationService.showNewJobAlert(
+      title: 'New job available',
+      body: 'A new fixed-price job just came in - tap Jobs to view it.',
+    );
   }
 
   Future<void> _accept(TripModel job) async {
