@@ -12,6 +12,12 @@ class PlacesAutocompleteField extends StatefulWidget {
   final Color iconColor;
   final TextEditingController controller;
   final void Function(PlaceDetails details) onPlaceSelected;
+  // Null hides the current-location button entirely (e.g. the drop field,
+  // where defaulting to "where I am right now" doesn't make sense).
+  final VoidCallback? onUseCurrentLocation;
+  // Owned by the parent screen, not this widget - the actual GPS +
+  // reverse-geocode work happens one level up in LocationsScreen.
+  final bool isLocating;
 
   const PlacesAutocompleteField({
     super.key,
@@ -20,6 +26,8 @@ class PlacesAutocompleteField extends StatefulWidget {
     required this.iconColor,
     required this.controller,
     required this.onPlaceSelected,
+    this.onUseCurrentLocation,
+    this.isLocating = false,
   });
 
   @override
@@ -124,6 +132,21 @@ class _PlacesAutocompleteFieldState extends State<PlacesAutocompleteField> {
     _overlayEntry = null;
   }
 
+  Widget? _buildSuffix() {
+    if (_loading) {
+      return const Padding(padding: EdgeInsets.all(14), child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)));
+    }
+    if (widget.onUseCurrentLocation == null) return null;
+    if (widget.isLocating) {
+      return const Padding(padding: EdgeInsets.all(14), child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)));
+    }
+    return IconButton(
+      icon: const Icon(Icons.my_location),
+      tooltip: 'Use my current location',
+      onPressed: widget.onUseCurrentLocation,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
@@ -141,7 +164,7 @@ class _PlacesAutocompleteFieldState extends State<PlacesAutocompleteField> {
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
             prefixIcon: Icon(widget.icon, color: widget.iconColor),
-            suffixIcon: _loading ? const Padding(padding: EdgeInsets.all(14), child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))) : null,
+            suffixIcon: _buildSuffix(),
             labelText: widget.label,
             border: const OutlineInputBorder(),
           ),

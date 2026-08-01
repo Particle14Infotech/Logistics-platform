@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../models/location_model.dart';
@@ -22,7 +23,9 @@ class LocationsScreen extends ConsumerStatefulWidget {
 class _LocationsScreenState extends ConsumerState<LocationsScreen> {
   final _pickupController = TextEditingController();
   final _dropController = TextEditingController();
+  final _placesService = PlacesService();
   String? _error;
+  bool _locatingCurrentPosition = false;
 
   LocationModel? _pickup;
   LocationModel? _drop;
@@ -53,6 +56,47 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
   void _onDropSelected(PlaceDetails details) {
     setState(() => _drop = LocationModel(address: details.address, lat: details.lat, lng: details.lng));
     _fitMapToMarkers();
+  }
+
+  Future<void> _useCurrentLocationForPickup() async {
+    setState(() => _locatingCurrentPosition = true);
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showLocationError('Turn on location services to use your current location.');
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        _showLocationError('Location permission is required to use your current location.');
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      final details = await _placesService.reverseGeocode(position.latitude, position.longitude);
+      if (details == null) {
+        _showLocationError('Could not determine your address. Try again.');
+        return;
+      }
+
+      _pickupController.text = details.address;
+      _onPickupSelected(details);
+    } catch (_) {
+      _showLocationError('Could not get your current location. Try again.');
+    } finally {
+      if (mounted) setState(() => _locatingCurrentPosition = false);
+    }
+  }
+
+  void _showLocationError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _fitMapToMarkers() {
@@ -114,6 +158,8 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
                 icon: Icons.trip_origin,
                 iconColor: Colors.green,
                 onPlaceSelected: _onPickupSelected,
+                onUseCurrentLocation: _useCurrentLocationForPickup,
+                isLocating: _locatingCurrentPosition,
               ),
               const SizedBox(height: 12),
               PlacesAutocompleteField(

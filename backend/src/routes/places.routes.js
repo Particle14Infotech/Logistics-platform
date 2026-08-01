@@ -4,5 +4,6 @@ const { protect } = require('../middlewares/auth.middleware');
 
 router.get('/autocomplete', protect, ctrl.autocomplete);
 router.get('/details', protect, ctrl.details);
+router.get('/reverse-geocode', protect, ctrl.reverseGeocode);
 
 module.exports = router;

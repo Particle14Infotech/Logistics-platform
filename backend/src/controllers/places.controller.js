@@ -63,3 +63,27 @@ exports.details = catchAsync(async (req, res) => {
     lng: location.lng,
   });
 });
+
+// GET /api/v1/places/reverse-geocode?lat=...&lng=...
+exports.reverseGeocode = catchAsync(async (req, res) => {
+  const { lat, lng } = req.query;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) throw new AppError('Maps is not configured on the server', 503);
+  if (!lat || !lng) throw new AppError('lat and lng are required', 400);
+
+  const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+    params: { latlng: `${lat},${lng}`, key: apiKey },
+    timeout: 5000,
+  });
+
+  if (response.data?.status !== 'OK') throw new AppError('Could not determine address for this location', 502);
+
+  const result = response.data.results[0];
+  const location = result.geometry.location;
+
+  return success(res, {
+    address: result.formatted_address,
+    lat: location.lat,
+    lng: location.lng,
+  });
+});

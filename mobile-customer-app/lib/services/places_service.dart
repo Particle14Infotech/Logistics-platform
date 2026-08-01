@@ -44,4 +44,14 @@ class PlacesService {
       return null;
     }
   }
+
+  Future<PlaceDetails?> reverseGeocode(double lat, double lng) async {
+    try {
+      final response = await _dio.get('/places/reverse-geocode', queryParameters: {'lat': lat, 'lng': lng});
+      final data = response.data['data'];
+      return PlaceDetails(address: data['address'] as String, lat: (data['lat'] as num).toDouble(), lng: (data['lng'] as num).toDouble());
+    } catch (_) {
+      return null;
+    }
+  }
 }

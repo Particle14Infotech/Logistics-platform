@@ -278,9 +278,37 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [const Icon(Icons.trip_origin, color: Colors.green, size: 18), const SizedBox(width: 10), Expanded(child: Text(trip.pickupLocation.address))]),
+                        Row(children: [
+                          const Icon(Icons.trip_origin, color: Colors.green, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(trip.pickupLocation.address)),
+                          if (trip.status == 'accepted' && trip.pickupLocation.lat != null && trip.pickupLocation.lng != null) ...[
+                            const SizedBox(width: 8),
+                            _CircleIconButton(
+                              icon: Icons.directions,
+                              onTap: () => launchUrl(
+                                Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${trip.pickupLocation.lat},${trip.pickupLocation.lng}&travelmode=driving'),
+                                mode: LaunchMode.externalApplication,
+                              ),
+                            ),
+                          ],
+                        ]),
                         const SizedBox(height: 10),
-                        Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 10), Expanded(child: Text(trip.dropLocation.address))]),
+                        Row(children: [
+                          const Icon(Icons.location_on, color: Colors.red, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(trip.dropLocation.address)),
+                          if ((trip.status == 'picked_up' || trip.status == 'in_transit') && trip.dropLocation.lat != null && trip.dropLocation.lng != null) ...[
+                            const SizedBox(width: 8),
+                            _CircleIconButton(
+                              icon: Icons.directions,
+                              onTap: () => launchUrl(
+                                Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${trip.dropLocation.lat},${trip.dropLocation.lng}&travelmode=driving'),
+                                mode: LaunchMode.externalApplication,
+                              ),
+                            ),
+                          ],
+                        ]),
                       ],
                     ),
                   ),
