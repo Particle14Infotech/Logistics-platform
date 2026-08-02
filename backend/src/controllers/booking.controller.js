@@ -9,7 +9,7 @@ const Message = require('../models/message.model');
 const Review = require('../models/review.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
-const { sendToUser, sendToUsers } = require('../services/notification.service');
+const { sendToUser, notifyEligibleDriversOfNewJob } = require('../services/notification.service');
 const razorpayService = require('../services/razorpay.service');
 const { applyWalletTransaction } = require('../services/wallet.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
@@ -184,17 +184,20 @@ exports.create = catchAsync(async (req, res) => {
   // Best-effort "new job available" push to online, approved drivers with
   // a matching vehicle type - doesn't block the response if it's slow or
   // Firebase isn't configured, and never throws back to the customer.
-  Driver.find({ vehicleType, isAvailable: true, isApproved: true })
-    .select('userId')
-    .then((eligibleDrivers) => {
-      const userIds = eligibleDrivers.map((d) => d.userId);
-      sendToUsers(userIds, {
-        title: 'New job available',
-        body: `${pickupLocation.address} → ${dropLocation.address}`,
-        data: { bookingId: String(order._id) },
-      });
-    })
-    .catch(() => {});
+  //
+  // Must mirror availableOrders' own eligibility filter exactly (enterpriseId
+  // scoping + cod-advance gating below) - otherwise a driver gets pushed
+  // "New job available" for an order that never actually shows up in their
+  // Jobs list (an enterprise-dedicated driver notified about a public-pool
+  // order, or anyone notified about a gated cod order before its advance is
+  // paid), which reads as "jobs not updating in real-time" even though
+  // nothing was ever broken - the order correctly isn't visible yet.
+  const isImmediatelyVisible = order.paymentMethod !== 'cod' || order.advanceAmount === 0 || order.paymentStatus === 'paid';
+  if (isImmediatelyVisible) {
+    notifyEligibleDriversOfNewJob(order).catch(() => {});
+  }
+  // If it's a gated cod order, drivers get notified once the advance is
+  // actually paid instead - see payment.controller.js's verify()/webhook().
 
   return success(res, { order }, 'Booking created', 201);
 });

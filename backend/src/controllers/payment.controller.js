@@ -5,6 +5,7 @@ const User = require('../models/user.model');
 const Driver = require('../models/driver.model');
 const razorpayService = require('../services/razorpay.service');
 const { completeDelivery } = require('../services/delivery.service');
+const { notifyEligibleDriversOfNewJob } = require('../services/notification.service');
 
 // POST /api/v1/payment/create-order  { orderId }
 exports.createOrder = catchAsync(async (req, res) => {
@@ -202,7 +203,16 @@ exports.verify = catchAsync(async (req, res) => {
       await Order.updateOne({ _id: payment.orderId }, { remainderPaid: true });
     }
   } else {
-    await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' });
+    const updatedOrder = await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' }, { new: true });
+    // A gated cod order only becomes visible to drivers once its advance is
+    // paid (see driver.controller.js's availableOrders) - it was never
+    // announced at creation for exactly that reason (booking.controller.js's
+    // create()), so this is the first and only moment drivers should be
+    // notified about it. Online orders are always immediately visible at
+    // creation and were already announced there, so skip re-notifying them.
+    if (updatedOrder && updatedOrder.paymentMethod === 'cod' && updatedOrder.advanceAmount > 0) {
+      notifyEligibleDriversOfNewJob(updatedOrder).catch(() => {});
+    }
   }
 
   return success(res, { payment }, 'Payment verified');

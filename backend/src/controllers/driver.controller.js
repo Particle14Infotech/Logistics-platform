@@ -358,8 +358,19 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
     throw new AppError(`Cannot move from "${order.status}" to "${status}"`, 400);
   }
 
-  if (status === 'picked_up' && pickupCode !== order._id.toString()) {
-    throw new AppError("Incorrect pickup code - scan the QR code shown in the customer's app", 400);
+  if (status === 'picked_up') {
+    // Scanning the QR sends the full order id; the manual fallback (used
+    // when scanning isn't possible - bad lighting, camera issue, etc.)
+    // sends the same 8-character order reference already shown at the top
+    // of the customer's booking screen, so there's nothing new to generate
+    // or show them. Both are accepted so switching to manual doesn't weaken
+    // the check - it's still proof the driver is looking at this specific
+    // customer's screen, just typed instead of scanned.
+    const shortRef = order._id.toString().slice(-8).toUpperCase();
+    const matches = pickupCode === order._id.toString() || (pickupCode && pickupCode.toUpperCase() === shortRef);
+    if (!matches) {
+      throw new AppError("Incorrect pickup code - scan the QR code shown in the customer's app, or ask for their order reference", 400);
+    }
   }
   if (status === 'in_transit' && (!otp || otp !== order.startOtp)) {
     throw new AppError('Incorrect start code', 400);

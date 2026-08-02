@@ -208,6 +208,36 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
   }
 
+  // Fallback for when scanning isn't possible - the 8-character order
+  // reference is already shown at the top of the customer's booking screen
+  // (e.g. "#A1B2C3D4"), so there's nothing new to ask them to find.
+  Future<void> _showManualPickupDialog() async {
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enter pickup code'),
+        content: TextField(
+          controller: controller,
+          textCapitalization: TextCapitalization.characters,
+          decoration: const InputDecoration(
+              hintText: "Order reference from the customer's app (e.g. A1B2C3D4)",
+              border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('Confirm')),
+        ],
+      ),
+    );
+    if (code == null || code.isEmpty || !mounted) return;
+    _advanceStatus('picked_up', pickupCode: code);
+  }
+
   Future<void> _startTrip() async {
     final otp = _startOtpController.text.trim();
     if (otp.length != 6) {
@@ -579,14 +609,22 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // The scanned code is now actually checked against this order's
-            // real id server-side - a "mark picked up manually, no scan"
-            // bypass would defeat the whole point, so there isn't one
-            // anymore. Ask the customer to show the QR from their app.
+            // The scanned code is checked against this order's real id
+            // server-side, so this can't be bypassed - but scanning can
+            // still fail (bad lighting, camera issue), so there's a manual
+            // fallback below that asks for the same order reference already
+            // shown on the customer's screen instead, still checked the
+            // same way server-side.
             FilledButton.icon(
               onPressed: _updating ? null : _scanBarcodeAndPickup,
               icon: const Icon(Icons.qr_code_scanner),
               label: Text(_updating ? 'Updating…' : 'Scan pickup QR code'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _updating ? null : _showManualPickupDialog,
+              icon: const Icon(Icons.keyboard),
+              label: const Text("Can't scan? Enter code manually"),
             ),
           ],
         );
@@ -909,10 +947,9 @@ class _CircleIconButton extends StatelessWidget {
 }
 
 // Full-screen barcode/QR scanner, pops with the scanned code string once
-// found. Used to confirm pickup by scanning a shipment label - purely a
-// convenience/proof-of-pickup capture; the barcode value is just stored as
-// a timeline note server-side, there's no barcode registry to validate
-// against yet.
+// found. Used to confirm pickup by scanning the QR shown in the customer's
+// app - the scanned value is checked server-side against the real order id
+// (see driver.controller.js's updateOrderStatus), not just logged.
 class _BarcodeScanScreen extends StatefulWidget {
   const _BarcodeScanScreen();
 

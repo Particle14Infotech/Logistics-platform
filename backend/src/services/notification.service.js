@@ -1,6 +1,7 @@
 const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const User = require('../models/user.model');
 const UserNotification = require('../models/userNotification.model');
+const Driver = require('../models/driver.model');
 
 // Every send function below no-ops quietly if Firebase isn't configured, so
 // the rest of the app works normally without a Firebase project set up.
@@ -67,4 +68,28 @@ async function sendToUsers(userIds, { title, body, data = {} }) {
   }
 }
 
-module.exports = { sendToUser, sendToUsers, isConfigured: ensureInitialized };
+// Shared "new job available" blast, used both right after a booking is
+// created (booking.controller.js) and again once a gated cod order's
+// advance gets paid (payment.controller.js) - a gated cod order isn't
+// visible to any driver until that advance is paid (see
+// driver.controller.js's availableOrders), so drivers need notifying at
+// whichever of those two moments is when the order actually becomes visible,
+// not always at creation. Must mirror availableOrders' own eligibility
+// filter exactly - enterpriseId scoping in particular - so a driver is never
+// notified about a job that then doesn't show up in their own Jobs list.
+async function notifyEligibleDriversOfNewJob(order) {
+  const eligibleDrivers = await Driver.find({
+    vehicleType: order.vehicleType,
+    isAvailable: true,
+    isApproved: true,
+    enterpriseId: order.enterpriseId ?? null,
+  }).select('userId');
+  const userIds = eligibleDrivers.map((d) => d.userId);
+  return sendToUsers(userIds, {
+    title: 'New job available',
+    body: `${order.pickupLocation.address} → ${order.dropLocation.address}`,
+    data: { bookingId: String(order._id) },
+  });
+}
+
+module.exports = { sendToUser, sendToUsers, notifyEligibleDriversOfNewJob, isConfigured: ensureInitialized };
