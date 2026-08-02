@@ -309,6 +309,12 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   const igst = wb.taxType === 'inter_state' ? wb.gstAmount || 0 : 0;
   const totalWithTax = order.price + (wb.gstAmount || 0);
   const balanceDue = totalWithTax - order.advanceAmount;
+  // Shown next to each tax line (e.g. "SGST @ 2.5 %") - derived from
+  // whatever gstAmount was actually entered, not a hardcoded slab rate.
+  const totalGstPercent = wb.gstAmount && order.price > 0 ? (wb.gstAmount / order.price) * 100 : 0;
+  const sgstPercentLabel = wb.taxType === 'intra_state' && totalGstPercent > 0 ? `${(totalGstPercent / 2).toFixed(1)} %` : '-';
+  const cgstPercentLabel = sgstPercentLabel;
+  const igstPercentLabel = wb.taxType === 'inter_state' && totalGstPercent > 0 ? `${totalGstPercent.toFixed(1)} %` : '-';
   // Both fall back to a computed/reasonable default when the admin hasn't
   // manually entered one via waybill-details, instead of printing blank.
   const ratePerTon = wb.ratePerTon != null ? wb.ratePerTon : order.weightKg ? order.price / (order.weightKg / 1000) : null;
@@ -336,26 +342,16 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   const docTop = y;
 
   // --- Letterhead ---
-  doc.fontSize(8).font('Helvetica');
-  doc.text(`D.L. No. : ${driver?.licenseNumber || '—'}   Mo : ${driver?.userId?.phone || '—'}`, pageLeft + 4, y + 4);
-  doc.text(`MO. ${companyInfo.contactPhone}`, pageLeft, y + 4, { width: pageWidth - 4, align: 'right' });
-  y += 16;
-  doc.fontSize(8).text(`GSTIN : ${companyInfo.gstin}`, pageLeft + 4, y);
-  doc.text(`Subject to ${companyInfo.jurisdiction} jurisdiction`, pageLeft, y, { width: pageWidth, align: 'center' });
-  y += 11;
-  doc.text(`PAN NO. : ${companyInfo.pan}`, pageLeft + 4, y);
-  y += 16;
-
   doc.fontSize(26).font('Helvetica-Bold').text(companyInfo.brandName, pageLeft, y, { width: pageWidth, align: 'center' });
   y += 32;
-  doc.fontSize(11).font('Helvetica').text(companyInfo.legalName, pageLeft, y, { width: pageWidth, align: 'center' });
-  y += 16;
+  doc.fontSize(11).font('Helvetica-Bold').text(companyInfo.legalName, pageLeft, y, { width: pageWidth, align: 'center' });
+  y += 18;
   doc.rect(pageLeft, y, pageWidth, 16).fill('#000');
-  doc.fontSize(9).font('Helvetica-Bold').fillColor('#fff').text(companyInfo.tagline, pageLeft, y + 4, { width: pageWidth, align: 'center' });
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#fff').text(`GST NO. ${companyInfo.gstin}`, pageLeft, y + 4, { width: pageWidth, align: 'center' });
   doc.fillColor('#000');
   y += 16;
-  doc.fontSize(7.5).font('Helvetica').text(companyInfo.address, pageLeft, y + 3, { width: pageWidth, align: 'center' });
-  y += 16;
+  doc.fontSize(8).font('Helvetica').text(companyInfo.address, pageLeft, y + 4, { width: pageWidth, align: 'center' });
+  y += 18;
 
   // --- Truck / LR / Date ---
   doc.rect(pageLeft, y, pageWidth, 16).stroke();
@@ -416,7 +412,7 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   y += 12;
 
   // --- Goods table (left: article/goods/weight/rate/freight, right: charges box) ---
-  const goodsTableH = 90;
+  const goodsTableH = 130;
   const ratePerTonStart = pageLeft + pageWidth * 0.62;
   const ratePerTonEnd = pageLeft + pageWidth * 0.7;
   const chargesX = ratePerTonEnd;
@@ -444,13 +440,20 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
     doc.fontSize(7.5).font(opts.bold ? 'Helvetica-Bold' : 'Helvetica').text(label, chargeLabelX, y + offset);
     if (value !== undefined) doc.text(value, chargeValueX, y + offset, { width: chargeValueW, align: 'right' });
   };
-  chargeRow('To Pay', undefined, 4);
-  chargeRow('SGST @ -', `Rs ${sgst.toFixed(2)}`, 16);
-  chargeRow('CGST @ -', `Rs ${cgst.toFixed(2)}`, 28);
-  chargeRow('IGST @ -', `Rs ${igst.toFixed(2)}`, 40);
-  chargeRow('TOTAL', `Rs ${totalWithTax.toFixed(2)}`, 52, { bold: true });
-  chargeRow('ADVANCE', `Rs ${order.advanceAmount.toFixed(2)}`, 64, { bold: true });
-  chargeRow('Total Freight Rs.', `Rs ${balanceDue.toFixed(2)}`, 76, { bold: true });
+  // Static boilerplate labels matching the pre-printed paper LR form -
+  // "Our Bank A/C"/"NEFT/RTGS CODE" are intentionally left blank (this
+  // platform doesn't collect banking details this way).
+  chargeRow('To Pay', undefined, 2);
+  chargeRow('Total Freight', undefined, 12);
+  chargeRow(`Please Freight : ${order.paymentMethod === 'cod' ? 'CASH' : 'ONLINE'}`, undefined, 22);
+  chargeRow('Our Bank A/C :', undefined, 32);
+  chargeRow('NEFT / RTGS CODE :', undefined, 42);
+  chargeRow(`SGST @ ${sgstPercentLabel}`, `Rs ${sgst.toFixed(2)}`, 56);
+  chargeRow(`CGST @ ${cgstPercentLabel}`, `Rs ${cgst.toFixed(2)}`, 68);
+  chargeRow(`IGST @ ${igstPercentLabel}`, `Rs ${igst.toFixed(2)}`, 80);
+  chargeRow('TOTAL', `Rs ${totalWithTax.toFixed(2)}`, 92, { bold: true });
+  chargeRow('ADVANCE', `Rs ${order.advanceAmount.toFixed(2)}`, 104, { bold: true });
+  chargeRow('Total Freight Rs.', `Rs ${balanceDue.toFixed(2)}`, 116, { bold: true });
   y += goodsTableH;
 
   // --- Value / Delivery At / Invoice No ---
@@ -463,10 +466,21 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   vLine(c2, 16); vLine(c3, 16); vLine(c4, 16); vLine(c5, 16);
   y += 16;
 
-  // --- GST Payable ---
+  // --- GST Payable checkboxes ---
   doc.rect(pageLeft, y, pageWidth, 14).stroke();
-  const gstByLabel = { consignor: 'CONSIGNOR', consignee: 'CONSIGNEE', transporter: 'TRANSPORTER' };
-  cell(`GST Payable by : ${gstByLabel[wb.gstPayableBy] || '—'}`, pageLeft, pageWidth, { bold: true });
+  cell('GST Payble', pageLeft, pageWidth * 0.15, { bold: true });
+  const gstCheckbox = (label, key, x) => {
+    doc.fontSize(8).font('Helvetica-Bold').text(label, x, y + 3);
+    const boxX = x + doc.widthOfString(label) + 4;
+    const boxSize = 9;
+    doc.rect(boxX, y + 2.5, boxSize, boxSize).stroke();
+    if (wb.gstPayableBy === key) {
+      doc.fontSize(8).text('X', boxX + 1.5, y + 2);
+    }
+  };
+  gstCheckbox('CONSIGNOR', 'consignor', pageLeft + pageWidth * 0.18);
+  gstCheckbox('CONSIGNEE', 'consignee', pageLeft + pageWidth * 0.45);
+  gstCheckbox('TRANSPORTER', 'transporter', pageLeft + pageWidth * 0.72);
   y += 14;
 
   // --- Remark ---
@@ -484,15 +498,10 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   cell(`R.T.O. : ${wb.rto || '—'}`, c3, pageRight - c3, { bold: true });
   y += 14;
 
-  // --- Terms + signature ---
+  // --- Signature ---
   const termsH = 40;
   doc.rect(pageLeft, y, pageWidth, termsH).stroke();
   vLine(pageRight - pageWidth * 0.18, termsH);
-  doc.fontSize(6.5).font('Helvetica').text(
-    '(1) WE ARE NOT RESPONSIBLE ANY BRAKAGES OF YOUR GOODS, NO DEDUCT LORRY FREIGHT, PLEASE TAKE INSURANCE OF YOUR GOODS. ' +
-      '(2) WE ARE ONLY BROKER AND COMMISSION AGENT, PLEASE CHECK THE ALL (3) DOCUMENTS OF TRUCK AND READ CAREFULLY TERMS AND CONDITION OVER LEAF.',
-    pageLeft + 4, y + 4, { width: pageWidth * 0.82 - 8 }
-  );
   doc.fontSize(8).font('Helvetica-Bold').text(`FOR, ${companyInfo.brandName}`, pageRight - pageWidth * 0.18 + 3, y + 4, { width: pageWidth * 0.18 - 6, align: 'center' });
   y += termsH;
 
