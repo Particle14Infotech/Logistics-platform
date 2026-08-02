@@ -1,16 +1,15 @@
-// Shared by booking.controller.js (driver cancellation compensation) and
-// COD order creation (advance amount collected online upfront) - both use
-// the exact same formula on purpose: the COD advance is sized so that if
-// the customer cancels after a driver accepts, the whole advance becomes
-// the driver's compensation with nothing left to refund (see cancel()'s
-// refund-amount comment in booking.controller.js).
-const DRIVER_COMPENSATION_CAP = 300;
+const PricingConfig = require('../models/pricingConfig.model');
 
-// 50% of the order value, capped at DRIVER_COMPENSATION_CAP - so a
-// low-value order is never penalized more than half its own price, and a
-// high-value order's fee/advance doesn't feel excessive.
-function calculateCappedHalf(price) {
-  return Math.min(DRIVER_COMPENSATION_CAP, Math.round(price * 0.5));
+// Only called when quoting/creating a NEW booking (booking.controller.js's
+// estimate()/create()) - the result gets stored on the order as
+// advanceAmount, and everywhere else in the codebase reads that stored
+// value instead of re-deriving this, so an admin editing the config later
+// doesn't retroactively change what an already-placed order owes.
+async function calculateAdvanceAmount(price, vehicleType) {
+  const config = await PricingConfig.findOne({ vehicleType });
+  if (!config?.advanceRequired) return 0;
+  const raw = config.advanceMode === 'fixed' ? config.advanceValue : price * (config.advanceValue / 100);
+  return Math.max(0, Math.min(Math.round(raw), price)); // never exceed the order price
 }
 
-module.exports = { DRIVER_COMPENSATION_CAP, calculateCappedHalf };
+module.exports = { calculateAdvanceAmount };

@@ -198,7 +198,7 @@ export default function AdminOrderDetailPage() {
                 <div className="text-sm space-y-1.5 mt-2">
                   <div className="flex justify-between"><span className="text-mist">Name</span><span>{order.driverId.userId?.name ?? '—'}</span></div>
                   <div className="flex justify-between"><span className="text-mist">Vehicle no.</span><span className="font-mono">{order.driverId.vehicleNumber}</span></div>
-                  <div className="flex justify-between"><span className="text-mist">Rating</span><span>{order.driverId.rating?.toFixed(1) ?? '—'} ★</span></div>
+                  <div className="flex justify-between"><span className="text-mist">Rating</span><span>{order.driverId.ratingCount ? `${order.driverId.rating?.toFixed(1)} ★ (${order.driverId.ratingCount})` : 'No ratings yet'}</span></div>
                 </div>
               ) : (
                 <div className="mt-2 space-y-2">

@@ -7,8 +7,9 @@ class FareEstimate {
   final double distanceKm;
   final num estimatedPrice;
   final Map<String, dynamic> breakdown;
+  final num advanceAmount;
 
-  FareEstimate({required this.distanceKm, required this.estimatedPrice, required this.breakdown});
+  FareEstimate({required this.distanceKm, required this.estimatedPrice, required this.breakdown, this.advanceAmount = 0});
 }
 
 class BookingService {
@@ -31,6 +32,7 @@ class BookingService {
       distanceKm: (data['distanceKm'] as num).toDouble(),
       estimatedPrice: data['estimatedPrice'] as num,
       breakdown: data['breakdown'] as Map<String, dynamic>,
+      advanceAmount: data['advanceAmount'] as num? ?? 0,
     );
   }
 
@@ -74,6 +76,13 @@ class BookingService {
 
   Future<void> cancelBooking(String id) async {
     await _dio.put('/booking/$id/cancel');
+  }
+
+  Future<void> submitReview(String orderId, {required int rating, String? comment}) async {
+    await _dio.post('/booking/$orderId/review', data: {
+      'rating': rating,
+      if (comment != null && comment.trim().isNotEmpty) 'comment': comment.trim(),
+    });
   }
 
   // Raw PDF bytes - caller saves to a temp file and shares/opens it, since

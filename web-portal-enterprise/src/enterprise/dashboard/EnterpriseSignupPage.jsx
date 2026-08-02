@@ -132,9 +132,9 @@ export default function EnterpriseSignupPage() {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r border-line bg-panel relative overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-signal flex items-center justify-center">
-            <span className="font-display font-bold text-white text-sm">L</span>
+            <span className="font-display font-bold text-white text-sm">R</span>
           </div>
-          <span className="font-display font-semibold tracking-tight">LOGISTICS</span>
+          <span className="font-display font-semibold tracking-tight">RAAH MITR</span>
         </div>
 
         <div>

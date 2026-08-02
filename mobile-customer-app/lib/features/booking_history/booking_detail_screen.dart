@@ -19,7 +19,7 @@ import '../../services/socket_service.dart';
 import '../../widgets/status_pill.dart';
 import '../../widgets/pay_now_button.dart';
 
-const _kLiveStatuses = ['accepted', 'picked_up', 'in_transit'];
+const _kLiveStatuses = ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'];
 
 // Order details + live tracking combined (matches the reference design's
 // 'Order Details' and 'Track Shipment' screens, which we merge into one
@@ -47,6 +47,11 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   bool _cancelling = false;
   bool _downloadingInvoice = false;
 
+  int _reviewRating = 0;
+  final _reviewCommentController = TextEditingController();
+  bool _submittingReview = false;
+  String? _reviewError;
+
   final _socketService = SocketService();
   LatLng? _driverPosition;
   final _mapController = MapController();
@@ -63,7 +68,31 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     _customerLocationTimer?.cancel();
     _socketService.leaveBookingRoom(widget.orderId);
     _socketService.dispose();
+    _reviewCommentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitReview() async {
+    if (_reviewRating == 0) {
+      setState(() => _reviewError = 'Tap a star to rate your driver.');
+      return;
+    }
+    setState(() {
+      _submittingReview = true;
+      _reviewError = null;
+    });
+    try {
+      await ref.read(bookingServiceProvider).submitReview(
+            widget.orderId,
+            rating: _reviewRating,
+            comment: _reviewCommentController.text,
+          );
+      await _load();
+    } catch (e) {
+      setState(() => _reviewError = 'Could not submit your review. Try again.');
+    } finally {
+      if (mounted) setState(() => _submittingReview = false);
+    }
   }
 
   // Broadcasts the customer's own position while the trip is active - a
@@ -307,6 +336,27 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           ],
                         ),
                       ),
+                    if (order.status == 'awaiting_payment') ...[
+                      const SizedBox(height: 12),
+                      _InfoCard(
+                        color: const Color(0xFFFFF3E0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Your shipment has been delivered!',
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Pay ₹${order.price - order.advanceAmount} to complete this order.',
+                              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     if (order.startOtp != null) ...[
                       const SizedBox(height: 12),
                       _InfoCard(
@@ -366,15 +416,34 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                             _DetailRow(
                                 label: 'Payment Method',
                                 value: 'Cash on Delivery'),
+                            if (order.advanceAmount > 0) ...[
+                              _DetailRow(
+                                  label: order.paymentStatus == 'paid'
+                                      ? 'Advance Paid'
+                                      : 'Advance Due Now',
+                                  value: '₹${order.advanceAmount}'),
+                              _DetailRow(
+                                  label: 'Due in Cash at Delivery',
+                                  value:
+                                      '₹${order.price - order.advanceAmount}'),
+                            ] else
+                              _DetailRow(
+                                  label: 'Due in Cash at Delivery',
+                                  value: '₹${order.price}'),
+                          ] else if (order.advanceAmount > 0) ...[
+                            _DetailRow(
+                                label: 'Payment Method', value: 'Online'),
                             _DetailRow(
                                 label: order.paymentStatus == 'paid'
                                     ? 'Advance Paid'
                                     : 'Advance Due Now',
-                                value: '₹${order.codAdvanceAmount}'),
+                                value: '₹${order.advanceAmount}'),
                             _DetailRow(
-                                label: 'Due in Cash at Delivery',
+                                label: order.remainderPaid
+                                    ? 'Remainder Paid'
+                                    : 'Remainder Due Online',
                                 value:
-                                    '₹${order.price - order.codAdvanceAmount}'),
+                                    '₹${order.price - order.advanceAmount}'),
                           ],
                           const Divider(height: 20),
                           Row(
@@ -400,7 +469,19 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       PayNowButton(
                         orderId: order.id,
                         onPaid: _load,
-                        isCodAdvance: order.paymentMethod == 'cod',
+                        isAdvance: order.advanceAmount > 0,
+                      ),
+                    ],
+                    if (order.paymentMethod == 'online' &&
+                        order.paymentStatus == 'paid' &&
+                        order.advanceAmount > 0 &&
+                        !order.remainderPaid &&
+                        order.status != 'cancelled') ...[
+                      const SizedBox(height: 16),
+                      PayNowButton(
+                        orderId: order.id,
+                        onPaid: _load,
+                        isRemainder: true,
                       ),
                     ],
                     if (order.paymentStatus == 'paid') ...[
@@ -409,6 +490,18 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         onPressed: _downloadingInvoice ? null : _downloadInvoice,
                         icon: const Icon(Icons.receipt_long_outlined),
                         label: Text(_downloadingInvoice ? 'Preparing…' : 'Download invoice'),
+                      ),
+                    ],
+                    if (order.status == 'delivered') ...[
+                      const SizedBox(height: 16),
+                      _ReviewCard(
+                        order: order,
+                        selectedRating: _reviewRating,
+                        onSelectRating: (r) => setState(() => _reviewRating = r),
+                        commentController: _reviewCommentController,
+                        submitting: _submittingReview,
+                        error: _reviewError,
+                        onSubmit: _submitReview,
                       ),
                     ],
                     if (_error != null) ...[
@@ -430,6 +523,104 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                   ],
                 ),
               ),
+      ),
+    );
+  }
+}
+
+class _ReviewCard extends StatelessWidget {
+  final OrderModel order;
+  final int selectedRating;
+  final ValueChanged<int> onSelectRating;
+  final TextEditingController commentController;
+  final bool submitting;
+  final String? error;
+  final VoidCallback onSubmit;
+
+  const _ReviewCard({
+    required this.order,
+    required this.selectedRating,
+    required this.onSelectRating,
+    required this.commentController,
+    required this.submitting,
+    required this.error,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final existing = order.review;
+    if (existing != null) {
+      return _InfoCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Your rating',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14)),
+            const SizedBox(height: 8),
+            Row(
+              children: List.generate(
+                5,
+                (i) => Icon(
+                  i < existing.rating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 22,
+                ),
+              ),
+            ),
+            if (existing.comment != null && existing.comment!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(existing.comment!, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Rate your driver',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14)),
+          const SizedBox(height: 10),
+          Row(
+            children: List.generate(5, (i) {
+              final starValue = i + 1;
+              return IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => onSelectRating(starValue),
+                icon: Icon(
+                  starValue <= selectedRating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 30,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: commentController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              hintText: 'Add a comment (optional)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          if (error != null) ...[
+            const SizedBox(height: 8),
+            Text(error!, style: GoogleFonts.poppins(color: AppTheme.error, fontSize: 12)),
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: submitting ? null : onSubmit,
+              child: Text(submitting ? 'Submitting…' : 'Submit review'),
+            ),
+          ),
+        ],
       ),
     );
   }

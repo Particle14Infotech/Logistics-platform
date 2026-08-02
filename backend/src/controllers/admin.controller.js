@@ -46,7 +46,7 @@ exports.listOrders = catchAsync(async (req, res) => {
       .limit(limitNum)
       .populate('customerId', 'name email phone')
       .populate('enterpriseId', 'companyName')
-      .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating', populate: { path: 'userId', select: 'name phone' } })
+      .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating ratingCount', populate: { path: 'userId', select: 'name phone' } })
       .lean(),
     Order.countDocuments(filter),
   ]);
@@ -62,7 +62,7 @@ exports.getOrderById = catchAsync(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate('customerId', 'name email phone')
     .populate('enterpriseId', 'companyName')
-    .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating currentLocation', populate: { path: 'userId', select: 'name phone' } });
+    .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating ratingCount currentLocation', populate: { path: 'userId', select: 'name phone' } });
 
   if (!order) throw new AppError('Order not found', 404);
   return success(res, { order });
@@ -212,12 +212,22 @@ exports.analytics = catchAsync(async (req, res) => {
   const sevenDaysAgo = new Date(todayStart);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 7 days inclusive of today
 
-  // For a cod order, only codAdvanceAmount was ever actually captured online
-  // - the remainder is cash the driver collects directly, never platform
-  // revenue in the sense this figure means. Summing '$price' for every
-  // 'paid' order (as this used to do) overstated revenue on every cod
-  // order by the whole uncollected remainder.
-  const paidAmountExpr = { $cond: [{ $eq: ['$paymentMethod', 'cod'] }, '$codAdvanceAmount', '$price'] };
+  // An order with advanceAmount > 0 (whichever vehicle types the admin has
+  // configured that way at the time it was booked - see
+  // pricingConfig.model.js) never had its full price captured in one shot.
+  // Within that: a cod order only ever has its advance actually captured
+  // online (the remainder is cash the driver collects directly, never
+  // platform revenue in the sense this figure means); an online order has
+  // captured either just the advance so far, or the full price once
+  // remainderPaid flips true. Everything else (advanceAmount 0) is captured
+  // in full at booking - 'paymentStatus: paid' already implies that.
+  const paidAmountExpr = {
+    $cond: [
+      { $gt: ['$advanceAmount', 0] },
+      { $cond: [{ $eq: ['$paymentMethod', 'cod'] }, '$advanceAmount', { $cond: ['$remainderPaid', '$price', '$advanceAmount'] }] },
+      '$price',
+    ],
+  };
 
   const [
     ordersToday,
@@ -274,12 +284,12 @@ exports.analytics = catchAsync(async (req, res) => {
     // "Active" here means still moving through the pipeline right now,
     // regardless of when it was created - unlike ordersToday, a shipment
     // booked yesterday that's still in_transit today is still active.
-    Order.countDocuments({ status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit'] } }),
+    Order.countDocuments({ status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment'] } }),
     // Subset of the above that's actually assigned to a driver and moving
     // (excludes 'pending', which is still waiting for a driver to accept).
-    Order.countDocuments({ status: { $in: ['accepted', 'picked_up', 'in_transit'] } }),
+    Order.countDocuments({ status: { $in: ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'] } }),
     Order.aggregate([
-      { $match: { status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit'] } } },
+      { $match: { status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment'] } } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     Driver.aggregate([{ $match: { isApproved: true } }, { $group: { _id: '$vehicleType', count: { $sum: 1 } } }]),
@@ -298,24 +308,26 @@ exports.analytics = catchAsync(async (req, res) => {
   const completedToday = deliveredToday + cancelledToday;
   const successRate = completedToday > 0 ? (deliveredToday / completedToday) * 100 : 0;
 
-  const statusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0 };
+  const statusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, awaiting_payment: 0 };
   statusAgg.forEach((s) => { statusCounts[s._id] = s.count; });
   const ordersByStatus = [
     { status: 'pending', label: 'Pending', count: statusCounts.pending },
     { status: 'accepted', label: 'Accepted', count: statusCounts.accepted },
     { status: 'picked_up', label: 'Picked up', count: statusCounts.picked_up },
     { status: 'in_transit', label: 'In transit', count: statusCounts.in_transit },
+    { status: 'awaiting_payment', label: 'Awaiting payment', count: statusCounts.awaiting_payment },
     { status: 'delivered', label: 'Delivered (today)', count: deliveredToday },
     { status: 'cancelled', label: 'Cancelled (today)', count: cancelledToday },
   ];
 
-  const todayStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, delivered: 0, cancelled: 0 };
+  const todayStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, awaiting_payment: 0, delivered: 0, cancelled: 0 };
   todayStatusAgg.forEach((s) => { todayStatusCounts[s._id] = s.count; });
   const todayOrdersByStatus = [
     { status: 'pending', label: 'Pending', count: todayStatusCounts.pending },
     { status: 'accepted', label: 'Accepted', count: todayStatusCounts.accepted },
     { status: 'picked_up', label: 'Picked up', count: todayStatusCounts.picked_up },
     { status: 'in_transit', label: 'In transit', count: todayStatusCounts.in_transit },
+    { status: 'awaiting_payment', label: 'Awaiting payment', count: todayStatusCounts.awaiting_payment },
     { status: 'delivered', label: 'Delivered', count: todayStatusCounts.delivered },
     { status: 'cancelled', label: 'Cancelled', count: todayStatusCounts.cancelled },
   ];
@@ -474,6 +486,7 @@ exports.getFleetById = catchAsync(async (req, res) => {
       isApproved: d.isApproved,
       isAvailable: d.isAvailable,
       rating: d.rating,
+      ratingCount: d.ratingCount,
       driver: d.userId,
       documentsUploaded: Object.values(d.documents || {}).filter(Boolean).length,
       documentsTotal: Object.keys(d.documents || {}).length || 8,
@@ -490,9 +503,9 @@ exports.getPricing = catchAsync(async (req, res) => {
   return success(res, { pricing: configs });
 });
 
-// PUT /api/v1/admin/pricing  { vehicleType, baseFare, perKmRate, perKgRate?, surgeMultiplier?, isSurgeActive? }
+// PUT /api/v1/admin/pricing  { vehicleType, baseFare, perKmRate, perKgRate?, surgeMultiplier?, isSurgeActive?, advanceRequired?, advanceMode?, advanceValue? }
 exports.updatePricing = catchAsync(async (req, res) => {
-  const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive } = req.body;
+  const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive, advanceRequired, advanceMode, advanceValue } = req.body;
   if (!vehicleType) throw new AppError('vehicleType is required', 400);
 
   const config = await PricingConfig.findOneAndUpdate(
@@ -504,6 +517,9 @@ exports.updatePricing = catchAsync(async (req, res) => {
         ...(perKgRate !== undefined && { perKgRate }),
         ...(surgeMultiplier !== undefined && { surgeMultiplier }),
         ...(isSurgeActive !== undefined && { isSurgeActive }),
+        ...(advanceRequired !== undefined && { advanceRequired }),
+        ...(advanceMode !== undefined && { advanceMode }),
+        ...(advanceValue !== undefined && { advanceValue }),
         updatedBy: req.user.id,
       },
     },

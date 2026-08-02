@@ -6,7 +6,7 @@ import StatusBadge from '../../shared/components/StatusBadge.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 
-const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'delivered', 'cancelled'];
+const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment', 'delivered', 'cancelled'];
 
 export default function EnterpriseOrderTrackingPage() {
   // Lets the dashboard's KPI cards/chart bars link straight here

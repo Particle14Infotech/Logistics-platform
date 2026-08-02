@@ -187,7 +187,7 @@ exports.dashboard = catchAsync(async (req, res) => {
       { $match: { enterpriseId: enterprise._id, createdAt: { $gte: monthStart } } },
       { $group: { _id: null, total: { $sum: '$price' } } },
     ]),
-    Order.countDocuments({ enterpriseId: enterprise._id, status: { $in: ['accepted', 'picked_up', 'in_transit'] } }),
+    Order.countDocuments({ enterpriseId: enterprise._id, status: { $in: ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'] } }),
     Order.aggregate([
       { $match: { enterpriseId: enterprise._id } },
       { $group: { _id: '$dropLocation.address', orders: { $sum: 1 } } },
@@ -214,7 +214,7 @@ exports.dashboard = catchAsync(async (req, res) => {
     // ordersByStatus - a shipment created last month that's still
     // in_transit today is still "active" regardless of when it was booked.
     Order.aggregate([
-      { $match: { enterpriseId: enterprise._id, status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit'] } } },
+      { $match: { enterpriseId: enterprise._id, status: { $in: ['pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment'] } } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     Order.countDocuments({ enterpriseId: enterprise._id, createdAt: { $gte: monthStart }, status: 'delivered' }),
@@ -231,24 +231,26 @@ exports.dashboard = catchAsync(async (req, res) => {
 
   const totalDestOrders = topDestinationsAgg.reduce((s, d) => s + d.orders, 0) || 1;
 
-  const shipmentStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0 };
+  const shipmentStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, awaiting_payment: 0 };
   statusAgg.forEach((s) => { shipmentStatusCounts[s._id] = s.count; });
   const shipmentsByStatus = [
     { status: 'pending', label: 'Pending', count: shipmentStatusCounts.pending },
     { status: 'accepted', label: 'Accepted', count: shipmentStatusCounts.accepted },
     { status: 'picked_up', label: 'Picked up', count: shipmentStatusCounts.picked_up },
     { status: 'in_transit', label: 'In transit', count: shipmentStatusCounts.in_transit },
+    { status: 'awaiting_payment', label: 'Awaiting payment', count: shipmentStatusCounts.awaiting_payment },
     { status: 'delivered', label: 'Delivered (this month)', count: deliveredThisMonth },
     { status: 'cancelled', label: 'Cancelled (this month)', count: cancelledThisMonth },
   ];
 
-  const thisMonthStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, delivered: 0, cancelled: 0 };
+  const thisMonthStatusCounts = { pending: 0, accepted: 0, picked_up: 0, in_transit: 0, awaiting_payment: 0, delivered: 0, cancelled: 0 };
   thisMonthStatusAgg.forEach((s) => { thisMonthStatusCounts[s._id] = s.count; });
   const thisMonthShipmentsByStatus = [
     { status: 'pending', label: 'Pending', count: thisMonthStatusCounts.pending },
     { status: 'accepted', label: 'Accepted', count: thisMonthStatusCounts.accepted },
     { status: 'picked_up', label: 'Picked up', count: thisMonthStatusCounts.picked_up },
     { status: 'in_transit', label: 'In transit', count: thisMonthStatusCounts.in_transit },
+    { status: 'awaiting_payment', label: 'Awaiting payment', count: thisMonthStatusCounts.awaiting_payment },
     { status: 'delivered', label: 'Delivered', count: thisMonthStatusCounts.delivered },
     { status: 'cancelled', label: 'Cancelled', count: thisMonthStatusCounts.cancelled },
   ];

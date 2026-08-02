@@ -11,6 +11,7 @@ const Enterprise = require('../src/models/enterprise.model');
 const Driver = require('../src/models/driver.model');
 const Order = require('../src/models/order.model');
 const Payment = require('../src/models/payment.model');
+const Review = require('../src/models/review.model');
 const PricingConfig = require('../src/models/pricingConfig.model');
 const Dispute = require('../src/models/dispute.model');
 const Invoice = require('../src/models/invoice.model');
@@ -97,7 +98,6 @@ async function seed() {
         licenseNumber: `DL-${d.phone.slice(-6)}`,
         isApproved: d.isApproved,
         isAvailable: d.isAvailable,
-        rating: 4 + Math.random(),
         documents: d.documents ?? {},
         currentLocation: { type: 'Point', coordinates: [77.1 + Math.random(), 28.6 + Math.random()] },
       });
@@ -151,9 +151,9 @@ async function seed() {
   const DEFAULT_PRICING = [
     { vehicleType: 'bike', baseFare: 25, perKmRate: 6 },
     { vehicleType: 'auto', baseFare: 40, perKmRate: 9 },
-    { vehicleType: 'mini_truck', baseFare: 80, perKmRate: 15, perKgRate: 0.5 },
-    { vehicleType: 'medium_truck', baseFare: 150, perKmRate: 22, perKgRate: 0.8 },
-    { vehicleType: 'large_truck', baseFare: 300, perKmRate: 35, perKgRate: 1.2 },
+    { vehicleType: 'mini_truck', baseFare: 80, perKmRate: 15, perKgRate: 0.5, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30 },
+    { vehicleType: 'medium_truck', baseFare: 150, perKmRate: 22, perKgRate: 0.8, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30 },
+    { vehicleType: 'large_truck', baseFare: 300, perKmRate: 35, perKgRate: 1.2, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30 },
   ];
   let pricingCreated = 0;
   for (const p of DEFAULT_PRICING) {
@@ -200,6 +200,30 @@ async function seed() {
         refundId: 'rfnd_seeddata002',
       });
       console.log('✅ 1 sample refunded payment created');
+    }
+  }
+
+  // --- Sample Review (tied to the delivered order, drives the driver's
+  // real rating - not a fabricated number, see driver.model.js's rating
+  // comment) ---
+  if (deliveredOrder) {
+    const existingReview = await Review.findOne({ orderId: deliveredOrder._id });
+    if (!existingReview) {
+      await Review.create({
+        orderId: deliveredOrder._id,
+        driverId: deliveredOrder.driverId,
+        customerId: sampleCustomer._id,
+        rating: 5,
+        comment: 'On time and careful with the goods.',
+      });
+      const [agg] = await Review.aggregate([
+        { $match: { driverId: deliveredOrder.driverId } },
+        { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
+      ]);
+      await Driver.findByIdAndUpdate(deliveredOrder.driverId, { rating: agg.avg, ratingCount: agg.count });
+      console.log('✅ 1 sample review created (drives the driver\'s real rating)');
+    } else {
+      console.log('ℹ️  Sample review already exists');
     }
   }
 

@@ -182,7 +182,7 @@ export default function AdminDriverDetailPage() {
             <div className="bg-panel border border-line rounded-lg p-4">
               <span className="eyebrow">Performance</span>
               <div className="text-sm space-y-1.5 mt-2">
-                <div className="flex justify-between"><span className="text-mist">Rating</span><span>{driver.rating?.toFixed(1) ?? '—'} ★</span></div>
+                <div className="flex justify-between"><span className="text-mist">Rating</span><span>{driver.ratingCount ? `${driver.rating?.toFixed(1)} ★ (${driver.ratingCount})` : 'No ratings yet'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Total orders</span><span>{stats?.totalOrders ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Delivered</span><span>{stats?.deliveredOrders ?? 0}</span></div>
               </div>

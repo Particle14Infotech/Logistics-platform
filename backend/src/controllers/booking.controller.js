@@ -4,13 +4,14 @@ const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
 const Payment = require('../models/payment.model');
 const Message = require('../models/message.model');
+const Review = require('../models/review.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
 const { sendToUser, sendToUsers } = require('../services/notification.service');
 const razorpayService = require('../services/razorpay.service');
 const { applyWalletTransaction } = require('../services/wallet.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
-const { calculateCappedHalf } = require('../utils/pricingRules');
+const { calculateAdvanceAmount } = require('../utils/pricingRules');
 
 function assertWeightWithinCapacity(vehicleType, weightKg) {
   const maxWeight = VEHICLE_MAX_WEIGHT_KG[vehicleType];
@@ -86,8 +87,9 @@ exports.estimate = catchAsync(async (req, res) => {
   }
 
   const { estimatedPrice, breakdown } = await calculateFare({ vehicleType, distanceKm, weightKg });
+  const advanceAmount = await calculateAdvanceAmount(estimatedPrice, vehicleType);
 
-  return success(res, { distanceKm, estimatedPrice, breakdown });
+  return success(res, { distanceKm, estimatedPrice, breakdown, advanceAmount });
 });
 
 // POST /api/v1/booking/create
@@ -117,10 +119,10 @@ exports.create = catchAsync(async (req, res) => {
   // Price is always recalculated server-side - never trust a client-sent price.
   const { estimatedPrice } = await calculateFare({ vehicleType, distanceKm: finalDistanceKm, weightKg });
   const finalPaymentMethod = paymentMethod || 'online';
-  // cod orders only charge this smaller advance online at booking time -
-  // the rest is collected in cash at delivery. See order.model.js's
-  // codAdvanceAmount comment.
-  const codAdvanceAmount = finalPaymentMethod === 'cod' ? calculateCappedHalf(estimatedPrice) : 0;
+  // Only vehicle types the admin has configured with advanceRequired carry
+  // an advance at all - see order.model.js's advanceAmount comment.
+  // Applies to both cod and online.
+  const advanceAmount = await calculateAdvanceAmount(estimatedPrice, vehicleType);
 
   const order = await Order.create({
     customerId: req.user.id,
@@ -143,7 +145,7 @@ exports.create = catchAsync(async (req, res) => {
     distanceKm: finalDistanceKm,
     price: estimatedPrice,
     paymentMethod: finalPaymentMethod,
-    codAdvanceAmount,
+    advanceAmount,
     status: 'pending',
     timeline: [{ status: 'pending', note: 'Booking created' }],
   });
@@ -170,7 +172,7 @@ exports.create = catchAsync(async (req, res) => {
 exports.getById = catchAsync(async (req, res) => {
   const order = await Order.findById(req.params.id).populate({
     path: 'driverId',
-    select: 'vehicleNumber vehicleType rating currentLocation',
+    select: 'vehicleNumber vehicleType rating ratingCount currentLocation',
     populate: { path: 'userId', select: 'name phone' },
   });
   if (!order) throw new AppError('Booking not found', 404);
@@ -192,7 +194,50 @@ exports.getById = catchAsync(async (req, res) => {
     delete orderObj.startOtp;
   }
 
+  // Lets the customer app know whether to show the "rate your driver"
+  // prompt or the already-submitted review (see submitReview below).
+  orderObj.review = await Review.findOne({ orderId: order._id }).lean();
+
   return success(res, { order: orderObj });
+});
+
+// POST /api/v1/booking/:id/review  { rating, comment? }
+// Only the order's own customer, only once the trip is actually delivered,
+// only once per order (enforced by review.model.js's unique orderId index,
+// not just this check - belt and suspenders against a race between two
+// concurrent submissions). Recomputes the driver's rating from every real
+// Review they have, rather than incrementing a running average - trivially
+// correct even if a review is ever edited or removed later.
+exports.submitReview = catchAsync(async (req, res) => {
+  const { rating, comment } = req.body;
+  if (!rating || rating < 1 || rating > 5) throw new AppError('rating must be between 1 and 5', 400);
+
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new AppError('Booking not found', 404);
+  if (String(order.customerId) !== String(req.user.id)) throw new AppError('Not authorized to review this booking', 403);
+  if (order.status !== 'delivered') throw new AppError('You can only review a booking once it has been delivered', 400);
+
+  let review;
+  try {
+    review = await Review.create({
+      orderId: order._id,
+      driverId: order.driverId,
+      customerId: req.user.id,
+      rating,
+      comment: comment?.trim() || undefined,
+    });
+  } catch (err) {
+    if (err.code === 11000) throw new AppError("You've already reviewed this trip", 400);
+    throw err;
+  }
+
+  const [agg] = await Review.aggregate([
+    { $match: { driverId: order.driverId } },
+    { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
+  ]);
+  await Driver.findByIdAndUpdate(order.driverId, { rating: agg.avg, ratingCount: agg.count });
+
+  return success(res, { review }, 'Review submitted', 201);
 });
 
 // GET /api/v1/booking/:id/invoice - generates a simple receipt PDF on the
@@ -232,9 +277,22 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   doc.moveDown(0.5);
   doc.fontSize(10).text(`Order price: Rs ${order.price}`);
   if (order.paymentMethod === 'cod') {
-    doc.text(`Payment method: Cash on delivery (advance paid online)`);
-    doc.text(`Advance paid online: Rs ${(payment.amount / 100).toFixed(2)}`);
-    doc.text(`Remainder collected in cash: Rs ${(order.price - order.codAdvanceAmount).toFixed(2)}`);
+    if (order.advanceAmount > 0) {
+      doc.text(`Payment method: Cash on delivery (advance paid online)`);
+      doc.text(`Advance paid online: Rs ${order.advanceAmount}`);
+      doc.text(`Remainder collected in cash: Rs ${(order.price - order.advanceAmount).toFixed(2)}`);
+    } else {
+      doc.text(`Payment method: Cash on delivery`);
+      doc.text(`Amount collected in cash: Rs ${order.price}`);
+    }
+  } else if (order.advanceAmount > 0) {
+    doc.text(`Payment method: Online (paid in two instalments)`);
+    doc.text(`Advance paid online: Rs ${order.advanceAmount}`);
+    doc.text(
+      order.remainderPaid
+        ? `Remainder paid online: Rs ${(order.price - order.advanceAmount).toFixed(2)}`
+        : `Remainder paid online: Rs 0.00 (not yet paid)`
+    );
   } else {
     doc.text(`Payment method: Online`);
     doc.text(`Amount paid: Rs ${(payment.amount / 100).toFixed(2)}`);
@@ -281,7 +339,7 @@ exports.listByUser = catchAsync(async (req, res) => {
 
   const [orders, total] = await Promise.all([
     Order.find(filter)
-      .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating', populate: { path: 'userId', select: 'name phone' } })
+      .populate({ path: 'driverId', select: 'vehicleNumber vehicleType rating ratingCount', populate: { path: 'userId', select: 'name phone' } })
       .sort({ createdAt: -1 })
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum)
@@ -300,30 +358,44 @@ exports.cancel = catchAsync(async (req, res) => {
   const isOwner = String(order.customerId) === String(req.user.id);
   if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to cancel this booking', 403);
 
-  if (['delivered', 'cancelled'].includes(order.status)) {
+  // 'awaiting_payment' means the goods are already physically with the
+  // customer (driver confirmed drop-off via OTP) - only the online
+  // remainder is outstanding, so cancelling makes no sense at that point.
+  if (['delivered', 'cancelled', 'awaiting_payment'].includes(order.status)) {
     throw new AppError(`Cannot cancel a booking that is already ${order.status}`, 400);
   }
 
   // Only charge the driver-compensation fee once a driver has actually
   // accepted the job - nothing to compensate if cancelled while still
-  // 'pending' with no driver assigned yet.
+  // 'pending' with no driver assigned yet. Uses the order's own stored
+  // advanceAmount (locked in at booking time) rather than recomputing from
+  // current pricing config, so an admin editing the config later doesn't
+  // retroactively change what's owed on an already-placed order.
   const driverWasAssigned = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
-  const cancellationFee = driverWasAssigned ? calculateCappedHalf(order.price) : 0;
+  const cancellationFee = driverWasAssigned ? order.advanceAmount : 0;
 
   // If the customer already paid, refund immediately minus the fee - the
   // fee itself gets credited to the driver's wallet below instead of
-  // staying with the platform. Based on what was actually captured
-  // (payment.amount), not order.price - for a cod order that's only the
-  // advance (itself sized via the same calculateCappedHalf formula), so a
-  // cancellation after driver acceptance correctly zeroes the refund
-  // instead of trying to refund more than was ever charged. A refund
-  // failure shouldn't block the cancellation itself - the booking still
-  // needs to come off the driver's job list - so it's logged on the
-  // timeline for manual follow-up instead.
-  if (cancellationFee > 0 && order.paymentStatus === 'paid') {
-    const payment = await Payment.findOne({ orderId: order._id, status: 'captured' });
-    if (payment) {
-      const refundAmountPaise = payment.amount - Math.round(cancellationFee * 100);
+  // staying with the platform. Based on what was actually captured across
+  // ALL captured payments for this order (not just one) - a gated online
+  // order can have two by now (the advance and, if paid early via
+  // createRemainderOrder, the remainder too), so this refunds/marks-
+  // refunded every one of them until the fee is accounted for, rather than
+  // silently leaving a second payment untouched. Gated on paymentStatus
+  // alone (not cancellationFee > 0) - an ungated vehicle type can have a 0
+  // fee while still having been fully paid (ungated online), and that
+  // customer is still owed a full refund. A refund failure shouldn't block
+  // the cancellation itself - the booking still needs to come off the
+  // driver's job list - so it's logged on the timeline for manual
+  // follow-up instead.
+  if (order.paymentStatus === 'paid') {
+    const payments = await Payment.find({ orderId: order._id, status: 'captured' });
+    let remainingToWithhold = Math.round(cancellationFee * 100);
+    let anyRefundFailed = false;
+    for (const payment of payments) {
+      const withheldFromThis = Math.min(payment.amount, remainingToWithhold);
+      const refundAmountPaise = payment.amount - withheldFromThis;
+      remainingToWithhold -= withheldFromThis;
       if (refundAmountPaise > 0) {
         try {
           const refund = await razorpayService.refundPayment(payment.razorpayPaymentId, refundAmountPaise);
@@ -331,17 +403,21 @@ exports.cancel = catchAsync(async (req, res) => {
           payment.refundId = refund.id;
           payment.refundedAmount = refundAmountPaise;
           await payment.save();
-          order.paymentStatus = 'refunded';
         } catch (err) {
-          order.timeline.push({ status: 'cancelled', note: `Refund failed (₹${cancellationFee} driver fee applies) - needs manual follow-up` });
+          anyRefundFailed = true;
         }
       } else {
-        // The whole captured amount (e.g. a cod advance) is consumed by
-        // the driver's compensation - nothing left to refund.
+        // This payment is fully consumed by the driver's compensation -
+        // nothing left to refund from it.
         payment.status = 'refunded';
         payment.refundedAmount = 0;
         await payment.save();
-        order.paymentStatus = 'refunded';
+      }
+    }
+    if (payments.length > 0) {
+      order.paymentStatus = 'refunded';
+      if (anyRefundFailed) {
+        order.timeline.push({ status: 'cancelled', note: `Refund failed for one or more payments (₹${cancellationFee} driver fee applies) - needs manual follow-up` });
       }
     }
   }

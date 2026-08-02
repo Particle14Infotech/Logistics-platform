@@ -75,7 +75,7 @@ export default function AdminDriversPage() {
     { key: 'phone', label: 'Phone', render: (r) => <span className="font-mono text-xs">{r.userId?.phone ?? '—'}</span> },
     { key: 'vehicle', label: 'Vehicle', render: (r) => <span className="font-mono text-xs">{r.vehicleNumber}</span> },
     { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{r.vehicleType.replace('_', ' ')}</span> },
-    { key: 'rating', label: 'Rating', render: (r) => <span>{r.rating?.toFixed(1) ?? '—'} ★</span> },
+    { key: 'rating', label: 'Rating', render: (r) => <span>{r.ratingCount ? `${r.rating?.toFixed(1)} ★ (${r.ratingCount})` : 'New driver'}</span> },
     { key: 'approval', label: 'KYC status', render: (r) => <ApprovalBadge isApproved={r.isApproved} /> },
     { key: 'online', label: 'Availability', render: (r) => <OnlineBadge isAvailable={r.isAvailable} /> },
   ];

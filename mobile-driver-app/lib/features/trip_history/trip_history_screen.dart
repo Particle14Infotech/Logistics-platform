@@ -8,7 +8,7 @@ import '../../models/trip_model.dart';
 import '../../core/constants/vehicle_types.dart';
 import '../../widgets/status_pill.dart';
 
-const _kActiveStatuses = ['accepted', 'picked_up', 'in_transit'];
+const _kActiveStatuses = ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'];
 
 const _kFilters = [
   (label: 'All', status: null),

@@ -11,8 +11,11 @@ import '../services/razorpay_checkout_helper.dart';
 class PayNowButton extends ConsumerStatefulWidget {
   final String orderId;
   final VoidCallback onPaid;
-  final bool isCodAdvance;
-  const PayNowButton({super.key, required this.orderId, required this.onPaid, this.isCodAdvance = false});
+  final bool isAdvance;
+  // Pays the remaining amount for a gated online order whose advance is
+  // already paid, instead of the advance/full amount at booking.
+  final bool isRemainder;
+  const PayNowButton({super.key, required this.orderId, required this.onPaid, this.isAdvance = false, this.isRemainder = false});
 
   @override
   ConsumerState<PayNowButton> createState() => _PayNowButtonState();
@@ -30,7 +33,9 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
     });
     final helper = RazorpayCheckoutHelper();
     try {
-      final orderDetails = await _paymentService.createOrder(widget.orderId);
+      final orderDetails = widget.isRemainder
+          ? await _paymentService.createRemainderOrder(widget.orderId)
+          : await _paymentService.createOrder(widget.orderId);
       final user = ref.read(authProvider).user;
       final result = await helper.open(
         keyId: orderDetails.keyId,
@@ -72,7 +77,7 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
           icon: _paying
               ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.payment),
-          label: Text(_paying ? 'Opening payment…' : (widget.isCodAdvance ? 'Pay Advance' : 'Pay Now')),
+          label: Text(_paying ? 'Opening payment…' : (widget.isRemainder ? 'Pay Remaining Amount' : (widget.isAdvance ? 'Pay Advance' : 'Pay Now'))),
         ),
         if (_error != null) ...[
           const SizedBox(height: 8),

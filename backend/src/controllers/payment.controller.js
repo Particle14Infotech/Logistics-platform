@@ -2,7 +2,9 @@ const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Payment = require('../models/payment.model');
 const User = require('../models/user.model');
+const Driver = require('../models/driver.model');
 const razorpayService = require('../services/razorpay.service');
+const { completeDelivery } = require('../services/delivery.service');
 
 // POST /api/v1/payment/create-order  { orderId }
 exports.createOrder = catchAsync(async (req, res) => {
@@ -12,13 +14,22 @@ exports.createOrder = catchAsync(async (req, res) => {
   const order = await Order.findById(orderId);
   if (!order) throw new AppError('Booking not found', 404);
   if (String(order.customerId) !== String(req.user.id)) throw new AppError('Not authorized', 403);
+
+  // order.advanceAmount was already computed (and locked in) at booking
+  // time - see booking.controller.js's create(). Gated types only charge
+  // that here, for either payment method - the rest is collected in cash
+  // at delivery (cod) or via a second Razorpay payment near delivery
+  // (online, see createRemainderOrder). Ungated types still pay the full
+  // price in one shot, as before.
+  const gated = order.advanceAmount > 0;
+  if (order.paymentMethod === 'cod' && !gated) {
+    throw new AppError('No online payment is required for this booking - the full amount is collected in cash at delivery', 400);
+  }
   if (order.paymentStatus === 'paid') {
-    throw new AppError(order.paymentMethod === 'cod' ? 'The advance for this booking is already paid' : 'This booking is already paid', 400);
+    throw new AppError(gated ? 'The advance for this booking is already paid' : 'This booking is already paid', 400);
   }
 
-  // cod only charges the smaller upfront advance here - the rest is
-  // collected in cash at delivery (see order.model.js's codAdvanceAmount).
-  const amountPaise = Math.round((order.paymentMethod === 'cod' ? order.codAdvanceAmount : order.price) * 100);
+  const amountPaise = Math.round((gated ? order.advanceAmount : order.price) * 100);
 
   let razorpayOrder;
   try {
@@ -38,8 +49,8 @@ exports.createOrder = catchAsync(async (req, res) => {
   // (e.g. previous attempt's checkout was dismissed) rather than piling up
   // duplicate 'created' rows.
   const payment = await Payment.findOneAndUpdate(
-    { orderId: order._id, status: 'created' },
-    { userId: req.user.id, razorpayOrderId: razorpayOrder.id, amount: amountPaise, status: 'created' },
+    { orderId: order._id, status: 'created', purpose: { $ne: 'remainder' } },
+    { userId: req.user.id, razorpayOrderId: razorpayOrder.id, amount: amountPaise, status: 'created', purpose: gated ? 'advance' : 'full' },
     { new: true, upsert: true }
   );
 
@@ -69,6 +80,70 @@ exports.createOrder = catchAsync(async (req, res) => {
   );
 });
 
+// POST /api/v1/payment/create-remainder-order  { orderId }
+// Only for gated 'online' orders - after the advance is captured
+// (createOrder above), this charges the remaining amount. Paying it is
+// what completes the delivery once the driver has confirmed drop-off (see
+// verify()/webhook() below and driver.controller.js's uploadPod).
+exports.createRemainderOrder = catchAsync(async (req, res) => {
+  const { orderId } = req.body;
+  if (!orderId) throw new AppError('orderId is required', 400);
+
+  const order = await Order.findById(orderId);
+  if (!order) throw new AppError('Booking not found', 404);
+  if (String(order.customerId) !== String(req.user.id)) throw new AppError('Not authorized', 403);
+
+  if (order.paymentMethod !== 'online' || order.advanceAmount <= 0) {
+    throw new AppError('No remainder payment is required for this booking', 400);
+  }
+  if (order.paymentStatus !== 'paid') throw new AppError('Pay the advance first', 400);
+  if (order.remainderPaid) throw new AppError('The remaining amount has already been paid', 400);
+
+  const amountPaise = Math.round((order.price - order.advanceAmount) * 100);
+
+  let razorpayOrder;
+  try {
+    razorpayOrder = await razorpayService.createRazorpayOrder({
+      amountPaise,
+      receipt: `order_${order._id}_remainder`,
+      notes: { orderId: String(order._id), customerId: String(req.user.id) },
+    });
+  } catch (err) {
+    if (err.message?.includes('not configured')) {
+      throw new AppError('Payments are not set up on this server yet - add RAZORPAY_KEY_ID/SECRET to backend/.env', 503);
+    }
+    throw new AppError('Could not create payment order. Try again.', 502);
+  }
+
+  const payment = await Payment.findOneAndUpdate(
+    { orderId: order._id, status: 'created', purpose: 'remainder' },
+    { userId: req.user.id, razorpayOrderId: razorpayOrder.id, amount: amountPaise, status: 'created', purpose: 'remainder' },
+    { new: true, upsert: true }
+  );
+
+  let customerId;
+  try {
+    const user = await User.findById(req.user.id);
+    customerId = await razorpayService.ensureCustomer(user);
+  } catch (err) {
+    console.error('[payment.controller] ensureCustomer failed:', err.message);
+  }
+
+  return success(
+    res,
+    {
+      razorpayOrderId: razorpayOrder.id,
+      amount: amountPaise,
+      currency: 'INR',
+      keyId: process.env.RAZORPAY_KEY_ID,
+      paymentId: payment._id,
+      customerId,
+    },
+    'Remainder payment order created',
+    201
+  );
+});
+
 // POST /api/v1/payment/verify  { razorpay_order_id, razorpay_payment_id, razorpay_signature }
 // Called directly by the client immediately after Razorpay Checkout
 // succeeds. The webhook below is the more reliable path for production
@@ -91,12 +166,44 @@ exports.verify = catchAsync(async (req, res) => {
   const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
   if (!payment) throw new AppError('Payment record not found', 404);
 
+  // Idempotency: the client callback (this endpoint) and the Razorpay
+  // webhook both fire for the same successful payment in normal operation,
+  // and a client could legitimately retry this call too - without this
+  // guard, re-processing an already-captured payment could re-enter the
+  // remainder-completes-delivery branch below and double-credit the
+  // driver's wallet (see completeDelivery).
+  if (payment.status === 'captured') {
+    return success(res, { payment }, 'Payment verified');
+  }
+
   payment.razorpayPaymentId = razorpay_payment_id;
   payment.razorpaySignature = razorpay_signature;
   payment.status = 'captured';
   await payment.save();
 
-  await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' });
+  if (payment.purpose === 'remainder') {
+    // Paying the remainder is what completes the delivery, if the driver
+    // already confirmed drop-off (order sitting in 'awaiting_payment').
+    // Atomically claim that transition - only one of two concurrent
+    // callers (this callback vs. the webhook, which can arrive within
+    // milliseconds of each other) can find a matching document, so
+    // completeDelivery only ever runs once for a given payment.
+    const claimedOrder = await Order.findOneAndUpdate(
+      { _id: payment.orderId, status: 'awaiting_payment' },
+      { remainderPaid: true, status: 'delivered' },
+      { new: true }
+    );
+    if (claimedOrder) {
+      const driver = await Driver.findById(claimedOrder.driverId);
+      if (driver) await completeDelivery({ order: claimedOrder, driver, io: req.app.get('io') });
+    } else {
+      // Paid before the driver confirmed drop-off - just record it,
+      // uploadPod will complete the delivery once that happens.
+      await Order.updateOne({ _id: payment.orderId }, { remainderPaid: true });
+    }
+  } else {
+    await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' });
+  }
 
   return success(res, { payment }, 'Payment verified');
 });
@@ -121,7 +228,25 @@ exports.webhook = catchAsync(async (req, res) => {
       payment.razorpayPaymentId = paymentEntity.id;
       payment.status = 'captured';
       await payment.save();
-      await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' });
+
+      if (payment.purpose === 'remainder') {
+        // Same atomic claim as verify() - see the comment there. Guards
+        // against this webhook and a client verify() call racing for the
+        // same payment.
+        const claimedOrder = await Order.findOneAndUpdate(
+          { _id: payment.orderId, status: 'awaiting_payment' },
+          { remainderPaid: true, status: 'delivered' },
+          { new: true }
+        );
+        if (claimedOrder) {
+          const driver = await Driver.findById(claimedOrder.driverId);
+          if (driver) await completeDelivery({ order: claimedOrder, driver, io: req.app.get('io') });
+        } else {
+          await Order.updateOne({ _id: payment.orderId }, { remainderPaid: true });
+        }
+      } else {
+        await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' });
+      }
     }
   } else if (event === 'payment.failed' && paymentEntity) {
     await Payment.findOneAndUpdate({ razorpayOrderId: paymentEntity.order_id }, { status: 'failed' });
@@ -139,24 +264,30 @@ exports.refund = catchAsync(async (req, res) => {
   const isOwner = String(order.customerId) === String(req.user.id);
   if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized', 403);
 
-  const payment = await Payment.findOne({ orderId: order._id, status: 'captured' });
-  if (!payment) throw new AppError('No captured payment found for this booking', 404);
+  // A gated online order can have two captured payments (advance +
+  // remainder, if paid early) - refund every one of them, not just
+  // whichever one a single findOne happens to return.
+  const payments = await Payment.find({ orderId: order._id, status: 'captured' });
+  if (payments.length === 0) throw new AppError('No captured payment found for this booking', 404);
 
-  let refund;
-  try {
-    refund = await razorpayService.refundPayment(payment.razorpayPaymentId);
-  } catch (err) {
-    throw new AppError('Refund failed. Try again or contact support.', 502);
+  const refundedPayments = [];
+  for (const payment of payments) {
+    let refund;
+    try {
+      refund = await razorpayService.refundPayment(payment.razorpayPaymentId);
+    } catch (err) {
+      throw new AppError('Refund failed. Try again or contact support.', 502);
+    }
+    payment.status = 'refunded';
+    payment.refundId = refund.id;
+    await payment.save();
+    refundedPayments.push(payment);
   }
-
-  payment.status = 'refunded';
-  payment.refundId = refund.id;
-  await payment.save();
 
   order.paymentStatus = 'refunded';
   await order.save();
 
-  return success(res, { payment }, 'Refund initiated');
+  return success(res, { payments: refundedPayments }, 'Refund initiated');
 });
 
 // GET /api/v1/payment/history

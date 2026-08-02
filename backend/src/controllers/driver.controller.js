@@ -7,7 +7,7 @@ const Order = require('../models/order.model');
 const Enterprise = require('../models/enterprise.model');
 const WalletTransaction = require('../models/walletTransaction.model');
 const { sendToUser } = require('../services/notification.service');
-const { applyWalletTransaction } = require('../services/wallet.service');
+const { completeDelivery } = require('../services/delivery.service');
 
 // Local-disk storage for dev (uploads/ served statically by app.js). Swap
 // for an S3 multer-storage adapter in production using the AWS_* vars
@@ -163,11 +163,13 @@ exports.availableOrders = catchAsync(async (req, res) => {
     // placed by an enterprise are reserved for that enterprise's private
     // fleet, not the shared pool, and vice versa.
     enterpriseId: driver.enterpriseId ?? null,
-    // A cod order isn't shown to drivers until its advance is actually
-    // paid - that's the whole point of the advance (no-show/fraud
-    // protection), so it can't be skipped by just never paying it. Online
-    // orders are unaffected, matching existing behavior.
-    $or: [{ paymentMethod: 'online' }, { paymentMethod: 'cod', paymentStatus: 'paid' }],
+    // A cod order with an advance due isn't shown to drivers until that
+    // advance is actually paid - that's the whole point of the advance
+    // (no-show/fraud protection), so it can't be skipped by just never
+    // paying it. Ungated cod (bike/auto/mini_truck, advanceAmount 0) has no
+    // advance to wait for, so it's visible immediately. Online orders are
+    // unaffected either way.
+    $or: [{ paymentMethod: 'online' }, { paymentMethod: 'cod', paymentStatus: 'paid' }, { paymentMethod: 'cod', advanceAmount: 0 }],
   })
     .populate('customerId', 'name phone')
     .sort({ createdAt: 1 })
@@ -198,7 +200,8 @@ exports.acceptOrder = catchAsync(async (req, res) => {
   // Same belt-and-suspenders for cod's advance-paid gate as the
   // enterprise check above - a direct API call must not be able to accept
   // an unpaid cod order just because availableOrders never surfaced it.
-  if (orderCheck.paymentMethod === 'cod' && orderCheck.paymentStatus !== 'paid') {
+  // Ungated cod (advanceAmount 0) has nothing to wait for.
+  if (orderCheck.paymentMethod === 'cod' && orderCheck.advanceAmount > 0 && orderCheck.paymentStatus !== 'paid') {
     throw new AppError('This booking is not available yet - the customer has not paid the advance', 400);
   }
 
@@ -393,41 +396,53 @@ exports.uploadPod = catchAsync(async (req, res) => {
   if (!otp || otp !== order.deliveryOtp) throw new AppError('Incorrect delivery code', 400);
   // The remaining cash must be physically collected before a cod delivery
   // can be finalized - closes the loop with an explicit record, rather
-  // than just assuming it happened.
+  // than just assuming it happened. Works unchanged for ungated cod too -
+  // advanceAmount is 0 there, so the full price is due in cash.
   if (order.paymentMethod === 'cod' && !cashCollected) {
-    throw new AppError(`Confirm you've collected the remaining ₹${order.price - order.codAdvanceAmount} cash before completing delivery`, 400);
+    throw new AppError(`Confirm you've collected the remaining ₹${order.price - order.advanceAmount} cash before completing delivery`, 400);
+  }
+  // For a gated online order, the remaining amount is a second Razorpay
+  // payment the customer makes themselves - the driver can't self-attest it
+  // like cash. Rather than blocking here, drop-off is confirmed (OTP
+  // verified) and the order moves to 'awaiting_payment' - the payment
+  // itself is what completes the delivery, see payment.controller.js's
+  // verify()/webhook().
+  const pendingOnlineRemainder = order.paymentMethod === 'online' && order.advanceAmount > 0 && !order.remainderPaid;
+
+  // Atomically claim the in_transit -> {awaiting_payment|delivered}
+  // transition, rather than a plain order.save() - closes a double-tap
+  // race (driver taps "Confirm delivery" twice under network lag) that
+  // would otherwise let two concurrent requests both pass the checks above
+  // and both run the completion path (and its wallet credit / driver
+  // stats) for the same trip. Only one concurrent call's filter can still
+  // match 'in_transit' once the other has written its update.
+  const claimed = await Order.findOneAndUpdate(
+    { _id: order._id, status: 'in_transit' },
+    pendingOnlineRemainder
+      ? { status: 'awaiting_payment' }
+      : { status: 'delivered', ...(order.paymentMethod === 'cod' ? { codCashCollected: true } : {}) },
+    { new: true }
+  );
+  if (!claimed) throw new AppError('This trip was already completed', 409);
+
+  if (pendingOnlineRemainder) {
+    claimed.timeline.push({ status: 'awaiting_payment', note: 'Drop-off confirmed via OTP - awaiting remaining online payment' });
+    await claimed.save();
+
+    const io = req.app.get('io');
+    if (io) io.to(`booking:${claimed._id}`).emit('status_broadcast', { bookingId: claimed._id, status: 'awaiting_payment', timestamp: Date.now() });
+    sendToUser(claimed.customerId, {
+      title: 'Almost done!',
+      body: `Pay the remaining ₹${claimed.price - claimed.advanceAmount} online to complete your delivery.`,
+      data: { bookingId: String(claimed._id), status: 'awaiting_payment' },
+    });
+
+    return success(res, { order: claimed }, 'Drop-off confirmed - waiting for the customer to pay the remaining amount online');
   }
 
-  order.status = 'delivered';
-  if (order.paymentMethod === 'cod') order.codCashCollected = true;
-  order.timeline.push({ status: 'delivered', note: 'Delivery confirmed via OTP' });
-  await order.save();
+  await completeDelivery({ order: claimed, driver, io: req.app.get('io') });
 
-  driver.totalTrips += 1;
-  driver.totalEarnings += order.price;
-  await driver.save();
-
-  // For a cod order the driver already has the cash portion physically in
-  // hand - only the advance (which the platform actually collected via
-  // Razorpay) is money the platform owes back to the driver.
-  const walletCredit = order.paymentMethod === 'cod' ? order.codAdvanceAmount : order.price;
-  await applyWalletTransaction({
-    driverId: driver._id,
-    type: 'trip_earning',
-    amount: walletCredit,
-    orderId: order._id,
-    note: order.paymentMethod === 'cod' ? 'Trip fare (advance - remainder collected in cash)' : 'Trip fare',
-  });
-
-  const io = req.app.get('io');
-  if (io) io.to(`booking:${order._id}`).emit('status_broadcast', { bookingId: order._id, status: 'delivered', timestamp: Date.now() });
-  sendToUser(order.customerId, {
-    title: 'Delivered!',
-    body: 'Your shipment has been delivered successfully.',
-    data: { bookingId: String(order._id), status: 'delivered' },
-  });
-
-  return success(res, { order }, 'Delivery confirmed');
+  return success(res, { order: claimed }, 'Delivery confirmed');
 });
 
 // GET /api/v1/driver/earnings

@@ -18,6 +18,9 @@ function PricingRow({ config, onSave }) {
     perKgRate: config.perKgRate ?? 0,
     surgeMultiplier: config.surgeMultiplier,
     isSurgeActive: config.isSurgeActive,
+    advanceRequired: config.advanceRequired ?? false,
+    advanceMode: config.advanceMode ?? 'percentage',
+    advanceValue: config.advanceValue ?? 30,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -25,6 +28,8 @@ function PricingRow({ config, onSave }) {
   const dirty = JSON.stringify(form) !== JSON.stringify({
     baseFare: config.baseFare, perKmRate: config.perKmRate, perKgRate: config.perKgRate ?? 0,
     surgeMultiplier: config.surgeMultiplier, isSurgeActive: config.isSurgeActive,
+    advanceRequired: config.advanceRequired ?? false, advanceMode: config.advanceMode ?? 'percentage',
+    advanceValue: config.advanceValue ?? 30,
   });
 
   const handleSave = async () => {
@@ -50,45 +55,79 @@ function PricingRow({ config, onSave }) {
   );
 
   return (
-    <div className="bg-panel border border-line rounded-lg p-4 grid md:grid-cols-6 gap-3 items-end">
-      <div>
-        <span className="eyebrow block mb-1">Vehicle</span>
-        <span className="text-sm font-medium">{VEHICLE_LABELS[config.vehicleType]}</span>
-      </div>
-      <div>
-        <span className="eyebrow block mb-1">Base fare (₹)</span>
-        {numInput('baseFare')}
-      </div>
-      <div>
-        <span className="eyebrow block mb-1">Per km (₹)</span>
-        {numInput('perKmRate')}
-      </div>
-      <div>
-        <span className="eyebrow block mb-1">Per kg (₹)</span>
-        {numInput('perKgRate', 0.1)}
-      </div>
-      <div>
-        <span className="eyebrow block mb-1">Surge ×</span>
-        <div className="flex items-center gap-2">
-          {numInput('surgeMultiplier', 0.1)}
-          <label className="flex items-center gap-1 text-xs text-mist whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={form.isSurgeActive}
-              onChange={(e) => setForm((f) => ({ ...f, isSurgeActive: e.target.checked }))}
-            />
-            Active
-          </label>
+    <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
+      <div className="grid md:grid-cols-6 gap-3 items-end">
+        <div>
+          <span className="eyebrow block mb-1">Vehicle</span>
+          <span className="text-sm font-medium">{VEHICLE_LABELS[config.vehicleType]}</span>
+        </div>
+        <div>
+          <span className="eyebrow block mb-1">Base fare (₹)</span>
+          {numInput('baseFare')}
+        </div>
+        <div>
+          <span className="eyebrow block mb-1">Per km (₹)</span>
+          {numInput('perKmRate')}
+        </div>
+        <div>
+          <span className="eyebrow block mb-1">Per kg (₹)</span>
+          {numInput('perKgRate', 0.1)}
+        </div>
+        <div>
+          <span className="eyebrow block mb-1">Surge ×</span>
+          <div className="flex items-center gap-2">
+            {numInput('surgeMultiplier', 0.1)}
+            <label className="flex items-center gap-1 text-xs text-mist whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={form.isSurgeActive}
+                onChange={(e) => setForm((f) => ({ ...f, isSurgeActive: e.target.checked }))}
+              />
+              Active
+            </label>
+          </div>
+        </div>
+        <div>
+          <button
+            onClick={handleSave}
+            disabled={!dirty || saving}
+            className="w-full bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-40 transition-all"
+          >
+            {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
+          </button>
         </div>
       </div>
-      <div>
-        <button
-          onClick={handleSave}
-          disabled={!dirty || saving}
-          className="w-full bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-40 transition-all"
-        >
-          {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
-        </button>
+
+      <div className="border-t border-line pt-3 grid md:grid-cols-4 gap-3 items-end">
+        <div>
+          <label className="flex items-center gap-2 text-xs text-mist whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={form.advanceRequired}
+              onChange={(e) => setForm((f) => ({ ...f, advanceRequired: e.target.checked }))}
+            />
+            Requires advance payment
+          </label>
+        </div>
+        {form.advanceRequired && (
+          <>
+            <div>
+              <span className="eyebrow block mb-1">Mode</span>
+              <select
+                value={form.advanceMode}
+                onChange={(e) => setForm((f) => ({ ...f, advanceMode: e.target.value }))}
+                className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
+              >
+                <option value="percentage">Percentage</option>
+                <option value="fixed">Fixed amount</option>
+              </select>
+            </div>
+            <div>
+              <span className="eyebrow block mb-1">{form.advanceMode === 'fixed' ? 'Amount (₹)' : 'Percentage (%)'}</span>
+              {numInput('advanceValue', form.advanceMode === 'fixed' ? 1 : 0.5)}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -132,7 +171,7 @@ export default function AdminPricingPage() {
       <div>
         <span className="eyebrow">Revenue</span>
         <h1 className="font-display text-2xl font-semibold mt-1">Pricing engine</h1>
-        <p className="text-mist text-sm mt-1">Base fare, distance rate, weight rate, and surge control per vehicle type.</p>
+        <p className="text-mist text-sm mt-1">Base fare, distance rate, weight rate, surge control, and advance-payment rules per vehicle type.</p>
       </div>
 
       {error && <div className="border border-stop/30 bg-stop/10 text-stop text-sm rounded-lg p-4">{error}</div>}

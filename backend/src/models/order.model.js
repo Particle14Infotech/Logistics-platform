@@ -48,7 +48,7 @@ const orderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'picked_up', 'in_transit', 'delivered', 'cancelled'],
+      enum: ['pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment', 'delivered', 'cancelled'],
       default: 'pending',
     },
     paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
@@ -57,16 +57,28 @@ const orderSchema = new mongoose.Schema(
     // only ever set on cancellation, see booking.controller.js's cancel().
     cancellationFeeAmount: { type: Number, default: 0 },
 
-    // 'online' pays the full price via Razorpay, as before. 'cod' only
-    // charges a smaller advance online at booking time (see
-    // pricingRules.calculateCappedHalf) - fraud/no-show protection - with
-    // the remainder collected in cash at delivery. paymentStatus 'paid' on
-    // a cod order means the *advance* was captured, not the full price.
+    // For whichever vehicle types the admin has configured with
+    // advanceRequired (see pricingConfig.model.js), both 'cod' and 'online'
+    // only charge this advance online at booking time
+    // (pricingRules.calculateAdvanceAmount) - fraud/no-show protection.
+    // Ungated types: 'online' pays the full price in one shot, and 'cod'
+    // has no advance at all (pure cash at delivery). For 'cod', the
+    // remainder is always cash at delivery. For 'online' (gated only), the
+    // remainder is a second Razorpay payment - see remainderPaid, and
+    // driver.controller.js's uploadPod for how paying it completes the
+    // delivery (order sits in 'awaiting_payment' until then). paymentStatus
+    // 'paid' means whatever was due *at booking* was captured - the advance
+    // for a gated order, or the full price otherwise.
     paymentMethod: { type: String, enum: ['online', 'cod'], default: 'online' },
-    codAdvanceAmount: { type: Number, default: 0 },
+    advanceAmount: { type: Number, default: 0 },
     // Driver-confirmed at delivery (see driver.controller.js's uploadPod) -
     // required before a cod order can be marked delivered.
     codCashCollected: { type: Boolean, default: false },
+    // Set once the second Razorpay payment (the remaining 70%) is captured
+    // for a gated 'online' order - see payment.controller.js's
+    // createRemainderOrder/verify. Always false for 'cod' and for ungated
+    // 'online' orders (nothing to track).
+    remainderPaid: { type: Boolean, default: false },
 
     startOtp: String,
     deliveryOtp: String,

@@ -11,14 +11,36 @@ class StatusPill extends StatelessWidget {
       case 'pending':
         return (Colors.blueGrey.shade50, Colors.blueGrey.shade700, 'Pending');
       case 'accepted':
-        return (AppTheme.amber.withValues(alpha: 0.15), const Color(0xFF8A6200), 'Accepted');
+        return (
+          AppTheme.amber.withValues(alpha: 0.15),
+          const Color(0xFF8A6200),
+          'Accepted'
+        );
       case 'picked_up':
       case 'in_transit':
-        return (AppTheme.amber.withValues(alpha: 0.15), const Color(0xFF8A6200), 'In Transit');
+        return (
+          AppTheme.amber.withValues(alpha: 0.15),
+          const Color(0xFF8A6200),
+          'In Transit'
+        );
+      case 'awaiting_payment':
+        return (
+          AppTheme.amber.withValues(alpha: 0.15),
+          const Color(0xFF8A6200),
+          'Awaiting Payment'
+        );
       case 'delivered':
-        return (AppTheme.success.withValues(alpha: 0.12), const Color(0xFF1B7A34), 'Delivered');
+        return (
+          AppTheme.success.withValues(alpha: 0.12),
+          const Color(0xFF1B7A34),
+          'Delivered'
+        );
       case 'cancelled':
-        return (AppTheme.error.withValues(alpha: 0.10), const Color(0xFFB3261E), 'Cancelled');
+        return (
+          AppTheme.error.withValues(alpha: 0.10),
+          const Color(0xFFB3261E),
+          'Cancelled'
+        );
       default:
         return (Colors.grey.shade200, Colors.grey.shade700, status);
     }
@@ -29,8 +51,11 @@ class StatusPill extends StatelessWidget {
     final (bg, fg, label) = _style;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: fg)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      child: Text(label,
+          style: GoogleFonts.poppins(
+              fontSize: 11, fontWeight: FontWeight.w600, color: fg)),
     );
   }
 }

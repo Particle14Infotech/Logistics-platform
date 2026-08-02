@@ -23,7 +23,13 @@ const driverSchema = new mongoose.Schema(
       coordinates: { type: [Number], default: [0, 0] }, // [lng, lat]
     },
     isAvailable: { type: Boolean, default: false },
+    // rating is only meaningful once ratingCount > 0 - see
+    // booking.controller.js's submitReview, which is the only writer of
+    // both fields (recomputed from real Review documents, never fabricated).
+    // A driver with ratingCount 0 has no real feedback yet; display should
+    // treat that as "new driver", not show the default 5 as an earned score.
     rating: { type: Number, default: 5, min: 1, max: 5 },
+    ratingCount: { type: Number, default: 0 },
     totalTrips: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
     // Spendable/payable-out balance - unlike totalEarnings (a lifetime

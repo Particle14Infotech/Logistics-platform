@@ -124,7 +124,16 @@ class _BookingConfirmationScreenState
                         if (order.paymentMethod == 'cod') ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Pay ₹${order.codAdvanceAmount} now, ₹${order.price - order.codAdvanceAmount} in cash at delivery',
+                            order.advanceAmount > 0
+                                ? 'Pay ₹${order.advanceAmount} now, ₹${order.price - order.advanceAmount} in cash at delivery'
+                                : 'Pay ₹${order.price} in cash at delivery - no advance required',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, color: Colors.grey.shade500),
+                          ),
+                        ] else if (order.advanceAmount > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pay ₹${order.advanceAmount} now, remaining ₹${order.price - order.advanceAmount} due online near delivery',
                             style: GoogleFonts.poppins(
                                 fontSize: 11, color: Colors.grey.shade500),
                           ),
@@ -142,7 +151,19 @@ class _BookingConfirmationScreenState
                 PayNowButton(
                   orderId: order.id,
                   onPaid: _load,
-                  isCodAdvance: order.paymentMethod == 'cod',
+                  isAdvance: order.advanceAmount > 0,
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (order != null &&
+                  order.paymentMethod == 'online' &&
+                  order.paymentStatus == 'paid' &&
+                  order.advanceAmount > 0 &&
+                  !order.remainderPaid) ...[
+                PayNowButton(
+                  orderId: order.id,
+                  onPaid: _load,
+                  isRemainder: true,
                 ),
                 const SizedBox(height: 8),
               ],

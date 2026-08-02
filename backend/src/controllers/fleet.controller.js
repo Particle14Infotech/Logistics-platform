@@ -108,7 +108,7 @@ exports.dashboard = catchAsync(async (req, res) => {
 
   const activeOrders = await Order.countDocuments({
     driverId: { $in: driverIds },
-    status: { $in: ['accepted', 'picked_up', 'in_transit'] },
+    status: { $in: ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'] },
   });
 
   return success(res, {

@@ -14,10 +14,10 @@ export default function Sidebar({ items, footerLabel, brandSuffix, onSignOut, mo
     <>
       <div className="h-16 flex items-center gap-2 px-5 border-b border-line">
         <div className="w-7 h-7 rounded bg-signal flex items-center justify-center">
-          <span className="font-display font-bold text-white text-sm">L</span>
+          <span className="font-display font-bold text-white text-sm">R</span>
         </div>
         <div className="leading-tight">
-          <div className="font-display font-semibold text-[15px] tracking-tight">LOGISTICS</div>
+          <div className="font-display font-semibold text-[15px] tracking-tight">RAAH MITR</div>
           <div className="eyebrow -mt-0.5">{brandSuffix}</div>
         </div>
       </div>

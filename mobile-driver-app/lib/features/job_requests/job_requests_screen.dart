@@ -240,8 +240,14 @@ class _JobDetailScreen extends StatelessWidget {
                     if (job.paymentMethod == 'cod') ...[
                       const SizedBox(height: 4),
                       Text(
-                        'Cash on Delivery - ₹${job.price - job.codAdvanceAmount} to collect at drop-off',
+                        'Cash on Delivery - ₹${job.price - job.advanceAmount} to collect at drop-off',
                         style: TextStyle(color: Colors.orange.shade800, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ] else if (job.advanceAmount > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Online - ₹${job.advanceAmount} advance paid, remainder collected online near delivery',
+                        style: TextStyle(color: Colors.blue.shade800, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ],
                     const Divider(height: 24),

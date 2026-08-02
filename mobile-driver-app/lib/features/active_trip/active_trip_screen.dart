@@ -68,7 +68,8 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   Future<void> _startLocationBroadcast() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      setState(() => _locationError = 'Turn on location services to share your position with the customer.');
+      setState(() => _locationError =
+          'Turn on location services to share your position with the customer.');
       return;
     }
 
@@ -76,8 +77,10 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      setState(() => _locationError = 'Location permission denied - the customer won\'t see your live position.');
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      setState(() => _locationError =
+          'Location permission denied - the customer won\'t see your live position.');
       return;
     }
 
@@ -103,11 +106,21 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           _error = 'This booking was cancelled.';
           _trip = _trip?.copyWith(status: 'cancelled');
         });
+      } else if (status == 'delivered' && mounted) {
+        // The customer just paid the remaining amount online, which is what
+        // actually completes the delivery while this driver was waiting on
+        // the 'awaiting_payment' screen - update state so the existing
+        // 'delivered' action-area case (with its own Back to Dashboard
+        // button) picks it up, rather than auto-navigating away.
+        ref.invalidate(driverProfileProvider);
+        setState(() => _trip = _trip?.copyWith(status: 'delivered'));
       }
     });
 
     _broadcastOnce(); // send an immediate fix rather than waiting a full interval
-    _gpsTimer = Timer.periodic(const Duration(seconds: ApiConstants.gpsBroadcastIntervalSeconds), (_) => _broadcastOnce());
+    _gpsTimer = Timer.periodic(
+        const Duration(seconds: ApiConstants.gpsBroadcastIntervalSeconds),
+        (_) => _broadcastOnce());
 
     // Foreground-service-backed broadcast, so location keeps reaching the
     // customer even if this screen is backgrounded or the OS reclaims the
@@ -118,11 +131,16 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
 
   Future<void> _broadcastOnce() async {
     try {
-      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      _socketService.sendLocation(bookingId: widget.tripId, lat: position.latitude, lng: position.longitude);
+      final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      _socketService.sendLocation(
+          bookingId: widget.tripId,
+          lat: position.latitude,
+          lng: position.longitude);
       if (mounted) {
         final moved = _driverPosition == null;
-        setState(() => _driverPosition = LatLng(position.latitude, position.longitude));
+        setState(() =>
+            _driverPosition = LatLng(position.latitude, position.longitude));
         // Only recenter on the very first fix - once the map has a position,
         // let the driver freely pan/zoom without it snapping back on every
         // broadcast tick.
@@ -151,20 +169,25 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
   }
 
-  Future<void> _advanceStatus(String status, {String? pickupCode, String? otp}) async {
+  Future<void> _advanceStatus(String status,
+      {String? pickupCode, String? otp}) async {
     setState(() {
       _updating = true;
       _error = null;
     });
     try {
-      final trip = await ref.read(driverServiceProvider).advanceTripStatus(widget.tripId, status, pickupCode: pickupCode, otp: otp);
+      final trip = await ref.read(driverServiceProvider).advanceTripStatus(
+          widget.tripId, status,
+          pickupCode: pickupCode, otp: otp);
       if (mounted) setState(() => _trip = trip);
     } catch (e) {
       // Surface the backend's actual validation message (e.g. "Cannot move
       // from picked_up to picked_up" on a double-tap, or a 404 because the
       // order was cancelled elsewhere) instead of a generic line that hides
       // what actually went wrong.
-      final serverMessage = e is DioException && e.response?.data is Map ? e.response?.data['message'] as String? : null;
+      final serverMessage = e is DioException && e.response?.data is Map
+          ? e.response?.data['message'] as String?
+          : null;
       setState(() => _error = serverMessage ?? 'Could not update trip status.');
     } finally {
       if (mounted) setState(() => _updating = false);
@@ -192,11 +215,13 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   Future<void> _confirmDelivery() async {
     final otp = _otpController.text.trim();
     if (otp.length != 6) {
-      setState(() => _error = 'Ask the customer for their 6-digit delivery code.');
+      setState(
+          () => _error = 'Ask the customer for their 6-digit delivery code.');
       return;
     }
     if (_trip?.paymentMethod == 'cod' && !_cashCollected) {
-      setState(() => _error = 'Confirm you\'ve collected the remaining cash before completing delivery.');
+      setState(() => _error =
+          'Confirm you\'ve collected the remaining cash before completing delivery.');
       return;
     }
     setState(() {
@@ -204,19 +229,33 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       _error = null;
     });
     try {
-      await ref.read(driverServiceProvider).confirmDelivery(widget.tripId, otp, cashCollected: _cashCollected);
+      final updated = await ref
+          .read(driverServiceProvider)
+          .confirmDelivery(widget.tripId, otp, cashCollected: _cashCollected);
       _gpsTimer?.cancel();
       BackgroundLocationService.stop();
-      ref.invalidate(driverProfileProvider); // picks up updated totalTrips/earnings
-      if (mounted) context.go('/dashboard');
+      if (updated.status == 'awaiting_payment') {
+        // Drop-off confirmed, but the customer still owes an online
+        // remainder - stay on this screen (the action area's
+        // 'awaiting_payment' case shows the wait state) instead of
+        // navigating away, since the trip isn't actually done yet.
+        if (mounted) setState(() => _trip = updated);
+      } else {
+        ref.invalidate(
+            driverProfileProvider); // picks up updated totalTrips/earnings
+        if (mounted) context.go('/dashboard');
+      }
     } catch (e) {
       // "Incorrect code" was previously shown for EVERY failure here,
       // including a plain network timeout or the backend's own "Trip must
       // be in transit before delivery can be confirmed" (e.g. if the order
       // was cancelled or the status changed elsewhere) - both got blamed on
       // the customer's code being wrong, which it never was.
-      final serverMessage = e is DioException && e.response?.data is Map ? e.response?.data['message'] as String? : null;
-      setState(() => _error = serverMessage ?? 'Could not confirm delivery. Check your connection and try again.');
+      final serverMessage = e is DioException && e.response?.data is Map
+          ? e.response?.data['message'] as String?
+          : null;
+      setState(() => _error = serverMessage ??
+          'Could not confirm delivery. Check your connection and try again.');
     } finally {
       if (mounted) setState(() => _updating = false);
     }
@@ -229,7 +268,10 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       backgroundColor: AppTheme.cream,
       appBar: AppBar(title: const Text('Active Trip')),
       body: trip == null
-          ? Center(child: _error != null ? Text(_error!) : const CircularProgressIndicator())
+          ? Center(
+              child: _error != null
+                  ? Text(_error!)
+                  : const CircularProgressIndicator())
           : SafeArea(
               child: ListView(
                 padding: const EdgeInsets.all(16),
@@ -243,24 +285,34 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                   // error", not "actually connected right now".
                   if (_kLiveStatuses.contains(trip.status))
                     if (_locationError != null)
-                      Text(_locationError!, style: TextStyle(color: AppTheme.error, fontSize: 12))
+                      Text(_locationError!,
+                          style: const TextStyle(
+                              color: AppTheme.error, fontSize: 12))
                     else if (_socketConnected)
-                      Row(
+                      const Row(
                         children: [
-                          Icon(Icons.gps_fixed, size: 14, color: AppTheme.success),
-                          const SizedBox(width: 6),
+                          Icon(Icons.gps_fixed,
+                              size: 14, color: AppTheme.success),
+                          SizedBox(width: 6),
                           Expanded(
-                            child: Text('Sharing your live location with the customer', style: TextStyle(color: AppTheme.success, fontSize: 12)),
+                            child: Text(
+                                'Sharing your live location with the customer',
+                                style: TextStyle(
+                                    color: AppTheme.success, fontSize: 12)),
                           ),
                         ],
                       )
                     else
-                      Row(
+                      const Row(
                         children: [
-                          Icon(Icons.gps_not_fixed, size: 14, color: AppTheme.amber),
-                          const SizedBox(width: 6),
+                          Icon(Icons.gps_not_fixed,
+                              size: 14, color: AppTheme.amber),
+                          SizedBox(width: 6),
                           Expanded(
-                            child: Text('Reconnecting - the customer may not see your live position right now', style: TextStyle(color: AppTheme.amber, fontSize: 12)),
+                            child: Text(
+                                'Reconnecting - the customer may not see your live position right now',
+                                style: TextStyle(
+                                    color: AppTheme.amber, fontSize: 12)),
                           ),
                         ],
                       ),
@@ -279,15 +331,19 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          const Icon(Icons.trip_origin, color: Colors.green, size: 18),
+                          const Icon(Icons.trip_origin,
+                              color: Colors.green, size: 18),
                           const SizedBox(width: 10),
                           Expanded(child: Text(trip.pickupLocation.address)),
-                          if (trip.status == 'accepted' && trip.pickupLocation.lat != null && trip.pickupLocation.lng != null) ...[
+                          if (trip.status == 'accepted' &&
+                              trip.pickupLocation.lat != null &&
+                              trip.pickupLocation.lng != null) ...[
                             const SizedBox(width: 8),
                             _CircleIconButton(
                               icon: Icons.directions,
                               onTap: () => launchUrl(
-                                Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${trip.pickupLocation.lat},${trip.pickupLocation.lng}&travelmode=driving'),
+                                Uri.parse(
+                                    'https://www.google.com/maps/dir/?api=1&destination=${trip.pickupLocation.lat},${trip.pickupLocation.lng}&travelmode=driving'),
                                 mode: LaunchMode.externalApplication,
                               ),
                             ),
@@ -295,15 +351,20 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                         ]),
                         const SizedBox(height: 10),
                         Row(children: [
-                          const Icon(Icons.location_on, color: Colors.red, size: 18),
+                          const Icon(Icons.location_on,
+                              color: Colors.red, size: 18),
                           const SizedBox(width: 10),
                           Expanded(child: Text(trip.dropLocation.address)),
-                          if ((trip.status == 'picked_up' || trip.status == 'in_transit') && trip.dropLocation.lat != null && trip.dropLocation.lng != null) ...[
+                          if ((trip.status == 'picked_up' ||
+                                  trip.status == 'in_transit') &&
+                              trip.dropLocation.lat != null &&
+                              trip.dropLocation.lng != null) ...[
                             const SizedBox(width: 8),
                             _CircleIconButton(
                               icon: Icons.directions,
                               onTap: () => launchUrl(
-                                Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${trip.dropLocation.lat},${trip.dropLocation.lng}&travelmode=driving'),
+                                Uri.parse(
+                                    'https://www.google.com/maps/dir/?api=1&destination=${trip.dropLocation.lat},${trip.dropLocation.lng}&travelmode=driving'),
                                 mode: LaunchMode.externalApplication,
                               ),
                             ),
@@ -320,34 +381,60 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Order #${trip.id.substring(trip.id.length - 8).toUpperCase()}',
-                                style: const TextStyle(fontWeight: FontWeight.w600)),
+                            Text(
+                                'Order #${trip.id.substring(trip.id.length - 8).toUpperCase()}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600)),
                             Text(
                               '${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}',
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                              style: TextStyle(
+                                  color: Colors.grey.shade500, fontSize: 12),
                             ),
                           ],
                         ),
                         const Divider(height: 20),
-                        _DetailRow(icon: Icons.local_shipping_outlined, label: 'Vehicle', value: trip.vehicleType),
+                        _DetailRow(
+                            icon: Icons.local_shipping_outlined,
+                            label: 'Vehicle',
+                            value: trip.vehicleType),
                         if (trip.goodsType != null) ...[
                           const SizedBox(height: 8),
-                          _DetailRow(icon: Icons.inventory_2_outlined, label: 'Goods', value: trip.goodsType!),
+                          _DetailRow(
+                              icon: Icons.inventory_2_outlined,
+                              label: 'Goods',
+                              value: trip.goodsType!),
                         ],
                         if (trip.weightKg != null) ...[
                           const SizedBox(height: 8),
-                          _DetailRow(icon: Icons.scale_outlined, label: 'Weight', value: '${trip.weightKg!.toStringAsFixed(0)} kg'),
+                          _DetailRow(
+                              icon: Icons.scale_outlined,
+                              label: 'Weight',
+                              value: '${trip.weightKg!.toStringAsFixed(0)} kg'),
                         ],
                         if (trip.distanceKm != null) ...[
                           const SizedBox(height: 8),
-                          _DetailRow(icon: Icons.route_outlined, label: 'Distance', value: '${trip.distanceKm!.toStringAsFixed(1)} km'),
+                          _DetailRow(
+                              icon: Icons.route_outlined,
+                              label: 'Distance',
+                              value:
+                                  '${trip.distanceKm!.toStringAsFixed(1)} km'),
                         ],
                         if (trip.paymentMethod == 'cod') ...[
                           const SizedBox(height: 8),
                           _DetailRow(
                             icon: Icons.payments_outlined,
                             label: 'Cash to collect',
-                            value: '₹${trip.price - trip.codAdvanceAmount}',
+                            value: '₹${trip.price - trip.advanceAmount}',
+                          ),
+                        ],
+                        if (trip.paymentMethod == 'online' &&
+                            trip.advanceAmount > 0 &&
+                            !trip.remainderPaid) ...[
+                          const SizedBox(height: 8),
+                          _DetailRow(
+                            icon: Icons.payments_outlined,
+                            label: 'Remaining (online)',
+                            value: '₹${trip.price - trip.advanceAmount}',
                           ),
                         ],
                       ],
@@ -358,20 +445,31 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                     _InfoCard(
                       child: Row(
                         children: [
-                          CircleAvatar(backgroundColor: AppTheme.amber.withOpacity(0.15), child: const Icon(Icons.person, color: AppTheme.amber)),
+                          CircleAvatar(
+                              backgroundColor:
+                                  AppTheme.amber.withValues(alpha: 0.15),
+                              child: const Icon(Icons.person,
+                                  color: AppTheme.amber)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(trip.customerName!, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                if (trip.customerPhone != null) Text(trip.customerPhone!, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                                Text(trip.customerName!,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600)),
+                                if (trip.customerPhone != null)
+                                  Text(trip.customerPhone!,
+                                      style: TextStyle(
+                                          color: Colors.grey.shade500,
+                                          fontSize: 12)),
                               ],
                             ),
                           ),
                           _CircleIconButton(
                               icon: Icons.chat_bubble_outline,
-                              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                              onTap: () =>
+                                  Navigator.of(context).push(MaterialPageRoute(
                                     builder: (_) => ChatScreen(
                                       bookingId: widget.tripId,
                                       customerName: trip.customerName,
@@ -381,7 +479,8 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                             const SizedBox(width: 8),
                             _CircleIconButton(
                                 icon: Icons.call_outlined,
-                                onTap: () => launchUrl(Uri(scheme: 'tel', path: trip.customerPhone))),
+                                onTap: () => launchUrl(Uri(
+                                    scheme: 'tel', path: trip.customerPhone))),
                           ],
                         ],
                       ),
@@ -391,14 +490,18 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Fare', style: TextStyle(fontWeight: FontWeight.w600)),
-                        Text('₹${trip.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const Text('Fare',
+                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text('₹${trip.price}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18)),
                       ],
                     ),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: AppTheme.error)),
+                    Text(_error!,
+                        style: const TextStyle(color: AppTheme.error)),
                   ],
                   const SizedBox(height: 24),
                   _buildActionArea(trip),
@@ -429,7 +532,9 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text("Ask the customer for their start code to begin the trip:", textAlign: TextAlign.center),
+            const Text(
+                "Ask the customer for their start code to begin the trip:",
+                textAlign: TextAlign.center),
             const SizedBox(height: 12),
             TextField(
               controller: _startOtpController,
@@ -437,7 +542,10 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, letterSpacing: 8),
-              decoration: const InputDecoration(counterText: '', border: OutlineInputBorder(), hintText: '000000'),
+              decoration: const InputDecoration(
+                  counterText: '',
+                  border: OutlineInputBorder(),
+                  hintText: '000000'),
             ),
             const SizedBox(height: 8),
             FilledButton.icon(
@@ -448,11 +556,13 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           ],
         );
       case 'in_transit':
-        final codRemaining = trip.price - trip.codAdvanceAmount;
+        final codRemaining = trip.price - trip.advanceAmount;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text("Ask the customer for their delivery code to confirm drop-off:", textAlign: TextAlign.center),
+            const Text(
+                "Ask the customer for their delivery code to confirm drop-off:",
+                textAlign: TextAlign.center),
             const SizedBox(height: 12),
             TextField(
               controller: _otpController,
@@ -460,16 +570,31 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, letterSpacing: 8),
-              decoration: const InputDecoration(counterText: '', border: OutlineInputBorder(), hintText: '000000'),
+              decoration: const InputDecoration(
+                  counterText: '',
+                  border: OutlineInputBorder(),
+                  hintText: '000000'),
             ),
             if (trip.paymentMethod == 'cod') ...[
               const SizedBox(height: 8),
               CheckboxListTile(
                 value: _cashCollected,
-                onChanged: (value) => setState(() => _cashCollected = value ?? false),
+                onChanged: (value) =>
+                    setState(() => _cashCollected = value ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
-                title: Text('I have collected ₹$codRemaining in cash from the customer'),
+                title: Text(
+                    'I have collected ₹$codRemaining in cash from the customer'),
+              ),
+            ],
+            if (trip.paymentMethod == 'online' &&
+                trip.advanceAmount > 0 &&
+                !trip.remainderPaid) ...[
+              const SizedBox(height: 8),
+              Text(
+                'The customer still owes ₹$codRemaining online. Confirming will mark drop-off as done and ask them to pay - the trip completes automatically once they do.',
+                style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
+                textAlign: TextAlign.center,
               ),
             ],
             const SizedBox(height: 8),
@@ -480,15 +605,51 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
             ),
           ],
         );
+      case 'awaiting_payment':
+        final remaining = trip.price - trip.advanceAmount;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.hourglass_top, size: 48, color: AppTheme.amber),
+            const SizedBox(height: 12),
+            const Text(
+              'Delivery confirmed',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Waiting for the customer to pay the remaining ₹$remaining online. This screen updates automatically once paid.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _updating ? null : _load,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+            ),
+          ],
+        );
       case 'delivered':
-        return const Center(child: Text('This trip is complete.'));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(child: Text('This trip is complete.')),
+            const SizedBox(height: 12),
+            OutlinedButton(
+                onPressed: () => context.go('/dashboard'),
+                child: const Text('Back to dashboard')),
+          ],
+        );
       case 'cancelled':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Center(child: Text('This booking was cancelled.')),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: () => context.go('/dashboard'), child: const Text('Back to dashboard')),
+            OutlinedButton(
+                onPressed: () => context.go('/dashboard'),
+                child: const Text('Back to dashboard')),
           ],
         );
       default:
@@ -501,7 +662,8 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _DetailRow({required this.icon, required this.label, required this.value});
+  const _DetailRow(
+      {required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -509,9 +671,11 @@ class _DetailRow extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: Colors.grey.shade500),
         const SizedBox(width: 10),
-        Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+        Text(label,
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
         const Spacer(),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        Text(value,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
       ],
     );
   }
@@ -525,7 +689,9 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppTheme.borderColor)),
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }
@@ -555,25 +721,35 @@ class _LiveMapCard extends StatelessWidget {
     if (driverPosition == null) {
       return Card(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppTheme.borderColor)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppTheme.borderColor)),
         child: Container(
           height: 160,
           alignment: Alignment.center,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8, width: 200, child: LinearProgressIndicator()),
+              const SizedBox(
+                  height: 8, width: 200, child: LinearProgressIndicator()),
               const SizedBox(height: 12),
-              Text('Getting your GPS position…', style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+              Text('Getting your GPS position…',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
             ],
           ),
         ),
       );
     }
 
-    final dropPoint = (drop.lat != null && drop.lng != null) ? LatLng(drop.lat!, drop.lng!) : null;
-    final pickupPoint = (pickup.lat != null && pickup.lng != null) ? LatLng(pickup.lat!, pickup.lng!) : null;
-    final distanceToDropKm = dropPoint == null ? null : const Distance().as(LengthUnit.Kilometer, driverPosition!, dropPoint);
+    final dropPoint = (drop.lat != null && drop.lng != null)
+        ? LatLng(drop.lat!, drop.lng!)
+        : null;
+    final pickupPoint = (pickup.lat != null && pickup.lng != null)
+        ? LatLng(pickup.lat!, pickup.lng!)
+        : null;
+    final distanceToDropKm = dropPoint == null
+        ? null
+        : const Distance().as(LengthUnit.Kilometer, driverPosition!, dropPoint);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,12 +757,14 @@ class _LiveMapCard extends StatelessWidget {
         Card(
           elevation: 0,
           clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           child: SizedBox(
             height: 200,
             child: FlutterMap(
               mapController: mapController,
-              options: MapOptions(initialCenter: driverPosition!, initialZoom: 15),
+              options:
+                  MapOptions(initialCenter: driverPosition!, initialZoom: 15),
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -595,10 +773,25 @@ class _LiveMapCard extends StatelessWidget {
                 MarkerLayer(
                   markers: [
                     if (pickupPoint != null)
-                      Marker(point: pickupPoint, width: 32, height: 32, child: const Icon(Icons.trip_origin, color: Colors.green, size: 26)),
+                      Marker(
+                          point: pickupPoint,
+                          width: 32,
+                          height: 32,
+                          child: const Icon(Icons.trip_origin,
+                              color: Colors.green, size: 26)),
                     if (dropPoint != null)
-                      Marker(point: dropPoint, width: 32, height: 32, child: const Icon(Icons.location_on, color: Colors.red, size: 30)),
-                    Marker(point: driverPosition!, width: 36, height: 36, child: const Icon(Icons.local_shipping, color: AppTheme.amber, size: 30)),
+                      Marker(
+                          point: dropPoint,
+                          width: 32,
+                          height: 32,
+                          child: const Icon(Icons.location_on,
+                              color: Colors.red, size: 30)),
+                    Marker(
+                        point: driverPosition!,
+                        width: 36,
+                        height: 36,
+                        child: const Icon(Icons.local_shipping,
+                            color: AppTheme.amber, size: 30)),
                   ],
                 ),
               ],
@@ -609,7 +802,10 @@ class _LiveMapCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             '${distanceToDropKm.toStringAsFixed(1)} km to drop-off',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600),
           ),
         ],
       ],
@@ -625,12 +821,14 @@ class _CircleIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppTheme.amber.withOpacity(0.15),
+      color: AppTheme.amber.withValues(alpha: 0.15),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
-        child: Padding(padding: const EdgeInsets.all(8), child: Icon(icon, size: 18, color: AppTheme.amber)),
+        child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, size: 18, color: AppTheme.amber)),
       ),
     );
   }
@@ -663,7 +861,10 @@ class _BarcodeScanScreenState extends State<_BarcodeScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan package barcode'), backgroundColor: Colors.black, foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text('Scan package barcode'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white),
       backgroundColor: Colors.black,
       body: Stack(
         children: [
@@ -672,14 +873,18 @@ class _BarcodeScanScreenState extends State<_BarcodeScanScreen> {
             child: Container(
               width: 240,
               height: 240,
-              decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 2), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ),
           const Positioned(
             bottom: 32,
             left: 0,
             right: 0,
-            child: Text('Align the barcode within the frame', style: TextStyle(color: Colors.white), textAlign: TextAlign.center),
+            child: Text('Align the barcode within the frame',
+                style: TextStyle(color: Colors.white),
+                textAlign: TextAlign.center),
           ),
         ],
       ),

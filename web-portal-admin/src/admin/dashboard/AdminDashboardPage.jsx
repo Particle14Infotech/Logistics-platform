@@ -22,6 +22,7 @@ const STATUS_BAR_COLOR = {
   accepted: '#2A78D6',
   picked_up: '#2A78D6',
   in_transit: '#2A78D6',
+  awaiting_payment: '#FAB219',
   delivered: '#0CA30C',
   cancelled: '#D03B3B',
 };

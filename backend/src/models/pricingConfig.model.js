@@ -14,6 +14,13 @@ const pricingConfigSchema = new mongoose.Schema(
     perKgRate: { type: Number, default: 0 }, // optional INR per kg over a free allowance
     surgeMultiplier: { type: Number, default: 1.0 }, // 1.0 = no surge
     isSurgeActive: { type: Boolean, default: false },
+    // Whether this vehicle type carries an upfront advance at booking (both
+    // cod and online) - see backend/src/utils/pricingRules.js. advanceValue
+    // means % of order price (0-100) when advanceMode is 'percentage', or a
+    // flat ₹ amount when 'fixed'.
+    advanceRequired: { type: Boolean, default: false },
+    advanceMode: { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+    advanceValue: { type: Number, default: 30 },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }

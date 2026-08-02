@@ -6,7 +6,7 @@ import StatusBadge from '../../shared/components/StatusBadge.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
-const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'delivered', 'cancelled'];
+const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment', 'delivered', 'cancelled'];
 const VEHICLE_OPTIONS = ['', 'bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'];
 
 export default function AdminOrdersPage() {

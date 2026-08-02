@@ -91,6 +91,21 @@ class PaymentService {
     );
   }
 
+  // Only valid for gated (medium_truck/large_truck) 'online' orders whose
+  // advance is already paid - charges the remaining 70%.
+  Future<RazorpayOrderDetails> createRemainderOrder(String orderId) async {
+    final response = await _dio.post('/payment/create-remainder-order', data: {'orderId': orderId});
+    final data = response.data['data'];
+    return RazorpayOrderDetails(
+      razorpayOrderId: data['razorpayOrderId'] as String,
+      amount: data['amount'] as int,
+      currency: data['currency'] as String,
+      keyId: data['keyId'] as String,
+      paymentId: data['paymentId'] as String,
+      customerId: data['customerId'] as String?,
+    );
+  }
+
   Future<void> verifyPayment({
     required String razorpayOrderId,
     required String razorpayPaymentId,

@@ -125,6 +125,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                   _PaymentMethodCard(
                     selected: _paymentMethod,
                     price: estimate.estimatedPrice,
+                    advanceAmount: estimate.advanceAmount,
                     onChanged: (value) => setState(() => _paymentMethod = value),
                   ),
                   if (_error != null) ...[
@@ -214,16 +215,18 @@ class _FareRow extends StatelessWidget {
 class _PaymentMethodCard extends StatelessWidget {
   final String selected;
   final num price;
+  // Real, server-computed value from /booking/estimate (see
+  // pricingRules.calculateAdvanceAmount) - reflects whatever the admin has
+  // currently configured for this vehicle type, 0 if no advance applies.
+  final num advanceAmount;
   final ValueChanged<String> onChanged;
-  const _PaymentMethodCard({required this.selected, required this.price, required this.onChanged});
+  const _PaymentMethodCard({required this.selected, required this.price, required this.advanceAmount, required this.onChanged});
 
-  // Mirrors the backend's calculateCappedHalf (pricingRules.js) purely for
-  // preview - the backend recomputes and enforces the real advance amount
-  // independently at booking creation.
-  num get _codAdvance => (price * 0.5).clamp(0, 300).round();
+  bool get _requiresAdvance => advanceAmount > 0;
 
   @override
   Widget build(BuildContext context) {
+    final remaining = price - advanceAmount;
     return _InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +235,9 @@ class _PaymentMethodCard extends StatelessWidget {
           const SizedBox(height: 10),
           _PaymentOptionTile(
             title: 'Pay Online',
-            subtitle: 'Pay the full amount now via card/UPI',
+            subtitle: _requiresAdvance
+                ? '₹$advanceAmount due now online, remaining ₹$remaining due online near delivery'
+                : 'Pay the full amount now via card/UPI',
             icon: Icons.credit_card_outlined,
             value: 'online',
             groupValue: selected,
@@ -241,7 +246,9 @@ class _PaymentMethodCard extends StatelessWidget {
           const SizedBox(height: 8),
           _PaymentOptionTile(
             title: 'Cash on Delivery',
-            subtitle: '₹$_codAdvance due now online, remaining ₹${price - _codAdvance} in cash at delivery',
+            subtitle: _requiresAdvance
+                ? '₹$advanceAmount due now online, remaining ₹$remaining in cash at delivery'
+                : 'Pay the full amount in cash at delivery',
             icon: Icons.payments_outlined,
             value: 'cod',
             groupValue: selected,
