@@ -11,7 +11,8 @@ class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
 
   @override
-  State<NotificationCenterScreen> createState() => _NotificationCenterScreenState();
+  State<NotificationCenterScreen> createState() =>
+      _NotificationCenterScreenState();
 }
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
@@ -61,7 +62,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           if (hasUnread)
             TextButton(
               onPressed: _markAllRead,
-              child: Text('Mark all read', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+              child: Text('Mark all read',
+                  style:
+                      GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
             ),
         ],
       ),
@@ -69,15 +72,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         child: RefreshIndicator(
           onRefresh: _load,
           child: _notifications == null
-              ? Center(child: _error != null ? Text(_error!) : const CircularProgressIndicator())
+              ? Center(
+                  child: _error != null
+                      ? Text(_error!)
+                      : const CircularProgressIndicator())
               : _notifications!.isEmpty
                   ? ListView(
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(32),
                           child: Center(
-                            child: Text("You're all caught up - nothing here yet.",
-                                style: GoogleFonts.poppins(color: AppTheme.textGrey)),
+                            child: Text(
+                                "You're all caught up - nothing here yet.",
+                                style: GoogleFonts.poppins(
+                                    color: AppTheme.textGrey)),
                           ),
                         ),
                       ],
@@ -105,16 +113,24 @@ class _NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      color: notification.isRead ? Colors.white : AppTheme.amber.withOpacity(0.08),
+      color: notification.isRead
+          ? Colors.white
+          : AppTheme.amber.withValues(alpha: 0.08),
       child: ListTile(
         onTap: onTap,
         leading: Icon(
-          notification.isRead ? Icons.notifications_none : Icons.notifications_active,
+          notification.isRead
+              ? Icons.notifications_none
+              : Icons.notifications_active,
           color: notification.isRead ? Colors.grey.shade400 : AppTheme.amber,
         ),
         title: Text(notification.title,
-            style: GoogleFonts.poppins(fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700)),
-        subtitle: Text(notification.body, style: GoogleFonts.poppins(fontSize: 12.5, color: AppTheme.textGrey)),
+            style: GoogleFonts.poppins(
+                fontWeight:
+                    notification.isRead ? FontWeight.w500 : FontWeight.w700)),
+        subtitle: Text(notification.body,
+            style:
+                GoogleFonts.poppins(fontSize: 12.5, color: AppTheme.textGrey)),
         trailing: Text(
           '${notification.createdAt.day}/${notification.createdAt.month}',
           style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade400),

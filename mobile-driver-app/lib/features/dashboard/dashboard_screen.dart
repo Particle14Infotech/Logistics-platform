@@ -9,7 +9,12 @@ import '../../services/driver_service.dart';
 import '../../models/trip_model.dart';
 import '../../widgets/status_pill.dart';
 
-const _kActiveStatuses = ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'];
+const _kActiveStatuses = [
+  'accepted',
+  'picked_up',
+  'in_transit',
+  'awaiting_payment'
+];
 
 // Home dashboard - greeting header, quick actions, recent trips (SRS
 // 3.2.3), matching the reference design's Home screen layout: avatar +
@@ -104,8 +109,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Text('Could not load your profile.\n$e',
                   textAlign: TextAlign.center)),
           data: (profile) {
-            if (profile == null)
+            if (profile == null) {
               return const Center(child: CircularProgressIndicator());
+            }
             if (!profile.isApproved) {
               return _PendingApprovalView(
                 onCheckStatus: () async {

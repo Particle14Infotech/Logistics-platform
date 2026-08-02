@@ -55,8 +55,9 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
       ref.invalidate(driverProfileProvider);
       if (mounted) setState(() => _success = 'Bank details saved.');
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = 'Could not save bank details. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

@@ -21,16 +21,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _page = 0;
 
   static const _slides = [
-    (icon: Icons.local_shipping, title: 'Easy Shipping,\nSmarter Business', body: 'Smart shipping saves time, cuts costs\nand grows businesses faster.'),
-    (icon: Icons.map, title: 'Track Live,\nDoor to Door', body: 'Watch your driver approach on the map\nwith real-time ETA updates.'),
-    (icon: Icons.payments, title: 'Pay Your Way,\nEvery Time', body: 'UPI, cards, net banking, or wallet -\nyour choice, every booking.'),
+    (
+      icon: Icons.local_shipping,
+      title: 'Easy Shipping,\nSmarter Business',
+      body:
+          'Smart shipping saves time, cuts costs\nand grows businesses faster.'
+    ),
+    (
+      icon: Icons.map,
+      title: 'Track Live,\nDoor to Door',
+      body: 'Watch your driver approach on the map\nwith real-time ETA updates.'
+    ),
+    (
+      icon: Icons.payments,
+      title: 'Pay Your Way,\nEvery Time',
+      body: 'UPI, cards, net banking, or wallet -\nyour choice, every booking.'
+    ),
   ];
 
   void _next() {
     if (_page == _slides.length - 1) {
       context.go('/login');
     } else {
-      _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _controller.nextPage(
+          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
   }
 
@@ -68,7 +82,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: i == _page ? 28 : 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: i == _page ? Colors.white : Colors.white.withValues(alpha: 0.35),
+                          color: i == _page
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -77,15 +93,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 20),
                   Text(
                     _slides[_page].title,
-                    style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white, height: 1.25),
+                    style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.25),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     _slides[_page].body,
-                    style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withValues(alpha: 0.85), height: 1.5),
+                    style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        height: 1.5),
                   ),
                   const SizedBox(height: 28),
-                  _GetStartedButton(isLast: _page == _slides.length - 1, onTap: _next),
+                  _GetStartedButton(
+                      isLast: _page == _slides.length - 1, onTap: _next),
                 ],
               ),
             ),
@@ -103,7 +127,8 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(36), bottomRight: Radius.circular(36)),
+      borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(36), bottomRight: Radius.circular(36)),
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -112,7 +137,9 @@ class _HeroSection extends StatelessWidget {
             colors: [AppTheme.primaryMedium, AppTheme.primary],
           ),
         ),
-        child: Center(child: Icon(icon, size: 140, color: Colors.white.withValues(alpha: 0.9))),
+        child: Center(
+            child: Icon(icon,
+                size: 140, color: Colors.white.withValues(alpha: 0.9))),
       ),
     );
   }
@@ -130,20 +157,28 @@ class _GetStartedButton extends StatelessWidget {
       child: Container(
         height: 60,
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(30)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 40,
               height: 40,
-              decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-              child: const Icon(Icons.local_shipping, color: Colors.white, size: 20),
+              decoration: const BoxDecoration(
+                  color: AppTheme.primary, shape: BoxShape.circle),
+              child: const Icon(Icons.local_shipping,
+                  color: Colors.white, size: 20),
             ),
             const SizedBox(width: 14),
-            Text(isLast ? 'Get Started' : 'Next', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+            Text(isLast ? 'Get Started' : 'Next',
+                style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark)),
             const SizedBox(width: 8),
-            const Icon(Icons.keyboard_double_arrow_right, color: AppTheme.primary, size: 20),
+            const Icon(Icons.keyboard_double_arrow_right,
+                color: AppTheme.primary, size: 20),
             const SizedBox(width: 8),
           ],
         ),
