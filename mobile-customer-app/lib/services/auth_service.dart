@@ -20,6 +20,7 @@ class AuthService {
     String? phone,
     String? dob,
     bool? notificationsEnabled,
+    String? gstin,
   }) async {
     final response = await _dio.put('/auth/profile', data: {
       if (name != null) 'name': name,
@@ -27,6 +28,7 @@ class AuthService {
       if (phone != null) 'phone': phone,
       if (dob != null) 'dob': dob,
       if (notificationsEnabled != null) 'notificationsEnabled': notificationsEnabled,
+      if (gstin != null) 'gstin': gstin,
     });
     return UserModel.fromJson(response.data['data']['user'] as Map<String, dynamic>);
   }

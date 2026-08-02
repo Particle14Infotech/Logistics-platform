@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../chat/chat_screen.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
@@ -40,6 +43,8 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   final _otpController = TextEditingController();
   final _startOtpController = TextEditingController();
   bool _cashCollected = false;
+  bool _downloadingInvoice = false;
+  bool _addingEwayBill = false;
 
   final _socketService = SocketService();
   Timer? _gpsTimer;
@@ -258,6 +263,63 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           'Could not confirm delivery. Check your connection and try again.');
     } finally {
       if (mounted) setState(() => _updating = false);
+    }
+  }
+
+  Future<void> _downloadInvoice() async {
+    setState(() => _downloadingInvoice = true);
+    try {
+      final bytes =
+          await ref.read(driverServiceProvider).downloadInvoice(widget.tripId);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/waybill-${widget.tripId}.pdf');
+      await file.writeAsBytes(bytes);
+      if (mounted) {
+        await Share.shareXFiles([XFile(file.path)], text: 'Delivery waybill');
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Could not download the invoice.');
+    } finally {
+      if (mounted) setState(() => _downloadingInvoice = false);
+    }
+  }
+
+  Future<void> _showAddEwayBillDialog() async {
+    final controller = TextEditingController();
+    final ewayBillNo = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add E-Way Bill Number'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+              hintText: 'E-Way Bill No.', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('Save')),
+        ],
+      ),
+    );
+    if (ewayBillNo == null || ewayBillNo.isEmpty) return;
+
+    setState(() => _addingEwayBill = true);
+    try {
+      await ref
+          .read(driverServiceProvider)
+          .addEwayBillNumber(widget.tripId, ewayBillNo);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('E-Way Bill number saved.')));
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Could not save the E-Way Bill number.');
+    } finally {
+      if (mounted) setState(() => _addingEwayBill = false);
     }
   }
 
@@ -603,6 +665,12 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               icon: const Icon(Icons.check_circle),
               label: Text(_updating ? 'Confirming…' : 'Confirm delivery'),
             ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _addingEwayBill ? null : _showAddEwayBillDialog,
+              icon: const Icon(Icons.article_outlined),
+              label: Text(_addingEwayBill ? 'Saving…' : 'Add E-Way Bill No.'),
+            ),
           ],
         );
       case 'awaiting_payment':
@@ -636,6 +704,12 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           children: [
             const Center(child: Text('This trip is complete.')),
             const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _downloadingInvoice ? null : _downloadInvoice,
+              icon: const Icon(Icons.receipt_long_outlined),
+              label: Text(_downloadingInvoice ? 'Preparing…' : 'Download invoice'),
+            ),
+            const SizedBox(height: 8),
             OutlinedButton(
                 onPressed: () => context.go('/dashboard'),
                 child: const Text('Back to dashboard')),

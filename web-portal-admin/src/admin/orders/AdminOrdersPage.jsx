@@ -89,6 +89,23 @@ export default function AdminOrdersPage() {
     },
     { key: 'status', label: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     { key: 'price', label: 'Amount', render: (r) => <span className="font-mono">₹{r.price.toLocaleString('en-IN')}</span> },
+    {
+      key: 'waybill',
+      label: 'Waybill',
+      // Only counts the fields that never auto-fill and are easy to forget
+      // (see booking.controller.js's downloadInvoicePdf) - not GSTINs/
+      // remark/declaredValue/ratePerTon, which are optional or already
+      // defaulted. Lets staff spot gaps here instead of at download time.
+      render: (r) => {
+        const wb = r.waybillDetails || {};
+        const missing = ['consigneeName', 'consigneePhone', 'ewayBillNo'].filter((f) => !wb[f]);
+        return missing.length === 0 ? (
+          <span className="text-go text-xs">Complete</span>
+        ) : (
+          <span className="text-hold text-xs">{missing.length} missing</span>
+        );
+      },
+    },
   ];
 
   return (

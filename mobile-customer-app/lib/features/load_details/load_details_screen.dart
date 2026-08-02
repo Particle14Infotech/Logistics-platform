@@ -22,6 +22,11 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
   bool _loading = false;
   String? _error;
 
+  bool _showReceiverDetails = false;
+  final _consigneeNameController = TextEditingController();
+  final _consigneePhoneController = TextEditingController();
+  final _consigneeGstinController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +54,9 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
   @override
   void dispose() {
     _weightController.dispose();
+    _consigneeNameController.dispose();
+    _consigneePhoneController.dispose();
+    _consigneeGstinController.dispose();
     super.dispose();
   }
 
@@ -73,7 +81,15 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
     });
 
     final notifier = ref.read(bookingDraftProvider.notifier);
-    notifier.setLoadDetails(goodsType: _goodsType, weightKg: weight, isFragile: _isFragile, insuranceOpted: _insuranceOpted);
+    notifier.setLoadDetails(
+      goodsType: _goodsType,
+      weightKg: weight,
+      isFragile: _isFragile,
+      insuranceOpted: _insuranceOpted,
+      consigneeName: _consigneeNameController.text.trim(),
+      consigneePhone: _consigneePhoneController.text.trim(),
+      consigneeGstin: _consigneeGstinController.text.trim(),
+    );
     try {
       final estimate = await ref.read(bookingServiceProvider).getEstimate(
             pickup: draft.pickup!,
@@ -123,6 +139,31 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
               value: _insuranceOpted,
               onChanged: (v) => setState(() => _insuranceOpted = v),
             ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              title: const Text('Receiver details'),
+              subtitle: const Text('Optional - filled into your invoice/waybill'),
+              value: _showReceiverDetails,
+              onChanged: (v) => setState(() => _showReceiverDetails = v),
+            ),
+            if (_showReceiverDetails) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _consigneeNameController,
+                decoration: const InputDecoration(labelText: "Receiver's name", border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _consigneePhoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: "Receiver's phone", border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _consigneeGstinController,
+                decoration: const InputDecoration(labelText: "Receiver's GSTIN (optional)", border: OutlineInputBorder()),
+              ),
+            ],
             if (_error != null) ...[
               const SizedBox(height: 8),
               Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),

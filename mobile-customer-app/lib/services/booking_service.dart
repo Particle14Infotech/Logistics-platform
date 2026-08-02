@@ -46,6 +46,9 @@ class BookingService {
     bool insuranceOpted = false,
     required double distanceKm,
     String paymentMethod = 'online',
+    String? consigneeName,
+    String? consigneePhone,
+    String? consigneeGstin,
   }) async {
     final response = await _dio.post('/booking/create', data: {
       'pickupLocation': pickup.toJson(),
@@ -57,6 +60,9 @@ class BookingService {
       'insuranceOpted': insuranceOpted,
       'distanceKm': distanceKm,
       'paymentMethod': paymentMethod,
+      if (consigneeName != null && consigneeName.isNotEmpty) 'consigneeName': consigneeName,
+      if (consigneePhone != null && consigneePhone.isNotEmpty) 'consigneePhone': consigneePhone,
+      if (consigneeGstin != null && consigneeGstin.isNotEmpty) 'consigneeGstin': consigneeGstin,
     });
     return OrderModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }

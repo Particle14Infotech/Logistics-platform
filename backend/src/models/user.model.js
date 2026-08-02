@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, unique: true, sparse: true, index: true },
     email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     dob: Date,
+    // Customer's own business GSTIN, set once on their profile - reused as
+    // the consignor GSTIN on every order's waybill (see booking.controller.js's
+    // create()), instead of asking for it again on every single booking.
+    gstin: String,
     passwordHash: { type: String, select: false },
     firebaseUid: { type: String, unique: true, sparse: true, index: true },
     role: {

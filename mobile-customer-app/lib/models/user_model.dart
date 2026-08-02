@@ -6,6 +6,7 @@ class UserModel {
   final String? dob;
   final String role;
   final bool notificationsEnabled;
+  final String? gstin;
 
   UserModel({
     required this.id,
@@ -15,6 +16,7 @@ class UserModel {
     this.dob,
     required this.role,
     this.notificationsEnabled = true,
+    this.gstin,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class UserModel {
       dob: json['dob'] as String?,
       role: json['role'] as String? ?? 'customer',
       notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+      gstin: json['gstin'] as String?,
     );
   }
 }

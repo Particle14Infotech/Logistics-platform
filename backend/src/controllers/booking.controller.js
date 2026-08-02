@@ -3,6 +3,7 @@ const companyInfo = require('../config/companyInfo');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
+const User = require('../models/user.model');
 const Payment = require('../models/payment.model');
 const Message = require('../models/message.model');
 const Review = require('../models/review.model');
@@ -19,6 +20,17 @@ function assertWeightWithinCapacity(vehicleType, weightKg) {
   if (maxWeight != null && weightKg > maxWeight) {
     throw new AppError(`Weight exceeds the ${maxWeight}kg limit for ${vehicleType}`, 400);
   }
+}
+
+// Used by downloadInvoicePdf/updateWaybillDetails, which need to let the
+// order's own assigned driver through in addition to its customer/admin -
+// works whether order.driverId is populated (an object) or not (a plain id).
+async function isAssignedDriverForOrder(order, userId) {
+  if (!order.driverId) return false;
+  const driverDoc = await Driver.findOne({ userId });
+  if (!driverDoc) return false;
+  const orderDriverId = order.driverId._id ?? order.driverId;
+  return String(driverDoc._id) === String(orderDriverId);
 }
 
 // Haversine distance in km between two [lng, lat] points. Used as a stand-in
@@ -106,6 +118,9 @@ exports.create = catchAsync(async (req, res) => {
     insuranceOpted,
     distanceKm,
     paymentMethod,
+    consigneeName,
+    consigneePhone,
+    consigneeGstin,
   } = req.body;
 
   if (!pickupLocation?.address || !dropLocation?.address || !vehicleType) {
@@ -124,6 +139,20 @@ exports.create = catchAsync(async (req, res) => {
   // an advance at all - see order.model.js's advanceAmount comment.
   // Applies to both cod and online.
   const advanceAmount = await calculateAdvanceAmount(estimatedPrice, vehicleType);
+
+  // Seeds the waybill with whatever's already known at booking time, so the
+  // LR (see downloadInvoicePdf) starts more complete instead of relying
+  // entirely on someone filling in every field after the fact - still all
+  // editable later via PUT /booking/:id/waybill-details.
+  const bookingCustomer = await User.findById(req.user.id).select('gstin');
+  const waybillDetails = {
+    ...(consigneeName && { consigneeName }),
+    ...(consigneePhone && { consigneePhone }),
+    ...(consigneeGstin && { consigneeGstin }),
+    ...(bookingCustomer?.gstin && { consignorGstin: bookingCustomer.gstin }),
+    gstPayableBy: 'consignor',
+    ...(isFragile && { remark: 'Fragile - handle with care' }),
+  };
 
   const order = await Order.create({
     customerId: req.user.id,
@@ -147,6 +176,7 @@ exports.create = catchAsync(async (req, res) => {
     price: estimatedPrice,
     paymentMethod: finalPaymentMethod,
     advanceAmount,
+    waybillDetails,
     status: 'pending',
     timeline: [{ status: 'pending', note: 'Booking created' }],
   });
@@ -254,7 +284,8 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   if (!order) throw new AppError('Booking not found', 404);
 
   const isOwner = String(order.customerId?._id ?? order.customerId) === String(req.user.id);
-  if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to view this booking', 403);
+  const isDriver = !isOwner && req.user.role === 'driver' && (await isAssignedDriverForOrder(order, req.user.id));
+  if (!isOwner && !isDriver && req.user.role !== 'admin') throw new AppError('Not authorized to view this booking', 403);
 
   const payment = await Payment.findOne({ orderId: order._id, status: 'captured' }).sort({ createdAt: -1 });
   if (!payment) throw new AppError('No completed payment found for this booking yet', 400);
@@ -485,7 +516,8 @@ exports.updateWaybillDetails = catchAsync(async (req, res) => {
   if (!order) throw new AppError('Booking not found', 404);
 
   const isOwner = String(order.customerId) === String(req.user.id);
-  if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to edit this booking', 403);
+  const isDriver = !isOwner && req.user.role === 'driver' && (await isAssignedDriverForOrder(order, req.user.id));
+  if (!isOwner && !isDriver && req.user.role !== 'admin') throw new AppError('Not authorized to edit this booking', 403);
 
   order.waybillDetails = order.waybillDetails || {};
   for (const field of WAYBILL_DETAIL_FIELDS) {

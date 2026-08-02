@@ -11,6 +11,12 @@ class BookingDraft {
   final bool isFragile;
   final bool insuranceOpted;
   final FareEstimate? estimate;
+  // Optional - shown to whoever's receiving the shipment, used to fill in
+  // the waybill/invoice's Consignee block (see booking.controller.js's
+  // create()). Nobody's forced to fill these in.
+  final String? consigneeName;
+  final String? consigneePhone;
+  final String? consigneeGstin;
 
   const BookingDraft({
     this.pickup,
@@ -21,6 +27,9 @@ class BookingDraft {
     this.isFragile = false,
     this.insuranceOpted = false,
     this.estimate,
+    this.consigneeName,
+    this.consigneePhone,
+    this.consigneeGstin,
   });
 
   BookingDraft copyWith({
@@ -32,6 +41,9 @@ class BookingDraft {
     bool? isFragile,
     bool? insuranceOpted,
     FareEstimate? estimate,
+    String? consigneeName,
+    String? consigneePhone,
+    String? consigneeGstin,
   }) {
     return BookingDraft(
       pickup: pickup ?? this.pickup,
@@ -42,6 +54,9 @@ class BookingDraft {
       isFragile: isFragile ?? this.isFragile,
       insuranceOpted: insuranceOpted ?? this.insuranceOpted,
       estimate: estimate ?? this.estimate,
+      consigneeName: consigneeName ?? this.consigneeName,
+      consigneePhone: consigneePhone ?? this.consigneePhone,
+      consigneeGstin: consigneeGstin ?? this.consigneeGstin,
     );
   }
 }
@@ -57,12 +72,23 @@ class BookingDraftNotifier extends StateNotifier<BookingDraft> {
     state = state.copyWith(vehicleType: vehicleType);
   }
 
-  void setLoadDetails({required String goodsType, double? weightKg, bool isFragile = false, bool insuranceOpted = false}) {
+  void setLoadDetails({
+    required String goodsType,
+    double? weightKg,
+    bool isFragile = false,
+    bool insuranceOpted = false,
+    String? consigneeName,
+    String? consigneePhone,
+    String? consigneeGstin,
+  }) {
     state = state.copyWith(
       goodsType: goodsType,
       weightKg: weightKg,
       isFragile: isFragile,
       insuranceOpted: insuranceOpted,
+      consigneeName: consigneeName,
+      consigneePhone: consigneePhone,
+      consigneeGstin: consigneeGstin,
     );
   }
 

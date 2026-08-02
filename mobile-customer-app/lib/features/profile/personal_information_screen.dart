@@ -24,6 +24,7 @@ class _PersonalInformationScreenState
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _gstinController = TextEditingController();
   bool _saving = false;
   String? _error;
   String? _success;
@@ -35,6 +36,7 @@ class _PersonalInformationScreenState
     _nameController.text = user?.name ?? '';
     _emailController.text = user?.email ?? '';
     _phoneController.text = user?.phone ?? '';
+    _gstinController.text = user?.gstin ?? '';
   }
 
   @override
@@ -42,6 +44,7 @@ class _PersonalInformationScreenState
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _gstinController.dispose();
     super.dispose();
   }
 
@@ -56,6 +59,7 @@ class _PersonalInformationScreenState
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
+        gstin: _gstinController.text.trim(),
       );
       final current = ref.read(authProvider);
       await ref.read(authProvider.notifier).setSession(
@@ -98,6 +102,18 @@ class _PersonalInformationScreenState
                 hintText: 'Phone',
                 prefixIcon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone),
+            const SizedBox(height: 14),
+            CustomTextField(
+                controller: _gstinController,
+                hintText: 'Business GSTIN (optional)',
+                prefixIcon: Icons.receipt_long_outlined),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 4),
+              child: Text(
+                'Used on your booking invoices, if you have one.',
+                style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
+              ),
+            ),
             if (_error != null) ...[
               const SizedBox(height: 12),
               Text(_error!,

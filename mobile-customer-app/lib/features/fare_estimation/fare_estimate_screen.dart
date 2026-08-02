@@ -40,6 +40,9 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
             insuranceOpted: draft.insuranceOpted,
             distanceKm: draft.estimate!.distanceKm,
             paymentMethod: _paymentMethod,
+            consigneeName: draft.consigneeName,
+            consigneePhone: draft.consigneePhone,
+            consigneeGstin: draft.consigneeGstin,
           );
       ref.read(bookingDraftProvider.notifier).reset();
       if (mounted) context.pushReplacement('/booking/confirmation/${order.id}');

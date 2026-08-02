@@ -126,10 +126,10 @@ exports.getProfile = catchAsync(async (req, res) => {
 // isVerified/isBlocked/enterpriseId (same class of bug already fixed on
 // /auth/register above).
 exports.updateProfile = catchAsync(async (req, res) => {
-  const { name, email, phone, dob, notificationsEnabled } = req.body;
+  const { name, email, phone, dob, notificationsEnabled, gstin } = req.body;
   const user = await User.findByIdAndUpdate(
     req.user.id,
-    { name, email, phone, dob, notificationsEnabled },
+    { name, email, phone, dob, notificationsEnabled, gstin },
     { new: true }
   );
   return success(res, { user }, 'Profile updated');

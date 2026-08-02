@@ -105,6 +105,27 @@ class DriverService {
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
   }
 
+  // Raw PDF bytes - caller saves to a temp file and shares/opens it, since
+  // there's no browser to hand a download to on mobile. Same shared backend
+  // endpoint the customer app uses (GET /booking/:id/invoice), reachable by
+  // the driver only once they're the order's assigned driver.
+  Future<List<int>> downloadInvoice(String bookingId) async {
+    final response = await _dio.get<List<int>>(
+      '/booking/$bookingId/invoice',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return response.data!;
+  }
+
+  // Only ewayBillNo is exposed to drivers - the rest of the waybill's
+  // compliance fields are ops-staff territory (see backend/src/controllers/
+  // booking.controller.js's updateWaybillDetails), this is just the one
+  // field realistically theirs to add once they have the physical
+  // paperwork at pickup.
+  Future<void> addEwayBillNumber(String bookingId, String ewayBillNo) async {
+    await _dio.put('/booking/$bookingId/waybill-details', data: {'ewayBillNo': ewayBillNo});
+  }
+
   Future<EarningsSummary> getEarnings() async {
     final response = await _dio.get('/driver/earnings');
     final data = response.data['data'];
