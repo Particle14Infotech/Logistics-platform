@@ -39,13 +39,17 @@ const driverSchema = new mongoose.Schema(
     walletBalance: { type: Number, default: 0 },
     documents: {
       licenseUrl: String,
+      licenseBackUrl: String,
       rcUrl: String,
+      rcBackUrl: String,
       aadhaarUrl: String,
+      aadhaarBackUrl: String,
       photoUrl: String,
       insuranceUrl: String,
       permitUrl: String,
       pollutionCertUrl: String,
       panCardUrl: String,
+      chequeUrl: String,
     },
     bankDetails: {
       accountNumber: String,

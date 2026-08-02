@@ -35,12 +35,16 @@ exports.uploadMiddleware = upload.single('file');
 const DOCUMENT_TYPE_MAP = {
   photo: 'photoUrl',
   license: 'licenseUrl',
+  license_back: 'licenseBackUrl',
   rc: 'rcUrl',
+  rc_back: 'rcBackUrl',
   aadhaar: 'aadhaarUrl',
+  aadhaar_back: 'aadhaarBackUrl',
   insurance: 'insuranceUrl',
   permit: 'permitUrl',
   pollution: 'pollutionCertUrl',
   pan: 'panCardUrl',
+  cheque: 'chequeUrl',
 };
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -52,10 +56,11 @@ async function getOwnDriverDoc(userId) {
 }
 
 // POST /api/v1/driver/documents/:documentType  (multipart, field name 'file')
-// Generic KYC document upload - covers all 8 document types (selfie photo,
-// license, RC, Aadhaar, insurance, permit, pollution cert, PAN), all
-// stored on Driver.documents and displayed in the Admin > Drivers KYC
-// review grid, which already knows about every one of these fields.
+// Generic KYC document upload - covers every document type in
+// DOCUMENT_TYPE_MAP (selfie photo, license/RC/Aadhaar front+back, insurance,
+// permit, pollution cert, PAN, cancelled cheque), all stored on
+// Driver.documents and displayed in the Admin > Drivers KYC review grid,
+// which already knows about every one of these fields.
 // NOTE: this saves the file and records the URL - it does not run any OCR/
 // authenticity verification. A human admin reviewing each document is the
 // actual verification step today.

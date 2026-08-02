@@ -5,14 +5,18 @@ import axiosClient from '../../shared/api/axiosClient.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
 const DOCUMENT_LABELS = {
-  licenseUrl: 'Driving license',
-  rcUrl: 'Vehicle RC',
-  aadhaarUrl: 'Aadhaar card',
+  licenseUrl: 'Driving License (Front)',
+  licenseBackUrl: 'Driving License (Back)',
+  rcUrl: 'Vehicle RC (Front)',
+  rcBackUrl: 'Vehicle RC (Back)',
+  aadhaarUrl: 'Aadhaar Card (Front)',
+  aadhaarBackUrl: 'Aadhaar Card (Back)',
   photoUrl: 'Photo ID',
   insuranceUrl: 'Insurance',
   permitUrl: 'Permit',
   pollutionCertUrl: 'Pollution certificate',
   panCardUrl: 'PAN card',
+  chequeUrl: 'Cancelled Cheque',
 };
 
 // Uploaded documents (e.g. a driver's selfie from the mobile app) are stored
