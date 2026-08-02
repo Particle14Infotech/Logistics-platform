@@ -175,7 +175,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   }
 
   Future<void> _advanceStatus(String status,
-      {String? pickupCode, String? otp}) async {
+      {String? pickupCode, String? otp, bool manualConfirm = false}) async {
     setState(() {
       _updating = true;
       _error = null;
@@ -183,7 +183,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     try {
       final trip = await ref.read(driverServiceProvider).advanceTripStatus(
           widget.tripId, status,
-          pickupCode: pickupCode, otp: otp);
+          pickupCode: pickupCode, otp: otp, manualConfirm: manualConfirm);
       if (mounted) setState(() => _trip = trip);
     } catch (e) {
       // Surface the backend's actual validation message (e.g. "Cannot move
@@ -208,34 +208,30 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
   }
 
-  // Fallback for when scanning isn't possible - the 8-character order
-  // reference is already shown at the top of the customer's booking screen
-  // (e.g. "#A1B2C3D4"), so there's nothing new to ask them to find.
-  Future<void> _showManualPickupDialog() async {
-    final controller = TextEditingController();
-    final code = await showDialog<String>(
+  // Fallback for when scanning isn't possible - no code to enter at all,
+  // just a plain confirmation. Deliberately unverified (unlike the QR
+  // scan, which is checked against the real order id server-side) - a
+  // product decision to keep this option frictionless for cases where
+  // scanning genuinely can't happen.
+  Future<void> _confirmManualPickup() async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Enter pickup code'),
-        content: TextField(
-          controller: controller,
-          textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(
-              hintText: "Order reference from the customer's app (e.g. A1B2C3D4)",
-              border: OutlineInputBorder()),
-        ),
+        title: const Text('Mark as picked up?'),
+        content: const Text(
+            "Only use this if you can't scan the customer's QR code. This doesn't check anything - it just confirms pickup."),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context, false),
               child: const Text('Cancel')),
           FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              onPressed: () => Navigator.pop(context, true),
               child: const Text('Confirm')),
         ],
       ),
     );
-    if (code == null || code.isEmpty || !mounted) return;
-    _advanceStatus('picked_up', pickupCode: code);
+    if (confirmed != true || !mounted) return;
+    _advanceStatus('picked_up', manualConfirm: true);
   }
 
   Future<void> _startTrip() async {
@@ -610,11 +606,9 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // The scanned code is checked against this order's real id
-            // server-side, so this can't be bypassed - but scanning can
-            // still fail (bad lighting, camera issue), so there's a manual
-            // fallback below that asks for the same order reference already
-            // shown on the customer's screen instead, still checked the
-            // same way server-side.
+            // server-side. The manual option below isn't - it's a plain,
+            // unverified confirmation for when scanning genuinely isn't
+            // possible (bad lighting, camera issue).
             FilledButton.icon(
               onPressed: _updating ? null : _scanBarcodeAndPickup,
               icon: const Icon(Icons.qr_code_scanner),
@@ -622,9 +616,9 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
-              onPressed: _updating ? null : _showManualPickupDialog,
-              icon: const Icon(Icons.keyboard),
-              label: const Text("Can't scan? Enter code manually"),
+              onPressed: _updating ? null : _confirmManualPickup,
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text('Mark as picked up manually'),
             ),
           ],
         );

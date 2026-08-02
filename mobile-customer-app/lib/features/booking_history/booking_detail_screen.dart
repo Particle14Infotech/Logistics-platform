@@ -374,6 +374,21 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           ],
                         ),
                       ),
+                    // Distinct from the "In Transit" status pill (which
+                    // covers both picked_up and in_transit) - a clear,
+                    // separate confirmation the moment the driver has
+                    // collected the shipment, gone once they start the trip.
+                    if (order.status == 'picked_up') ...[
+                      const SizedBox(height: 12),
+                      _InfoCard(
+                        color: const Color(0xFFE8F5E9),
+                        child: Text(
+                          'Pickup successful! Your driver is at the pickup location.',
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14, color: const Color(0xFF1B7A34)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                     if (order.status == 'awaiting_payment') ...[
                       const SizedBox(height: 12),
                       _InfoCard(

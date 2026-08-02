@@ -346,7 +346,7 @@ exports.getOrder = catchAsync(async (req, res) => {
 // scanned here - previously a scanned barcode was just logged as free text
 // on the timeline note, never actually checked against anything.
 exports.updateOrderStatus = catchAsync(async (req, res) => {
-  const { status, pickupCode, otp } = req.body;
+  const { status, pickupCode, otp, manualConfirm } = req.body;
   if (!['picked_up', 'in_transit'].includes(status)) {
     throw new AppError('status must be picked_up or in_transit', 400);
   }
@@ -360,18 +360,14 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
     throw new AppError(`Cannot move from "${order.status}" to "${status}"`, 400);
   }
 
-  if (status === 'picked_up') {
-    // Scanning the QR sends the full order id; the manual fallback (used
-    // when scanning isn't possible - bad lighting, camera issue, etc.)
-    // sends the same 8-character order reference already shown at the top
-    // of the customer's booking screen, so there's nothing new to generate
-    // or show them. Both are accepted so switching to manual doesn't weaken
-    // the check - it's still proof the driver is looking at this specific
-    // customer's screen, just typed instead of scanned.
-    const shortRef = order._id.toString().slice(-8).toUpperCase();
-    const matches = pickupCode === order._id.toString() || (pickupCode && pickupCode.toUpperCase() === shortRef);
-    if (!matches) {
-      throw new AppError("Incorrect pickup code - scan the QR code shown in the customer's app, or ask for their order reference", 400);
+  // Pickup can be confirmed two ways: scanning the customer's QR (checked
+  // against the real order id below) or a plain, deliberately unverified
+  // manual tap (manualConfirm) for when scanning genuinely isn't possible -
+  // a product decision to keep that fallback frictionless rather than
+  // asking the driver to type anything.
+  if (status === 'picked_up' && !manualConfirm) {
+    if (pickupCode !== order._id.toString()) {
+      throw new AppError("Incorrect pickup code - scan the QR code shown in the customer's app", 400);
     }
   }
   if (status === 'in_transit' && (!otp || otp !== order.startOtp)) {
@@ -384,7 +380,7 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
     order.startOtp = generateOtp();
   }
   let baseNote = `Marked ${status.replace('_', ' ')} by driver`;
-  if (status === 'picked_up') baseNote = 'Picked up (pickup code verified)';
+  if (status === 'picked_up') baseNote = manualConfirm ? 'Picked up (marked manually, no scan)' : 'Picked up (pickup code verified)';
   if (status === 'in_transit') baseNote = 'Trip started (start code verified)';
   order.timeline.push({ status, note: baseNote });
   await order.save();
