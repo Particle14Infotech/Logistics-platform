@@ -278,6 +278,10 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   const igst = wb.taxType === 'inter_state' ? wb.gstAmount || 0 : 0;
   const totalWithTax = order.price + (wb.gstAmount || 0);
   const balanceDue = totalWithTax - order.advanceAmount;
+  // Both fall back to a computed/reasonable default when the admin hasn't
+  // manually entered one via waybill-details, instead of printing blank.
+  const ratePerTon = wb.ratePerTon != null ? wb.ratePerTon : order.weightKg ? order.price / (order.weightKg / 1000) : null;
+  const declaredValue = wb.declaredValue != null ? wb.declaredValue : order.price;
 
   let y = doc.y;
   const rowLine = (h) => {
@@ -285,7 +289,14 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   };
   const cell = (text, x, w, opts = {}) => {
     doc.fontSize(opts.size || 8).font(opts.bold ? 'Helvetica-Bold' : 'Helvetica')
-      .text(text ?? '', x + 3, y + 3, { width: w - 6, align: opts.align || 'left' });
+      .text(text ?? '', x + 3, y + 3, {
+        width: w - 6,
+        align: opts.align || 'left',
+        // Long free-text values (addresses) would otherwise wrap to a
+        // second line and bleed into the row below, which is a fixed
+        // single-line height - truncate with '…' instead.
+        ...(opts.singleLine && { height: 10, ellipsis: true }),
+      });
   };
   const vLine = (x, h) => doc.moveTo(x, y).lineTo(x, y + h).stroke();
 
@@ -339,9 +350,9 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   // --- From / To ---
   doc.rect(pageLeft, y, pageWidth, 16).stroke();
   cell('From', c1, c2 - c1, { bold: true });
-  cell(order.pickupLocation?.address || '—', c2, c4 - c2);
+  cell(order.pickupLocation?.address || '—', c2, c4 - c2, { singleLine: true });
   cell('To', c4, c5 - c4, { bold: true });
-  cell(order.dropLocation?.address || '—', c5, pageRight - c5);
+  cell(order.dropLocation?.address || '—', c5, pageRight - c5, { singleLine: true });
   vLine(c2, 16); vLine(c4, 16); vLine(c5, 16);
   y += 16;
 
@@ -393,7 +404,7 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   doc.fontSize(8).font('Helvetica').text('1', pageLeft + 3, y + 18);
   doc.text(order.goodsType || '—', pageLeft + pageWidth * 0.08 + 3, y + 18, { width: pageWidth * 0.42 - 6 });
   doc.text(order.weightKg ? (order.weightKg / 1000).toFixed(2) : '—', pageLeft + pageWidth * 0.5 + 3, y + 18, { width: pageWidth * 0.12 - 6 });
-  doc.text(wb.ratePerTon != null ? wb.ratePerTon.toFixed(2) : '—', ratePerTonStart + 3, y + 18, { width: ratePerTonEnd - ratePerTonStart - 6 });
+  doc.text(ratePerTon != null ? ratePerTon.toFixed(2) : '—', ratePerTonStart + 3, y + 18, { width: ratePerTonEnd - ratePerTonStart - 6 });
 
   const chargeLabelX = chargesX + 3;
   const chargeValueX = chargesX + (pageRight - chargesX) * 0.6 + 3;
@@ -414,9 +425,9 @@ exports.downloadInvoicePdf = catchAsync(async (req, res) => {
   // --- Value / Delivery At / Invoice No ---
   doc.rect(pageLeft, y, pageWidth, 16).stroke();
   cell('Value Rs', c1, c2 - c1, { bold: true });
-  cell(wb.declaredValue != null ? wb.declaredValue.toFixed(2) : '—', c2, c3 - c2);
+  cell(declaredValue.toFixed(2), c2, c3 - c2);
   cell('Delivery At', c3, c4 - c3, { bold: true });
-  cell(order.dropLocation?.address || '—', c4, c5 - c4);
+  cell(order.dropLocation?.address || '—', c4, c5 - c4, { singleLine: true });
   cell(`Invoice No. ${refNo}`, c5, pageRight - c5, { bold: true });
   vLine(c2, 16); vLine(c3, 16); vLine(c4, 16); vLine(c5, 16);
   y += 16;
