@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const companyInfo = require('../config/companyInfo');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
@@ -247,63 +248,241 @@ exports.submitReview = catchAsync(async (req, res) => {
 // available once a payment has actually been captured, and only to that
 // order's own customer (or admin).
 exports.downloadInvoicePdf = catchAsync(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findById(req.params.id)
+    .populate({ path: 'driverId', select: 'vehicleNumber licenseNumber', populate: { path: 'userId', select: 'name phone' } })
+    .populate('customerId', 'name phone');
   if (!order) throw new AppError('Booking not found', 404);
 
-  const isOwner = String(order.customerId) === String(req.user.id);
+  const isOwner = String(order.customerId?._id ?? order.customerId) === String(req.user.id);
   if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to view this booking', 403);
 
   const payment = await Payment.findOne({ orderId: order._id, status: 'captured' }).sort({ createdAt: -1 });
   if (!payment) throw new AppError('No completed payment found for this booking yet', 400);
 
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="receipt-${order._id}.pdf"`);
+  res.setHeader('Content-Disposition', `attachment; filename="waybill-${order._id}.pdf"`);
 
-  const doc = new PDFDocument({ margin: 50 });
+  const doc = new PDFDocument({ margin: 28, size: 'A4' });
   doc.pipe(res);
 
-  doc.fontSize(18).text('Pan-India Logistics Platform', { align: 'left' });
-  doc.fontSize(10).fillColor('#555').text('Payment Receipt', { align: 'left' });
-  doc.moveDown(1.5);
+  const wb = order.waybillDetails || {};
+  const driver = order.driverId;
+  const customer = order.customerId;
+  const refNo = order._id.toString().slice(-8).toUpperCase();
+  const pageLeft = doc.page.margins.left;
+  const pageWidth = doc.page.width - pageLeft - doc.page.margins.right;
+  const pageRight = pageLeft + pageWidth;
 
-  doc.fontSize(12).fillColor('#000').text(`Order: ${order._id.toString().slice(-8).toUpperCase()}`);
-  doc.text(`Date: ${order.createdAt.toLocaleDateString('en-IN')}`);
-  doc.text(`Route: ${order.pickupLocation?.address ?? '—'} -> ${order.dropLocation?.address ?? '—'}`);
-  doc.text(`Vehicle: ${order.vehicleType.replace('_', ' ')}`);
-  doc.text(`Goods: ${order.goodsType}${order.weightKg ? ` (${order.weightKg} kg)` : ''}`);
-  doc.moveDown();
+  const sgst = wb.taxType === 'intra_state' ? Math.round((wb.gstAmount || 0) / 2) : 0;
+  const cgst = sgst;
+  const igst = wb.taxType === 'inter_state' ? wb.gstAmount || 0 : 0;
+  const totalWithTax = order.price + (wb.gstAmount || 0);
+  const balanceDue = totalWithTax - order.advanceAmount;
 
-  doc.fontSize(11).text('Payment', { underline: true });
-  doc.moveDown(0.5);
-  doc.fontSize(10).text(`Order price: Rs ${order.price}`);
-  if (order.paymentMethod === 'cod') {
-    if (order.advanceAmount > 0) {
-      doc.text(`Payment method: Cash on delivery (advance paid online)`);
-      doc.text(`Advance paid online: Rs ${order.advanceAmount}`);
-      doc.text(`Remainder collected in cash: Rs ${(order.price - order.advanceAmount).toFixed(2)}`);
-    } else {
-      doc.text(`Payment method: Cash on delivery`);
-      doc.text(`Amount collected in cash: Rs ${order.price}`);
-    }
-  } else if (order.advanceAmount > 0) {
-    doc.text(`Payment method: Online (paid in two instalments)`);
-    doc.text(`Advance paid online: Rs ${order.advanceAmount}`);
-    doc.text(
-      order.remainderPaid
-        ? `Remainder paid online: Rs ${(order.price - order.advanceAmount).toFixed(2)}`
-        : `Remainder paid online: Rs 0.00 (not yet paid)`
-    );
-  } else {
-    doc.text(`Payment method: Online`);
-    doc.text(`Amount paid: Rs ${(payment.amount / 100).toFixed(2)}`);
-  }
-  if (payment.refundedAmount) doc.text(`Refunded: Rs ${(payment.refundedAmount / 100).toFixed(2)}`);
-  doc.text(`Razorpay payment ID: ${payment.razorpayPaymentId ?? '—'}`);
-  doc.moveDown();
+  let y = doc.y;
+  const rowLine = (h) => {
+    doc.moveTo(pageLeft, y + h).lineTo(pageRight, y + h).stroke();
+  };
+  const cell = (text, x, w, opts = {}) => {
+    doc.fontSize(opts.size || 8).font(opts.bold ? 'Helvetica-Bold' : 'Helvetica')
+      .text(text ?? '', x + 3, y + 3, { width: w - 6, align: opts.align || 'left' });
+  };
+  const vLine = (x, h) => doc.moveTo(x, y).lineTo(x, y + h).stroke();
 
-  doc.fontSize(9).fillColor('#888').text('This is a system-generated receipt.', { align: 'left' });
+  // Outer border for the whole document, drawn last against a known
+  // bottom - start it now and close it once the final y is known.
+  const docTop = y;
+
+  // --- Letterhead ---
+  doc.fontSize(8).font('Helvetica');
+  doc.text(`D.L. No. : ${driver?.licenseNumber || '—'}   Mo : ${driver?.userId?.phone || '—'}`, pageLeft + 4, y + 4);
+  doc.text(`MO. ${companyInfo.contactPhone}`, pageLeft, y + 4, { width: pageWidth - 4, align: 'right' });
+  y += 16;
+  doc.fontSize(8).text(`GSTIN : ${companyInfo.gstin}`, pageLeft + 4, y);
+  doc.text(`Subject to ${companyInfo.jurisdiction} jurisdiction`, pageLeft, y, { width: pageWidth, align: 'center' });
+  y += 11;
+  doc.text(`PAN NO. : ${companyInfo.pan}`, pageLeft + 4, y);
+  y += 16;
+
+  doc.fontSize(26).font('Helvetica-Bold').text(companyInfo.brandName, pageLeft, y, { width: pageWidth, align: 'center' });
+  y += 32;
+  doc.fontSize(11).font('Helvetica').text(companyInfo.legalName, pageLeft, y, { width: pageWidth, align: 'center' });
+  y += 16;
+  doc.rect(pageLeft, y, pageWidth, 16).fill('#000');
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#fff').text(companyInfo.tagline, pageLeft, y + 4, { width: pageWidth, align: 'center' });
+  doc.fillColor('#000');
+  y += 16;
+  doc.fontSize(7.5).font('Helvetica').text(companyInfo.address, pageLeft, y + 3, { width: pageWidth, align: 'center' });
+  y += 16;
+
+  // --- Truck / LR / Date ---
+  doc.rect(pageLeft, y, pageWidth, 16).stroke();
+  const c1 = pageLeft, c2 = pageLeft + pageWidth * 0.15, c3 = pageLeft + pageWidth * 0.45, c4 = pageLeft + pageWidth * 0.6, c5 = pageLeft + pageWidth * 0.8;
+  cell('Truck No.', c1, c2 - c1, { bold: true });
+  cell(driver?.vehicleNumber || '—', c2, c3 - c2);
+  cell('L.R. NO.', c3, c4 - c3, { bold: true });
+  cell(refNo, c4, c5 - c4);
+  cell('DATE', c5, pageRight - c5 - (pageRight - c5) * 0.5, { bold: true });
+  cell(order.createdAt.toLocaleDateString('en-IN'), c5 + (pageRight - c5) * 0.3, (pageRight - c5) * 0.7);
+  vLine(c2, 16); vLine(c3, 16); vLine(c4, 16); vLine(c5, 16);
+  y += 16;
+
+  // --- Driver name / mobile ---
+  doc.rect(pageLeft, y, pageWidth, 16).stroke();
+  cell('Driver Name', c1, c2 - c1, { bold: true });
+  cell(driver?.userId?.name || '—', c2, c4 - c2);
+  cell('Driver Mo.', c4, c5 - c4, { bold: true });
+  cell(driver?.userId?.phone || '—', c5, pageRight - c5);
+  vLine(c2, 16); vLine(c4, 16); vLine(c5, 16);
+  y += 16;
+
+  // --- From / To ---
+  doc.rect(pageLeft, y, pageWidth, 16).stroke();
+  cell('From', c1, c2 - c1, { bold: true });
+  cell(order.pickupLocation?.address || '—', c2, c4 - c2);
+  cell('To', c4, c5 - c4, { bold: true });
+  cell(order.dropLocation?.address || '—', c5, pageRight - c5);
+  vLine(c2, 16); vLine(c4, 16); vLine(c5, 16);
+  y += 16;
+
+  // --- Consignor / Consignee ---
+  const half = pageLeft + pageWidth / 2;
+  doc.rect(pageLeft, y, pageWidth, 44).stroke();
+  vLine(half, 44);
+  cell('Consignor :', pageLeft, half - pageLeft, { bold: true });
+  doc.fontSize(8).font('Helvetica').text(`${customer?.name || '—'}\nPh: ${customer?.phone || '—'}`, pageLeft + 3, y + 15, { width: half - pageLeft - 6 });
+  cell('Consignee :', half, pageRight - half, { bold: true });
+  doc.fontSize(8).font('Helvetica').text(`${wb.consigneeName || '—'}\nPh: ${wb.consigneePhone || '—'}`, half + 3, y + 15, { width: pageRight - half - 6 });
+  y += 44;
+
+  // --- GSTIN row ---
+  doc.rect(pageLeft, y, pageWidth, 14).stroke();
+  vLine(half, 14);
+  cell(`GSTIN NO. : ${wb.consignorGstin || 'NOT PROVIDED'}`, pageLeft, half - pageLeft, { bold: true });
+  cell(`GSTIN NO. : ${wb.consigneeGstin || 'NOT PROVIDED'}`, half, pageRight - half, { bold: true });
+  y += 14;
+
+  // --- E-Way Bill ---
+  doc.rect(pageLeft, y, pageWidth, 14).stroke();
+  cell(`E-Way Bill No. : ${wb.ewayBillNo || '—'}`, pageLeft, pageWidth, { bold: true });
+  y += 14;
+
+  doc.fontSize(7).font('Helvetica-Oblique').text(
+    'We are not Responsible any Breakages of Your Goods, No Deduct Lorry Frieght, Please Take Insurance of your Goods.',
+    pageLeft + 3, y + 2, { width: pageWidth - 6, align: 'center' }
+  );
+  y += 12;
+
+  // --- Goods table (left: article/goods/weight/rate/freight, right: charges box) ---
+  const goodsTableH = 90;
+  const ratePerTonStart = pageLeft + pageWidth * 0.62;
+  const ratePerTonEnd = pageLeft + pageWidth * 0.7;
+  const chargesX = ratePerTonEnd;
+  doc.rect(pageLeft, y, pageWidth, goodsTableH).stroke();
+  vLine(pageLeft + pageWidth * 0.08, goodsTableH);
+  vLine(pageLeft + pageWidth * 0.5, goodsTableH);
+  vLine(ratePerTonStart, goodsTableH);
+  vLine(ratePerTonEnd, goodsTableH);
+  vLine(chargesX + (pageRight - chargesX) * 0.6, goodsTableH);
+
+  cell('No. of\nArticle', pageLeft, pageWidth * 0.08, { bold: true, size: 7 });
+  cell('NATURE OF GOODS SAID TO CONTAIN', pageLeft + pageWidth * 0.08, pageWidth * 0.42, { bold: true, size: 7 });
+  cell('Weight\n(in Ton)', pageLeft + pageWidth * 0.5, pageWidth * 0.12, { bold: true, size: 7 });
+  cell('Rate Per\nTon', ratePerTonStart, ratePerTonEnd - ratePerTonStart, { bold: true, size: 7 });
+
+  doc.fontSize(8).font('Helvetica').text('1', pageLeft + 3, y + 18);
+  doc.text(order.goodsType || '—', pageLeft + pageWidth * 0.08 + 3, y + 18, { width: pageWidth * 0.42 - 6 });
+  doc.text(order.weightKg ? (order.weightKg / 1000).toFixed(2) : '—', pageLeft + pageWidth * 0.5 + 3, y + 18, { width: pageWidth * 0.12 - 6 });
+  doc.text(wb.ratePerTon != null ? wb.ratePerTon.toFixed(2) : '—', ratePerTonStart + 3, y + 18, { width: ratePerTonEnd - ratePerTonStart - 6 });
+
+  const chargeLabelX = chargesX + 3;
+  const chargeValueX = chargesX + (pageRight - chargesX) * 0.6 + 3;
+  const chargeValueW = pageRight - chargeValueX - 3;
+  const chargeRow = (label, value, offset, opts = {}) => {
+    doc.fontSize(7.5).font(opts.bold ? 'Helvetica-Bold' : 'Helvetica').text(label, chargeLabelX, y + offset);
+    if (value !== undefined) doc.text(value, chargeValueX, y + offset, { width: chargeValueW, align: 'right' });
+  };
+  chargeRow('To Pay', undefined, 4);
+  chargeRow('SGST @ -', `Rs ${sgst.toFixed(2)}`, 16);
+  chargeRow('CGST @ -', `Rs ${cgst.toFixed(2)}`, 28);
+  chargeRow('IGST @ -', `Rs ${igst.toFixed(2)}`, 40);
+  chargeRow('TOTAL', `Rs ${totalWithTax.toFixed(2)}`, 52, { bold: true });
+  chargeRow('ADVANCE', `Rs ${order.advanceAmount.toFixed(2)}`, 64, { bold: true });
+  chargeRow('Total Freight Rs.', `Rs ${balanceDue.toFixed(2)}`, 76, { bold: true });
+  y += goodsTableH;
+
+  // --- Value / Delivery At / Invoice No ---
+  doc.rect(pageLeft, y, pageWidth, 16).stroke();
+  cell('Value Rs', c1, c2 - c1, { bold: true });
+  cell(wb.declaredValue != null ? wb.declaredValue.toFixed(2) : '—', c2, c3 - c2);
+  cell('Delivery At', c3, c4 - c3, { bold: true });
+  cell(order.dropLocation?.address || '—', c4, c5 - c4);
+  cell(`Invoice No. ${refNo}`, c5, pageRight - c5, { bold: true });
+  vLine(c2, 16); vLine(c3, 16); vLine(c4, 16); vLine(c5, 16);
+  y += 16;
+
+  // --- GST Payable ---
+  doc.rect(pageLeft, y, pageWidth, 14).stroke();
+  const gstByLabel = { consignor: 'CONSIGNOR', consignee: 'CONSIGNEE', transporter: 'TRANSPORTER' };
+  cell(`GST Payable by : ${gstByLabel[wb.gstPayableBy] || '—'}`, pageLeft, pageWidth, { bold: true });
+  y += 14;
+
+  // --- Remark ---
+  doc.rect(pageLeft, y, pageWidth, 16).stroke();
+  cell(`Remark : ${wb.remark || '—'}`, pageLeft, pageWidth);
+  y += 16;
+
+  // --- Footer: driver / DL / RTO ---
+  doc.rect(pageLeft, y, pageWidth, 16).stroke();
+  cell(`Driver Name : ${driver?.userId?.name || '—'}`, c1, c3 - c1);
+  cell(`D.L. No. : ${driver?.licenseNumber || '—'}`, c3, c5 - c3, { bold: true });
+  cell(`Mo : ${driver?.userId?.phone || '—'}`, c5, pageRight - c5, { bold: true });
+  y += 16;
+  doc.rect(pageLeft, y, pageWidth, 14).stroke();
+  cell(`R.T.O. : ${wb.rto || '—'}`, c3, pageRight - c3, { bold: true });
+  y += 14;
+
+  // --- Terms + signature ---
+  const termsH = 40;
+  doc.rect(pageLeft, y, pageWidth, termsH).stroke();
+  vLine(pageRight - pageWidth * 0.18, termsH);
+  doc.fontSize(6.5).font('Helvetica').text(
+    '(1) WE ARE NOT RESPONSIBLE ANY BRAKAGES OF YOUR GOODS, NO DEDUCT LORRY FREIGHT, PLEASE TAKE INSURANCE OF YOUR GOODS. ' +
+      '(2) WE ARE ONLY BROKER AND COMMISSION AGENT, PLEASE CHECK THE ALL (3) DOCUMENTS OF TRUCK AND READ CAREFULLY TERMS AND CONDITION OVER LEAF.',
+    pageLeft + 4, y + 4, { width: pageWidth * 0.82 - 8 }
+  );
+  doc.fontSize(8).font('Helvetica-Bold').text(`FOR, ${companyInfo.brandName}`, pageRight - pageWidth * 0.18 + 3, y + 4, { width: pageWidth * 0.18 - 6, align: 'center' });
+  y += termsH;
+
+  doc.rect(pageLeft, docTop, pageWidth, y - docTop).stroke();
 
   doc.end();
+});
+
+// PUT /api/v1/booking/:id/waybill-details
+// Fills in the compliance/paperwork fields the printed LR/waybill needs
+// (see downloadInvoicePdf above) that a customer won't have at checkout -
+// typically filled in by admin staff before handing over the physical LR.
+// Whitelisted field-by-field so this can't be used to write arbitrary
+// order fields.
+const WAYBILL_DETAIL_FIELDS = [
+  'consigneeName', 'consigneePhone', 'consignorGstin', 'consigneeGstin',
+  'ewayBillNo', 'declaredValue', 'ratePerTon', 'rto', 'gstPayableBy', 'taxType', 'gstAmount', 'remark',
+];
+exports.updateWaybillDetails = catchAsync(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new AppError('Booking not found', 404);
+
+  const isOwner = String(order.customerId) === String(req.user.id);
+  if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized to edit this booking', 403);
+
+  order.waybillDetails = order.waybillDetails || {};
+  for (const field of WAYBILL_DETAIL_FIELDS) {
+    if (req.body[field] !== undefined) order.waybillDetails[field] = req.body[field];
+  }
+  await order.save();
+
+  return success(res, { order }, 'Waybill details updated');
 });
 
 // GET /api/v1/booking/:id/messages - chat history for one booking. Real-time

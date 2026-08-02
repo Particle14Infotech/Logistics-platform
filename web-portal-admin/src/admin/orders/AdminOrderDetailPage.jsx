@@ -43,6 +43,10 @@ export default function AdminOrderDetailPage() {
   const [chatError, setChatError] = useState('');
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
   const [invoiceError, setInvoiceError] = useState('');
+  const [waybillForm, setWaybillForm] = useState(null);
+  const [savingWaybill, setSavingWaybill] = useState(false);
+  const [waybillError, setWaybillError] = useState('');
+  const [waybillSaved, setWaybillSaved] = useState(false);
   const chatBottomRef = useRef(null);
 
   const fetchOrder = useCallback(async () => {
@@ -51,6 +55,21 @@ export default function AdminOrderDetailPage() {
     try {
       const { data } = await axiosClient.get(`/admin/orders/${id}`);
       setOrder(data.data.order);
+      const wb = data.data.order.waybillDetails || {};
+      setWaybillForm({
+        consigneeName: wb.consigneeName || '',
+        consigneePhone: wb.consigneePhone || '',
+        consignorGstin: wb.consignorGstin || '',
+        consigneeGstin: wb.consigneeGstin || '',
+        ewayBillNo: wb.ewayBillNo || '',
+        declaredValue: wb.declaredValue ?? '',
+        ratePerTon: wb.ratePerTon ?? '',
+        rto: wb.rto || '',
+        gstPayableBy: wb.gstPayableBy || '',
+        taxType: wb.taxType || 'none',
+        gstAmount: wb.gstAmount ?? 0,
+        remark: wb.remark || '',
+      });
     } catch (err) {
       console.error('[AdminOrderDetailPage] failed to load order', err);
       setError(err.response?.data?.message || 'Could not load this order.');
@@ -132,6 +151,29 @@ export default function AdminOrderDetailPage() {
       setAssignError(err.response?.data?.message || 'Could not assign driver.');
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleSaveWaybill = async () => {
+    setSavingWaybill(true);
+    setWaybillError('');
+    setWaybillSaved(false);
+    try {
+      const payload = {
+        ...waybillForm,
+        declaredValue: waybillForm.declaredValue === '' ? undefined : Number(waybillForm.declaredValue),
+        ratePerTon: waybillForm.ratePerTon === '' ? undefined : Number(waybillForm.ratePerTon),
+        gstAmount: waybillForm.gstAmount === '' ? 0 : Number(waybillForm.gstAmount),
+        gstPayableBy: waybillForm.gstPayableBy || undefined,
+      };
+      await axiosClient.put(`/booking/${id}/waybill-details`, payload);
+      setWaybillSaved(true);
+      setTimeout(() => setWaybillSaved(false), 2000);
+    } catch (err) {
+      console.error('[AdminOrderDetailPage] waybill details save failed', err);
+      setWaybillError(err.response?.data?.message || 'Could not save waybill details.');
+    } finally {
+      setSavingWaybill(false);
     }
   };
 
@@ -298,6 +340,80 @@ export default function AdminOrderDetailPage() {
                 <p className="text-xs text-mist mt-2">Not yet uploaded.</p>
               )}
             </div>
+
+            {waybillForm && (
+              <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
+                <span className="eyebrow">Waybill details</span>
+                <p className="text-xs text-mist mt-1">Fills in the LR/waybill fields the app doesn't collect at booking - shown on the downloaded invoice below.</p>
+                <div className="grid md:grid-cols-2 gap-3 mt-2">
+                  <div>
+                    <span className="eyebrow block mb-1">Consignee name</span>
+                    <input type="text" value={waybillForm.consigneeName} onChange={(e) => setWaybillForm((f) => ({ ...f, consigneeName: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Consignee phone</span>
+                    <input type="text" value={waybillForm.consigneePhone} onChange={(e) => setWaybillForm((f) => ({ ...f, consigneePhone: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Consignor GSTIN</span>
+                    <input type="text" value={waybillForm.consignorGstin} onChange={(e) => setWaybillForm((f) => ({ ...f, consignorGstin: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Consignee GSTIN</span>
+                    <input type="text" value={waybillForm.consigneeGstin} onChange={(e) => setWaybillForm((f) => ({ ...f, consigneeGstin: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">E-way bill no.</span>
+                    <input type="text" value={waybillForm.ewayBillNo} onChange={(e) => setWaybillForm((f) => ({ ...f, ewayBillNo: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">R.T.O.</span>
+                    <input type="text" value={waybillForm.rto} onChange={(e) => setWaybillForm((f) => ({ ...f, rto: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Declared value (₹)</span>
+                    <input type="number" value={waybillForm.declaredValue} onChange={(e) => setWaybillForm((f) => ({ ...f, declaredValue: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Rate per ton (₹)</span>
+                    <input type="number" value={waybillForm.ratePerTon} onChange={(e) => setWaybillForm((f) => ({ ...f, ratePerTon: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Tax type</span>
+                    <select value={waybillForm.taxType} onChange={(e) => setWaybillForm((f) => ({ ...f, taxType: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors">
+                      <option value="none">None</option>
+                      <option value="intra_state">Intra-state (SGST + CGST)</option>
+                      <option value="inter_state">Inter-state (IGST)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">GST amount (₹)</span>
+                    <input type="number" value={waybillForm.gstAmount} onChange={(e) => setWaybillForm((f) => ({ ...f, gstAmount: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">GST payable by</span>
+                    <select value={waybillForm.gstPayableBy} onChange={(e) => setWaybillForm((f) => ({ ...f, gstPayableBy: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors">
+                      <option value="">—</option>
+                      <option value="consignor">Consignor</option>
+                      <option value="consignee">Consignee</option>
+                      <option value="transporter">Transporter</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="eyebrow block mb-1">Remark</span>
+                    <input type="text" value={waybillForm.remark} onChange={(e) => setWaybillForm((f) => ({ ...f, remark: e.target.value }))} className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors" />
+                  </div>
+                </div>
+                {waybillError && <p className="text-xs text-stop">{waybillError}</p>}
+                <button
+                  onClick={handleSaveWaybill}
+                  disabled={savingWaybill}
+                  className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all"
+                >
+                  {savingWaybill ? 'Saving…' : waybillSaved ? 'Saved ✓' : 'Save waybill details'}
+                </button>
+              </div>
+            )}
 
             <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
               <span className="eyebrow">Invoice</span>

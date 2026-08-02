@@ -10,6 +10,7 @@ router.get('/user/:userId', protect, ctrl.listByUser);
 router.put('/:id/cancel', protect, ctrl.cancel);
 router.get('/:id/track', protect, ctrl.track);
 router.get('/:id/invoice', protect, ctrl.downloadInvoicePdf);
+router.put('/:id/waybill-details', protect, ctrl.updateWaybillDetails);
 router.get('/:id/messages', protect, ctrl.listMessages);
 
 module.exports = router;

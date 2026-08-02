@@ -84,6 +84,27 @@ const orderSchema = new mongoose.Schema(
     deliveryOtp: String,
     podImageUrl: String,
 
+    // Compliance/paperwork fields for the printed Lorry Receipt (LR) /
+    // waybill (see booking.controller.js's downloadInvoicePdf) - filled in
+    // by admin staff after booking (PUT /booking/:id/waybill-details),
+    // since a consumer booking via the app won't have GSTINs/e-way bill
+    // numbers on hand at checkout. All optional - a waybill still renders
+    // (with blank fields) for an order that has none of this set.
+    waybillDetails: {
+      consigneeName: String,
+      consigneePhone: String,
+      consignorGstin: String,
+      consigneeGstin: String,
+      ewayBillNo: String,
+      declaredValue: Number,
+      ratePerTon: Number,
+      rto: String, // the truck's registering RTO location, e.g. "Morbi"
+      gstPayableBy: { type: String, enum: ['consignor', 'consignee', 'transporter'] },
+      taxType: { type: String, enum: ['none', 'intra_state', 'inter_state'], default: 'none' },
+      gstAmount: { type: Number, default: 0 },
+      remark: String,
+    },
+
     timeline: [statusEventSchema],
   },
   { timestamps: true }
