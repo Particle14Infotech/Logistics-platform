@@ -204,13 +204,14 @@ exports.verify = catchAsync(async (req, res) => {
     }
   } else {
     const updatedOrder = await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'paid' }, { new: true });
-    // A gated cod order only becomes visible to drivers once its advance is
-    // paid (see driver.controller.js's availableOrders) - it was never
-    // announced at creation for exactly that reason (booking.controller.js's
-    // create()), so this is the first and only moment drivers should be
-    // notified about it. Online orders are always immediately visible at
-    // creation and were already announced there, so skip re-notifying them.
-    if (updatedOrder && updatedOrder.paymentMethod === 'cod' && updatedOrder.advanceAmount > 0) {
+    // A gated order (any paymentMethod) only becomes visible to drivers once
+    // its advance is paid (see driver.controller.js's availableOrders) - it
+    // was never announced at creation for exactly that reason
+    // (booking.controller.js's create()), so this is the first and only
+    // moment drivers should be notified about it. Ungated orders
+    // (advanceAmount 0) were already announced at creation, so skip
+    // re-notifying them here.
+    if (updatedOrder && updatedOrder.advanceAmount > 0) {
       notifyEligibleDriversOfNewJob(updatedOrder).catch(() => {});
     }
   }

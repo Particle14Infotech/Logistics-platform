@@ -228,7 +228,45 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                 child: _error != null
                     ? Text(_error!)
                     : const CircularProgressIndicator())
-            : RefreshIndicator(
+            // Defense in depth: an order with an unpaid advance isn't
+            // visible to any driver yet (see driver.controller.js's
+            // availableOrders), so there's genuinely nothing to track here.
+            // home_screen.dart/booking_confirmation_screen.dart already
+            // route around this screen for such orders, but guard here too
+            // in case it's ever reached directly (deep link, back button).
+            : (order.advanceAmount > 0 && order.paymentStatus == 'unpaid')
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.hourglass_empty,
+                              size: 48, color: Colors.grey.shade400),
+                          const SizedBox(height: 16),
+                          Text('Payment pending',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textDark)),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Pay the advance to confirm this booking - tracking will be available right after.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: Colors.grey.shade500),
+                          ),
+                          const SizedBox(height: 20),
+                          PayNowButton(
+                            orderId: order.id,
+                            onPaid: _load,
+                            isAdvance: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : RefreshIndicator(
                 onRefresh: _load,
                 child: ListView(
                   padding: const EdgeInsets.all(16),

@@ -168,13 +168,15 @@ exports.availableOrders = catchAsync(async (req, res) => {
     // placed by an enterprise are reserved for that enterprise's private
     // fleet, not the shared pool, and vice versa.
     enterpriseId: driver.enterpriseId ?? null,
-    // A cod order with an advance due isn't shown to drivers until that
-    // advance is actually paid - that's the whole point of the advance
-    // (no-show/fraud protection), so it can't be skipped by just never
-    // paying it. Ungated cod (bike/auto/mini_truck, advanceAmount 0) has no
-    // advance to wait for, so it's visible immediately. Online orders are
-    // unaffected either way.
-    $or: [{ paymentMethod: 'online' }, { paymentMethod: 'cod', paymentStatus: 'paid' }, { paymentMethod: 'cod', advanceAmount: 0 }],
+    // Any order with an advance due isn't shown to drivers (or "registered"
+    // to the customer as a real, trackable booking) until that advance is
+    // actually paid - that's the whole point of the advance (no-show/fraud
+    // protection), so it can't be skipped by just never paying it. This
+    // applies regardless of paymentMethod - an 'online' order still owes
+    // the same upfront advance as a gated 'cod' one, just a different
+    // remainder-collection method. Ungated orders (advanceAmount 0) have no
+    // advance to wait for, so they're visible immediately.
+    $or: [{ advanceAmount: 0 }, { paymentStatus: 'paid' }],
   })
     .populate('customerId', 'name phone')
     .sort({ createdAt: 1 })

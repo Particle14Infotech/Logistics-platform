@@ -186,13 +186,14 @@ exports.create = catchAsync(async (req, res) => {
   // Firebase isn't configured, and never throws back to the customer.
   //
   // Must mirror availableOrders' own eligibility filter exactly (enterpriseId
-  // scoping + cod-advance gating below) - otherwise a driver gets pushed
-  // "New job available" for an order that never actually shows up in their
-  // Jobs list (an enterprise-dedicated driver notified about a public-pool
-  // order, or anyone notified about a gated cod order before its advance is
-  // paid), which reads as "jobs not updating in real-time" even though
-  // nothing was ever broken - the order correctly isn't visible yet.
-  const isImmediatelyVisible = order.paymentMethod !== 'cod' || order.advanceAmount === 0 || order.paymentStatus === 'paid';
+  // scoping + advance gating below, regardless of paymentMethod) - otherwise
+  // a driver gets pushed "New job available" for an order that never
+  // actually shows up in their Jobs list (an enterprise-dedicated driver
+  // notified about a public-pool order, or anyone notified about an
+  // advance-gated order before that advance is paid), which reads as "jobs
+  // not updating in real-time" even though nothing was ever broken - the
+  // order correctly isn't visible yet.
+  const isImmediatelyVisible = order.advanceAmount === 0 || order.paymentStatus === 'paid';
   if (isImmediatelyVisible) {
     notifyEligibleDriversOfNewJob(order).catch(() => {});
   }

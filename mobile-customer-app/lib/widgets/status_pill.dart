@@ -8,6 +8,16 @@ class StatusPill extends StatelessWidget {
 
   (Color bg, Color fg, String label) get _style {
     switch (status) {
+      // Synthetic, client-only status (see home_screen.dart's _BookingCard) -
+      // an order with an unpaid advance is still 'pending' server-side, but
+      // isn't a real trackable booking yet, so it gets a distinct label here
+      // rather than reading as an already-live "Pending" job.
+      case 'payment_pending':
+        return (
+          Colors.orange.shade50,
+          Colors.orange.shade800,
+          'Payment Pending'
+        );
       case 'pending':
         return (Colors.blueGrey.shade50, Colors.blueGrey.shade700, 'Pending');
       case 'accepted':

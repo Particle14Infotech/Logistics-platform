@@ -167,15 +167,29 @@ class _BookingConfirmationScreenState
                 ),
                 const SizedBox(height: 8),
               ],
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () =>
-                      context.go('/booking/detail/${widget.orderId}'),
-                  child: const Text('Track Shipment'),
+              // A booking with an unpaid advance isn't a live, trackable
+              // order yet - it's not visible to any driver either (see
+              // driver.controller.js's availableOrders) until this advance
+              // clears, so there's genuinely nothing to track. Only offer
+              // Track Shipment once that's no longer true.
+              if (order == null || order.advanceAmount == 0 || order.paymentStatus == 'paid') ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () =>
+                        context.go('/booking/detail/${widget.orderId}'),
+                    child: const Text('Track Shipment'),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
+              ] else ...[
+                Text(
+                  'Track Shipment will be available once your advance payment is confirmed.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
+                ),
+                const SizedBox(height: 16),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(

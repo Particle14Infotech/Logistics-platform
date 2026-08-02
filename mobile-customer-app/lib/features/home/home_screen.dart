@@ -337,6 +337,12 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Unpaid-advance orders aren't real trackable bookings yet - not
+    // visible to any driver until that advance clears (see
+    // driver.controller.js's availableOrders) - so tapping one goes back to
+    // the confirmation/pay screen instead of a tracking screen with nothing
+    // to show.
+    final awaitingAdvance = order.advanceAmount > 0 && order.paymentStatus == 'unpaid';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -347,7 +353,9 @@ class _BookingCard extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          onTap: () => context.push('/booking/detail/${order.id}'),
+          onTap: () => context.push(awaitingAdvance
+              ? '/booking/confirmation/${order.id}'
+              : '/booking/detail/${order.id}'),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(14),
@@ -366,7 +374,7 @@ class _BookingCard extends StatelessWidget {
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: AppTheme.textDark))),
-                          StatusPill(status: order.status),
+                          StatusPill(status: awaitingAdvance ? 'payment_pending' : order.status),
                         ],
                       ),
                       const SizedBox(height: 6),
