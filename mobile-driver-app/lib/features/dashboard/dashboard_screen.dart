@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
-import '../../services/driver_service.dart';
 import '../../models/trip_model.dart';
 import '../../widgets/status_pill.dart';
 
@@ -33,7 +32,6 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool _togglingAvailability = false;
-  EarningsSummary? _earnings;
   List<TripModel>? _recentTrips;
   final _searchController = TextEditingController();
   String _searchQuery = '';
@@ -41,7 +39,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEarnings();
     _loadTrips();
     _searchController.addListener(() {
       setState(
@@ -60,13 +57,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return trip.id.toLowerCase().contains(_searchQuery) ||
         trip.pickupLocation.address.toLowerCase().contains(_searchQuery) ||
         trip.dropLocation.address.toLowerCase().contains(_searchQuery);
-  }
-
-  Future<void> _loadEarnings() async {
-    try {
-      final earnings = await ref.read(driverServiceProvider).getEarnings();
-      if (mounted) setState(() => _earnings = earnings);
-    } catch (_) {}
   }
 
   Future<void> _loadTrips() async {
@@ -133,7 +123,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             return RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(driverProfileProvider);
-                await Future.wait([_loadEarnings(), _loadTrips()]);
+                await _loadTrips();
               },
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),

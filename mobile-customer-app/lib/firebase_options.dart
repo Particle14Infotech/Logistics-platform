@@ -33,7 +33,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc',
-    appId: '1:84806642758:android:3c056fd7d2fbe136292e47',
+    appId: '1:84806642758:android:3a1b6483d141d55c292e47',
     messagingSenderId: '84806642758',
     projectId: 'logix-94060',
     storageBucket: 'logix-94060.firebasestorage.app',

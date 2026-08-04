@@ -7,17 +7,12 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:84806642758:android:01be537363c8baad292e47",
+        "mobilesdk_app_id": "1:84806642758:android:3c056fd7d2fbe136292e47",
         "android_client_info": {
-          "package_name": "com.example.logistics_driver_app"
+          "package_name": "com.example.logistics_customer_app"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "84806642758-k6mhr497l9hnibaorafmf02i43ssd8s6.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
@@ -25,19 +20,45 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "84806642758-k6mhr497l9hnibaorafmf02i43ssd8s6.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "84806642758-5sijo1rprah24u9qk1bbor37ni905pp8.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.transportLogix"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:84806642758:android:01be537363c8baad292e47",
+        "android_client_info": {
+          "package_name": "com.example.logistics_driver_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:84806642758:android:f0bcbd728a9e2d40292e47",
+        "android_client_info": {
+          "package_name": "raahmitr.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
     }
