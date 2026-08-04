@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/vehicle_types.dart';
 import '../../providers/booking_provider.dart';
+import '../../providers/vehicle_config_provider.dart';
 
 const _kGoodsTypes = ['General cargo', 'Furniture', 'Electronics', 'Food & groceries', 'Documents', 'Industrial equipment', 'Other'];
 
@@ -30,6 +31,10 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    // Kick off the live-weight-limits fetch now so it's already resolved by
+    // the time _getEstimate() reads it below, rather than falling back to
+    // the static constant on this screen's very first attempt.
+    ref.read(vehicleMaxWeightsProvider);
     final draft = ref.read(bookingDraftProvider);
     if (draft.goodsType.isNotEmpty) _goodsType = draft.goodsType;
     if (draft.weightKg != null) _weightController.text = draft.weightKg!.toStringAsFixed(0);
@@ -69,10 +74,14 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
 
     final draft = ref.read(bookingDraftProvider);
     final vehicle = kVehicleTypes.where((v) => v.value == draft.vehicleType).firstOrNull;
-    if (vehicle != null && weight > vehicle.maxWeightKg) {
-      setState(() => _error =
-          '${vehicle.label} can carry up to ${vehicle.maxWeightKg}kg - choose a bigger vehicle or reduce the weight.');
-      return;
+    if (vehicle != null) {
+      final liveMaxWeights = ref.read(vehicleMaxWeightsProvider).valueOrNull;
+      final maxWeight = liveMaxWeights?[vehicle.value] ?? vehicle.maxWeightKg;
+      if (weight > maxWeight) {
+        setState(() => _error =
+            '${vehicle.label} can carry up to ${maxWeight}kg - choose a bigger vehicle or reduce the weight.');
+        return;
+      }
     }
 
     setState(() {

@@ -15,8 +15,9 @@ const { applyWalletTransaction } = require('../services/wallet.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 const { calculateAdvanceAmount } = require('../utils/pricingRules');
 
-function assertWeightWithinCapacity(vehicleType, weightKg) {
-  const maxWeight = VEHICLE_MAX_WEIGHT_KG[vehicleType];
+async function assertWeightWithinCapacity(vehicleType, weightKg) {
+  const config = await PricingConfig.findOne({ vehicleType }).select('maxWeightKg');
+  const maxWeight = config?.maxWeightKg ?? VEHICLE_MAX_WEIGHT_KG[vehicleType];
   if (maxWeight != null && weightKg > maxWeight) {
     throw new AppError(`Weight exceeds the ${maxWeight}kg limit for ${vehicleType}`, 400);
   }
@@ -68,6 +69,22 @@ async function calculateFare({ vehicleType, distanceKm, weightKg }) {
   };
 }
 
+// GET /api/v1/booking/vehicle-types - current max load weight per vehicle
+// type, admin-editable via PUT /admin/pricing. Lets the customer app check
+// cargo weight against the live limit instead of a hardcoded copy that can
+// drift out of sync with what the admin has actually configured.
+exports.vehicleTypes = catchAsync(async (req, res) => {
+  const configs = await PricingConfig.find().select('vehicleType maxWeightKg');
+  const byType = new Map(configs.map((c) => [c.vehicleType, c.maxWeightKg]));
+
+  const vehicleTypes = Object.keys(VEHICLE_MAX_WEIGHT_KG).map((vehicleType) => ({
+    vehicleType,
+    maxWeightKg: byType.get(vehicleType) ?? VEHICLE_MAX_WEIGHT_KG[vehicleType],
+  }));
+
+  return success(res, { vehicleTypes });
+});
+
 // POST /api/v1/booking/estimate
 // body: { pickupLocation: {lat,lng,address}, dropLocation: {lat,lng,address}, vehicleType, weightKg }
 exports.estimate = catchAsync(async (req, res) => {
@@ -75,7 +92,7 @@ exports.estimate = catchAsync(async (req, res) => {
   if (!pickupLocation || !dropLocation || !vehicleType) {
     throw new AppError('pickupLocation, dropLocation, and vehicleType are required', 400);
   }
-  if (weightKg) assertWeightWithinCapacity(vehicleType, weightKg);
+  if (weightKg) await assertWeightWithinCapacity(vehicleType, weightKg);
 
   let distanceKm;
   if (pickupLocation.lat != null && dropLocation.lat != null) {
@@ -126,7 +143,7 @@ exports.create = catchAsync(async (req, res) => {
   if (!pickupLocation?.address || !dropLocation?.address || !vehicleType) {
     throw new AppError('pickupLocation, dropLocation, and vehicleType are required', 400);
   }
-  if (weightKg) assertWeightWithinCapacity(vehicleType, weightKg);
+  if (weightKg) await assertWeightWithinCapacity(vehicleType, weightKg);
   if (paymentMethod && !['online', 'cod'].includes(paymentMethod)) {
     throw new AppError("paymentMethod must be 'online' or 'cod'", 400);
   }

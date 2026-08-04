@@ -12,6 +12,10 @@ const pricingConfigSchema = new mongoose.Schema(
     baseFare: { type: Number, required: true, default: 0 }, // flat starting charge (INR)
     perKmRate: { type: Number, required: true, default: 0 }, // INR per km
     perKgRate: { type: Number, default: 0 }, // optional INR per kg over a free allowance
+    // Admin-editable max load weight for this vehicle type. Unset on older
+    // docs (predating this field) - callers fall back to
+    // config/vehicleCapacity.js's hardcoded defaults when this is null/undefined.
+    maxWeightKg: { type: Number },
     surgeMultiplier: { type: Number, default: 1.0 }, // 1.0 = no surge
     isSurgeActive: { type: Boolean, default: false },
     // Whether this vehicle type carries an upfront advance at booking (both

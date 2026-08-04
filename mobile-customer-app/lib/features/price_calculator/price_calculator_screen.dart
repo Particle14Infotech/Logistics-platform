@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/constants/vehicle_types.dart';
 import '../../models/location_model.dart';
 import '../../providers/booking_provider.dart';
+import '../../providers/vehicle_config_provider.dart';
 import '../../services/booking_service.dart';
 import '../../services/places_service.dart';
 import '../../widgets/places_autocomplete_field.dart';
@@ -69,8 +70,10 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
 
     final weight = double.tryParse(_weightController.text.trim());
     final vehicle = kVehicleTypes.firstWhere((v) => v.value == _vehicleType);
-    if (weight != null && weight > vehicle.maxWeightKg) {
-      setState(() => _error = '${vehicle.label} can carry up to ${vehicle.maxWeightKg} kg.');
+    final liveMaxWeights = ref.read(vehicleMaxWeightsProvider).valueOrNull;
+    final maxWeight = liveMaxWeights?[vehicle.value] ?? vehicle.maxWeightKg;
+    if (weight != null && weight > maxWeight) {
+      setState(() => _error = '${vehicle.label} can carry up to $maxWeight kg.');
       return;
     }
 

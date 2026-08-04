@@ -13,6 +13,7 @@ const Fleet = require('../models/fleet.model');
 const WalletTransaction = require('../models/walletTransaction.model');
 const Invoice = require('../models/invoice.model');
 const { applyWalletTransaction } = require('../services/wallet.service');
+const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
 exports.listOrders = catchAsync(async (req, res) => {
@@ -500,12 +501,19 @@ exports.getFleetById = catchAsync(async (req, res) => {
 // GET /api/v1/admin/pricing - current rate card for every vehicle type
 exports.getPricing = catchAsync(async (req, res) => {
   const configs = await PricingConfig.find().sort({ vehicleType: 1 });
-  return success(res, { pricing: configs });
+  // Older docs (predating maxWeightKg) show the hardcoded default here
+  // rather than blank, so the admin always sees a real editable value.
+  const pricing = configs.map((c) => {
+    const doc = c.toObject();
+    if (doc.maxWeightKg == null) doc.maxWeightKg = VEHICLE_MAX_WEIGHT_KG[doc.vehicleType];
+    return doc;
+  });
+  return success(res, { pricing });
 });
 
-// PUT /api/v1/admin/pricing  { vehicleType, baseFare, perKmRate, perKgRate?, surgeMultiplier?, isSurgeActive?, advanceRequired?, advanceMode?, advanceValue? }
+// PUT /api/v1/admin/pricing  { vehicleType, baseFare, perKmRate, perKgRate?, surgeMultiplier?, isSurgeActive?, advanceRequired?, advanceMode?, advanceValue?, maxWeightKg? }
 exports.updatePricing = catchAsync(async (req, res) => {
-  const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive, advanceRequired, advanceMode, advanceValue } = req.body;
+  const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive, advanceRequired, advanceMode, advanceValue, maxWeightKg } = req.body;
   if (!vehicleType) throw new AppError('vehicleType is required', 400);
 
   const config = await PricingConfig.findOneAndUpdate(
@@ -520,6 +528,7 @@ exports.updatePricing = catchAsync(async (req, res) => {
         ...(advanceRequired !== undefined && { advanceRequired }),
         ...(advanceMode !== undefined && { advanceMode }),
         ...(advanceValue !== undefined && { advanceValue }),
+        ...(maxWeightKg !== undefined && { maxWeightKg }),
         updatedBy: req.user.id,
       },
     },

@@ -9,6 +9,7 @@ const Enterprise = require('../models/enterprise.model');
 const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
 const Invoice = require('../models/invoice.model');
+const PricingConfig = require('../models/pricingConfig.model');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 
 const VEHICLE_BASE_PRICE = { bike: 100, auto: 150, mini_truck: 300, medium_truck: 600, large_truck: 1000 };
@@ -368,6 +369,12 @@ exports.bulkBooking = catchAsync(async (req, res) => {
   if (!Array.isArray(rows) || rows.length === 0) throw new AppError('rows must be a non-empty array', 400);
 
   const results = { created: 0, failed: 0, errors: [] };
+  // Fetched once for the whole batch rather than per-row - admin-configured
+  // max weight per vehicle type, falling back to the hardcoded defaults for
+  // any type without a PricingConfig doc yet.
+  const maxWeightByType = new Map(
+    (await PricingConfig.find().select('vehicleType maxWeightKg')).map((c) => [c.vehicleType, c.maxWeightKg])
+  );
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -376,7 +383,7 @@ exports.bulkBooking = catchAsync(async (req, res) => {
       if (!VEHICLE_BASE_PRICE[row.vehicleType]) throw new Error(`Invalid vehicleType "${row.vehicleType}"`);
 
       const weightKg = Number(row.weightKg) || 0;
-      const maxWeight = VEHICLE_MAX_WEIGHT_KG[row.vehicleType];
+      const maxWeight = maxWeightByType.get(row.vehicleType) ?? VEHICLE_MAX_WEIGHT_KG[row.vehicleType];
       if (maxWeight != null && weightKg > maxWeight) {
         throw new Error(`Weight exceeds the ${maxWeight}kg limit for ${row.vehicleType}`);
       }

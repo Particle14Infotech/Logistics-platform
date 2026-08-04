@@ -21,6 +21,7 @@ function PricingRow({ config, onSave }) {
     advanceRequired: config.advanceRequired ?? false,
     advanceMode: config.advanceMode ?? 'percentage',
     advanceValue: config.advanceValue ?? 30,
+    maxWeightKg: config.maxWeightKg ?? 0,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -29,7 +30,7 @@ function PricingRow({ config, onSave }) {
     baseFare: config.baseFare, perKmRate: config.perKmRate, perKgRate: config.perKgRate ?? 0,
     surgeMultiplier: config.surgeMultiplier, isSurgeActive: config.isSurgeActive,
     advanceRequired: config.advanceRequired ?? false, advanceMode: config.advanceMode ?? 'percentage',
-    advanceValue: config.advanceValue ?? 30,
+    advanceValue: config.advanceValue ?? 30, maxWeightKg: config.maxWeightKg ?? 0,
   });
 
   const handleSave = async () => {
@@ -56,7 +57,7 @@ function PricingRow({ config, onSave }) {
 
   return (
     <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
-      <div className="grid md:grid-cols-6 gap-3 items-end">
+      <div className="grid md:grid-cols-7 gap-3 items-end">
         <div>
           <span className="eyebrow block mb-1">Vehicle</span>
           <span className="text-sm font-medium">{VEHICLE_LABELS[config.vehicleType]}</span>
@@ -72,6 +73,10 @@ function PricingRow({ config, onSave }) {
         <div>
           <span className="eyebrow block mb-1">Per kg (₹)</span>
           {numInput('perKgRate', 0.1)}
+        </div>
+        <div>
+          <span className="eyebrow block mb-1">Max weight (kg)</span>
+          {numInput('maxWeightKg')}
         </div>
         <div>
           <span className="eyebrow block mb-1">Surge ×</span>
@@ -171,7 +176,7 @@ export default function AdminPricingPage() {
       <div>
         <span className="eyebrow">Revenue</span>
         <h1 className="font-display text-2xl font-semibold mt-1">Pricing engine</h1>
-        <p className="text-mist text-sm mt-1">Base fare, distance rate, weight rate, surge control, and advance-payment rules per vehicle type.</p>
+        <p className="text-mist text-sm mt-1">Base fare, distance rate, weight rate, max load weight, surge control, and advance-payment rules per vehicle type.</p>
       </div>
 
       {error && <div className="border border-stop/30 bg-stop/10 text-stop text-sm rounded-lg p-4">{error}</div>}

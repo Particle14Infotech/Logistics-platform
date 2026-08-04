@@ -15,6 +15,15 @@ class FareEstimate {
 class BookingService {
   final _dio = DioClient.instance;
 
+  // Admin-editable max load weight per vehicle type (see AdminPricingPage's
+  // "Max weight (kg)" field) - fetched live so a limit change takes effect
+  // without an app update, rather than trusting the static kVehicleTypes copy.
+  Future<Map<String, int>> getVehicleWeightLimits() async {
+    final response = await _dio.get('/booking/vehicle-types');
+    final list = response.data['data']['vehicleTypes'] as List<dynamic>;
+    return {for (final v in list) v['vehicleType'] as String: (v['maxWeightKg'] as num).toInt()};
+  }
+
   Future<FareEstimate> getEstimate({
     required LocationModel pickup,
     required LocationModel drop,

@@ -149,11 +149,11 @@ async function seed() {
 
   // --- Pricing Config (one rate card per vehicle type) ---
   const DEFAULT_PRICING = [
-    { vehicleType: 'bike', baseFare: 25, perKmRate: 6 },
-    { vehicleType: 'auto', baseFare: 40, perKmRate: 9 },
-    { vehicleType: 'mini_truck', baseFare: 80, perKmRate: 15, perKgRate: 0.5, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30 },
-    { vehicleType: 'medium_truck', baseFare: 150, perKmRate: 22, perKgRate: 0.8, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30 },
-    { vehicleType: 'large_truck', baseFare: 300, perKmRate: 35, perKgRate: 1.2, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30 },
+    { vehicleType: 'bike', baseFare: 25, perKmRate: 6, maxWeightKg: 20 },
+    { vehicleType: 'auto', baseFare: 40, perKmRate: 9, maxWeightKg: 250 },
+    { vehicleType: 'mini_truck', baseFare: 80, perKmRate: 15, perKgRate: 0.5, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 750 },
+    { vehicleType: 'medium_truck', baseFare: 150, perKmRate: 22, perKgRate: 0.8, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 2500 },
+    { vehicleType: 'large_truck', baseFare: 300, perKmRate: 35, perKgRate: 1.2, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 10000 },
   ];
   let pricingCreated = 0;
   for (const p of DEFAULT_PRICING) {
