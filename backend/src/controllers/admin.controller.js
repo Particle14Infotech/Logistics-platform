@@ -13,6 +13,8 @@ const Fleet = require('../models/fleet.model');
 const WalletTransaction = require('../models/walletTransaction.model');
 const Invoice = require('../models/invoice.model');
 const { applyWalletTransaction } = require('../services/wallet.service');
+const { sendToUsers, isConfigured } = require('../services/notification.service');
+const razorpayService = require('../services/razorpay.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
@@ -515,6 +517,27 @@ exports.getPricing = catchAsync(async (req, res) => {
 exports.updatePricing = catchAsync(async (req, res) => {
   const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive, advanceRequired, advanceMode, advanceValue, maxWeightKg } = req.body;
   if (!vehicleType) throw new AppError('vehicleType is required', 400);
+
+  // The admin pricing UI already clamps these client-side, but that's UX,
+  // not enforcement - this is the actual guard. surgeMultiplier is the
+  // sharp edge: calculateFare() (booking.controller.js) multiplies the
+  // whole subtotal by it whenever isSurgeActive is true, so 0 (or an
+  // empty field parsing to 0) zeroes out every fare for that vehicle type
+  // platform-wide, not just this one config value. A negative baseFare/
+  // perKmRate/perKgRate has the same effect in miniature - it subtracts
+  // from the price instead of adding.
+  const nonNegative = { baseFare, perKmRate, perKgRate };
+  for (const [field, value] of Object.entries(nonNegative)) {
+    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
+      throw new AppError(`${field} cannot be negative`, 400);
+    }
+  }
+  if (surgeMultiplier !== undefined && (typeof surgeMultiplier !== 'number' || !Number.isFinite(surgeMultiplier) || surgeMultiplier <= 0)) {
+    throw new AppError('surgeMultiplier must be greater than 0', 400);
+  }
+  if (maxWeightKg !== undefined && (typeof maxWeightKg !== 'number' || !Number.isFinite(maxWeightKg) || maxWeightKg <= 0)) {
+    throw new AppError('maxWeightKg must be greater than 0', 400);
+  }
 
   const config = await PricingConfig.findOneAndUpdate(
     { vehicleType },

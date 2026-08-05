@@ -45,12 +45,23 @@ function PricingRow({ config, onSave }) {
     }
   };
 
-  const numInput = (key, step = 1) => (
+  // min defaults to 0 (no negative rates); surgeMultiplier gets a real floor
+  // above zero since it multiplies the whole subtotal - a 0 or empty value
+  // there (which parseFloat(...) || 0 would otherwise silently produce)
+  // zeroes out every fare while surge is active, not just that one field.
+  // Backend re-enforces the same floors regardless - this is UX, not the
+  // actual guard.
+  const numInput = (key, step = 1, min = 0) => (
     <input
       type="number"
       step={step}
+      min={min}
       value={form[key]}
-      onChange={(e) => setForm((f) => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))}
+      onChange={(e) => {
+        const parsed = parseFloat(e.target.value);
+        const clamped = Number.isFinite(parsed) ? Math.max(min, parsed) : min;
+        setForm((f) => ({ ...f, [key]: clamped }));
+      }}
       className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors"
     />
   );
@@ -76,12 +87,12 @@ function PricingRow({ config, onSave }) {
         </div>
         <div>
           <span className="eyebrow block mb-1">Max weight (kg)</span>
-          {numInput('maxWeightKg')}
+          {numInput('maxWeightKg', 1, 1)}
         </div>
         <div>
           <span className="eyebrow block mb-1">Surge ×</span>
           <div className="flex items-center gap-2">
-            {numInput('surgeMultiplier', 0.1)}
+            {numInput('surgeMultiplier', 0.1, 0.1)}
             <label className="flex items-center gap-1 text-xs text-mist whitespace-nowrap">
               <input
                 type="checkbox"

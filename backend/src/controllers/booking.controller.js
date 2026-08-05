@@ -16,6 +16,12 @@ const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 const { calculateAdvanceAmount } = require('../utils/pricingRules');
 
 async function assertWeightWithinCapacity(vehicleType, weightKg) {
+  // Callers guard with `if (weightKg)`, which is falsy for 0 but true for
+  // any negative number - without this, a negative weightKg skipped the
+  // upper-bound check below entirely (never > maxWeight) and went on to
+  // produce a negative weightCharge in calculateFare, reducing the price.
+  if (weightKg < 0) throw new AppError('weightKg cannot be negative', 400);
+
   const config = await PricingConfig.findOne({ vehicleType }).select('maxWeightKg');
   const maxWeight = config?.maxWeightKg ?? VEHICLE_MAX_WEIGHT_KG[vehicleType];
   if (maxWeight != null && weightKg > maxWeight) {
@@ -45,6 +51,35 @@ function haversineKm([lng1, lat1], [lng2, lat2]) {
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Server-side distance for both pricing paths - estimate() and create()
+// must agree, or the price a customer sees isn't the price they're
+// actually charged. Never trust a client-sent distanceKm for pricing: it
+// was possible to submit e.g. distanceKm: 0.1 on /booking/create and get
+// a near-baseFare price regardless of the real trip distance, since
+// calculateFare() itself has no way to know the input was fabricated.
+async function computeDistanceKm(pickupLocation, dropLocation) {
+  if (pickupLocation.lat != null && dropLocation.lat != null) {
+    // Try the real road distance first (needs GOOGLE_MAPS_API_KEY configured
+    // - see backend/.env.example). Falls back to a straight-line haversine
+    // estimate if no key is set or the API call fails, so booking still
+    // works end to end either way.
+    const roadDistanceKm = await getRoadDistanceKm({
+      originLat: pickupLocation.lat,
+      originLng: pickupLocation.lng,
+      destLat: dropLocation.lat,
+      destLng: dropLocation.lng,
+    });
+
+    return (
+      roadDistanceKm ??
+      Math.max(1, Math.round(haversineKm([pickupLocation.lng, pickupLocation.lat], [dropLocation.lng, dropLocation.lat]) * 10) / 10)
+    );
+  }
+  // No coordinates available yet (Maps/Places not wired) - use a flat
+  // placeholder distance so the flow is still testable end to end.
+  return 10;
 }
 
 async function calculateFare({ vehicleType, distanceKm, weightKg }) {
@@ -94,28 +129,7 @@ exports.estimate = catchAsync(async (req, res) => {
   }
   if (weightKg) await assertWeightWithinCapacity(vehicleType, weightKg);
 
-  let distanceKm;
-  if (pickupLocation.lat != null && dropLocation.lat != null) {
-    // Try the real road distance first (needs GOOGLE_MAPS_API_KEY configured
-    // - see backend/.env.example). Falls back to a straight-line haversine
-    // estimate if no key is set or the API call fails, so booking still
-    // works end to end either way.
-    const roadDistanceKm = await getRoadDistanceKm({
-      originLat: pickupLocation.lat,
-      originLng: pickupLocation.lng,
-      destLat: dropLocation.lat,
-      destLng: dropLocation.lng,
-    });
-
-    distanceKm =
-      roadDistanceKm ??
-      Math.max(1, Math.round(haversineKm([pickupLocation.lng, pickupLocation.lat], [dropLocation.lng, dropLocation.lat]) * 10) / 10);
-  } else {
-    // No coordinates available yet (Maps/Places not wired) - use a flat
-    // placeholder distance so the flow is still testable end to end.
-    distanceKm = 10;
-  }
-
+  const distanceKm = await computeDistanceKm(pickupLocation, dropLocation);
   const { estimatedPrice, breakdown } = await calculateFare({ vehicleType, distanceKm, weightKg });
   const advanceAmount = await calculateAdvanceAmount(estimatedPrice, vehicleType);
 
@@ -133,7 +147,6 @@ exports.create = catchAsync(async (req, res) => {
     weightKg,
     isFragile,
     insuranceOpted,
-    distanceKm,
     paymentMethod,
     consigneeName,
     consigneePhone,
@@ -148,8 +161,12 @@ exports.create = catchAsync(async (req, res) => {
     throw new AppError("paymentMethod must be 'online' or 'cod'", 400);
   }
 
-  const finalDistanceKm = distanceKm || 10;
-  // Price is always recalculated server-side - never trust a client-sent price.
+  // Price is always recalculated server-side from a server-computed distance
+  // - never trust a client-sent distanceKm (see computeDistanceKm's comment;
+  // this used to accept req.body.distanceKm directly, which made the price
+  // fully attacker-controlled despite the calculateFare() call below looking
+  // like a safe server-side recompute).
+  const finalDistanceKm = await computeDistanceKm(pickupLocation, dropLocation);
   const { estimatedPrice } = await calculateFare({ vehicleType, distanceKm: finalDistanceKm, weightKg });
   const finalPaymentMethod = paymentMethod || 'online';
   // Only vehicle types the admin has configured with advanceRequired carry

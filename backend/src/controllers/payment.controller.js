@@ -266,14 +266,12 @@ exports.webhook = catchAsync(async (req, res) => {
   return success(res, null, 'Webhook processed');
 });
 
-// POST /api/v1/payment/refund  { orderId }
+// POST /api/v1/payment/refund  { orderId } - admin only, see the route
+// comment in payment.routes.js for why a customer can't reach this directly.
 exports.refund = catchAsync(async (req, res) => {
   const { orderId } = req.body;
   const order = await Order.findById(orderId);
   if (!order) throw new AppError('Booking not found', 404);
-
-  const isOwner = String(order.customerId) === String(req.user.id);
-  if (!isOwner && req.user.role !== 'admin') throw new AppError('Not authorized', 403);
 
   // A gated online order can have two captured payments (advance +
   // remainder, if paid early) - refund every one of them, not just

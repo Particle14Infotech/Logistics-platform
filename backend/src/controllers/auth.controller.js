@@ -68,6 +68,8 @@ exports.firebaseSession = catchAsync(async (req, res) => {
     }
   }
 
+  if (user?.isBlocked) throw new AppError('This account has been blocked. Contact support.', 403);
+
   if (!user) {
     // Enterprise has a dedicated signup form (POST /enterprise/firebase-signup)
     // that collects company details and creates the Enterprise doc alongside
@@ -104,6 +106,7 @@ exports.login = catchAsync(async (req, res) => {
 
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) throw new AppError('Invalid credentials', 401);
+  if (user.isBlocked) throw new AppError('This account has been blocked. Contact support.', 403);
 
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
@@ -166,6 +169,10 @@ exports.refreshToken = catchAsync(async (req, res) => {
   const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
   const user = await User.findById(decoded.id);
   if (!user) throw new AppError('User not found', 404);
+  // This is the check that actually matters for isBlocked - access tokens
+  // are short-lived, so a blocked user's existing token expiring and then
+  // hitting this wall on refresh is what ends their session in practice.
+  if (user.isBlocked) throw new AppError('This account has been blocked. Contact support.', 403);
 
   const accessToken = signAccessToken(user);
   return success(res, { accessToken }, 'Token refreshed');
