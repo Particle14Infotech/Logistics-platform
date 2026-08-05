@@ -3,6 +3,8 @@ const ctrl = require('../controllers/auth.controller');
 const { protect } = require('../middlewares/auth.middleware');
 
 router.post('/firebase-session', ctrl.firebaseSession);
+router.post('/send-email-otp', ctrl.sendEmailVerificationOtp);
+router.post('/verify-email-otp', ctrl.verifyEmailOtp);
 router.post('/login', ctrl.login);
 router.get('/profile', protect, ctrl.getProfile);
 router.put('/profile', protect, ctrl.updateProfile);

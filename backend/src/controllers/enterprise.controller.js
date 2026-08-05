@@ -383,11 +383,21 @@ exports.bulkBooking = catchAsync(async (req, res) => {
       if (!VEHICLE_BASE_PRICE[row.vehicleType]) throw new Error(`Invalid vehicleType "${row.vehicleType}"`);
 
       const weightKg = Number(row.weightKg) || 0;
+      // `|| 0` above only catches 0/NaN/falsy, not negative numbers - without
+      // this, a negative weightKg skipped the maxWeight check below (never
+      // > maxWeight) and reduced basePrice directly at line ~395.
+      if (weightKg < 0) throw new Error('weightKg cannot be negative');
       const maxWeight = maxWeightByType.get(row.vehicleType) ?? VEHICLE_MAX_WEIGHT_KG[row.vehicleType];
       if (maxWeight != null && weightKg > maxWeight) {
         throw new Error(`Weight exceeds the ${maxWeight}kg limit for ${row.vehicleType}`);
       }
-      const price = VEHICLE_BASE_PRICE[row.vehicleType] + weightKg * 0.5;
+      // Contract pricing (set via PUT /enterprise/contract-pricing, shown back
+      // to the enterprise admin on EnterpriseContractsPage) previously had no
+      // effect here at all - the discount would save and display correctly
+      // but never actually reduce what was charged.
+      const discountPercent = enterprise.contractPricing?.[row.vehicleType]?.discountPercent || 0;
+      const basePrice = VEHICLE_BASE_PRICE[row.vehicleType] + weightKg * 0.5;
+      const price = Math.round(basePrice * (1 - discountPercent / 100));
 
       // Coordinates come from the Places autocomplete selection on the
       // frontend, when available - falls back to [0, 0] (no real

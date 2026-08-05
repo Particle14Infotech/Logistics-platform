@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../core/network/dio_client.dart';
 import '../models/user_model.dart';
@@ -56,6 +57,30 @@ class AuthService {
 
   Future<void> resendVerificationEmail() async {
     await _firebaseAuth.currentUser?.sendEmailVerification();
+  }
+
+  // Alternative to the emailed link - X-Firebase-Token (not Authorization,
+  // so it can never collide with DioClient's own Bearer-JWT interceptor,
+  // which isn't relevant yet at this point - there's no app session, only
+  // a Firebase one).
+  Future<void> sendEmailVerificationOtp() async {
+    final idToken = await _firebaseAuth.currentUser!.getIdToken();
+    await _dio.post('/auth/send-email-otp', options: Options(headers: {'X-Firebase-Token': idToken}));
+  }
+
+  Future<bool> verifyEmailOtp(String code) async {
+    final idToken = await _firebaseAuth.currentUser!.getIdToken();
+    try {
+      await _dio.post(
+        '/auth/verify-email-otp',
+        data: {'otp': code},
+        options: Options(headers: {'X-Firebase-Token': idToken}),
+      );
+      return true;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) return false;
+      rethrow;
+    }
   }
 
   Future<bool> checkEmailVerified() async {

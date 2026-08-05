@@ -13,7 +13,10 @@ import '../services/auth_service.dart';
 class PushNotificationService {
   final _authService = AuthService();
 
-  Future<void> initialize({required void Function(String bookingId) onBookingTap}) async {
+  Future<void> initialize({
+    required void Function(String bookingId) onBookingTap,
+    void Function(RemoteMessage message)? onForegroundMessage,
+  }) async {
     try {
       final messaging = FirebaseMessaging.instance;
       final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
@@ -26,8 +29,11 @@ class PushNotificationService {
 
       FirebaseMessaging.onMessage.listen((message) {
         debugPrint('FCM foreground message: ${message.notification?.title}');
-        // See driver app's equivalent for the same note on why this is just
-        // a log for now - no in-app notification-center UI to route to yet.
+        // Previously just the log above - the app now has a notification
+        // center and an unread badge (see notification_provider.dart) that
+        // this can actually update instead of the push silently vanishing
+        // until the user happens to open Notifications on their own.
+        onForegroundMessage?.call(message);
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((message) => _handleTap(message, onBookingTap));

@@ -8,6 +8,7 @@ const Payment = require('../models/payment.model');
 const Message = require('../models/message.model');
 const Review = require('../models/review.model');
 const PricingConfig = require('../models/pricingConfig.model');
+const Dispute = require('../models/dispute.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
 const { sendToUser, notifyEligibleDriversOfNewJob } = require('../services/notification.service');
 const razorpayService = require('../services/razorpay.service');
@@ -307,6 +308,33 @@ exports.submitReview = catchAsync(async (req, res) => {
   await Driver.findByIdAndUpdate(order.driverId, { rating: agg.avg, ratingCount: agg.count });
 
   return success(res, { review }, 'Review submitted', 201);
+});
+
+// POST /api/v1/booking/:id/dispute  { category?, description }
+// Lets an order's own customer, or its assigned driver, raise a dispute -
+// the write side the admin's Disputes panel (GET/PUT /admin/disputes) never
+// had. Same customer-or-assigned-driver check already used by
+// downloadInvoicePdf/updateWaybillDetails above.
+exports.raiseDispute = catchAsync(async (req, res) => {
+  const { category, description } = req.body;
+  if (!description || !description.trim()) throw new AppError('description is required', 400);
+
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new AppError('Booking not found', 404);
+
+  const isOwner = String(order.customerId) === String(req.user.id);
+  const isDriver = !isOwner && req.user.role === 'driver' && (await isAssignedDriverForOrder(order, req.user.id));
+  if (!isOwner && !isDriver) throw new AppError('Not authorized to raise a dispute on this booking', 403);
+
+  const dispute = await Dispute.create({
+    orderId: order._id,
+    raisedBy: req.user.id,
+    raisedByRole: isDriver ? 'driver' : 'customer',
+    category: category || 'other',
+    description: description.trim(),
+  });
+
+  return success(res, { dispute }, 'Dispute submitted', 201);
 });
 
 // GET /api/v1/booking/:id/invoice - generates a simple receipt PDF on the

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../models/order_model.dart';
+import '../../models/banner_model.dart';
+import '../../services/content_service.dart';
 import '../../widgets/status_pill.dart';
 
 // Home dashboard, matching the reference design: avatar + greeting + bell,
@@ -27,6 +32,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
+  // Admin's Content > Banners page has always been able to create/manage
+  // these; nothing in either mobile app ever displayed one until now.
+  final _contentService = ContentService();
+  List<BannerModel> _banners = [];
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -37,6 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _loadBookings();
+    _loadBanners();
   }
 
   Future<void> _loadBookings() async {
@@ -48,6 +59,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (mounted) setState(() => _bookings = bookings);
     } catch (e) {
       if (mounted) setState(() => _error = 'Could not load your bookings.');
+    }
+  }
+
+  Future<void> _loadBanners() async {
+    try {
+      final banners = await _contentService.getBanners();
+      if (mounted) setState(() => _banners = banners);
+    } catch (e) {
+      // Banners are a non-essential home-screen extra - fail silently
+      // rather than blocking or cluttering the screen with an error.
     }
   }
 
@@ -124,9 +145,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       shape: BoxShape.circle,
                       boxShadow: AppTheme.cardShadow,
                     ),
-                    child: IconButton(
-                        onPressed: () => context.push('/notifications'),
-                        icon: const Icon(Icons.notifications_none, size: 22)),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton(
+                            onPressed: () => context.push('/notifications'),
+                            icon: const Icon(Icons.notifications_none, size: 22)),
+                        if ((ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0) > 0)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(color: AppTheme.error, borderRadius: BorderRadius.circular(8)),
+                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              child: Text(
+                                '${ref.watch(unreadNotificationCountProvider).valueOrNull}',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -225,6 +266,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
               ),
+              if (_banners.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                _PromoBannerCarousel(banners: _banners),
+              ],
               const SizedBox(height: 26),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -289,6 +334,56 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PromoBannerCarousel extends StatelessWidget {
+  final List<BannerModel> banners;
+  const _PromoBannerCarousel({required this.banners});
+
+  Future<void> _open(BannerModel banner) async {
+    final url = banner.linkUrl;
+    if (url == null || url.isEmpty) return;
+    final uri = Uri.tryParse(url);
+    if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: banners.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, i) {
+          final banner = banners[i];
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Material(
+              color: Colors.grey.shade200,
+              child: InkWell(
+                onTap: banner.linkUrl != null ? () => _open(banner) : null,
+                child: SizedBox(
+                  width: 280,
+                  height: 120,
+                  child: CachedNetworkImage(
+                    imageUrl: banner.imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey.shade200,
+                      alignment: Alignment.center,
+                      child: Icon(Icons.image_not_supported_outlined, color: Colors.grey.shade400),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

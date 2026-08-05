@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../services/push_notification_service.dart';
 import '../home/home_screen.dart';
@@ -12,14 +14,14 @@ import '../profile/profile_screen.dart';
 // Persistent bottom-tab shell (Home/Orders/Profile), same IndexedStack
 // pattern as the driver app's main_screen.dart - state is preserved when
 // switching tabs instead of rebuilding from scratch.
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   int _selectedIndex = 0;
   DateTime? _lastBackPress;
 
@@ -55,6 +57,19 @@ class _MainScreenState extends State<MainScreen> {
       onBookingTap: (bookingId) {
         if (!mounted) return;
         context.push('/booking/detail/$bookingId');
+      },
+      onForegroundMessage: (message) {
+        if (!mounted) return;
+        ref.invalidate(unreadNotificationCountProvider);
+        final title = message.notification?.title;
+        final body = message.notification?.body;
+        if (title == null && body == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text([title, body].whereType<String>().join(' — ')),
+            action: SnackBarAction(label: 'View', onPressed: () => context.push('/notifications')),
+          ),
+        );
       },
     );
     _requestLocationPermission();

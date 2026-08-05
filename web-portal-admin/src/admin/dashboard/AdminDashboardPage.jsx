@@ -8,7 +8,6 @@ import DataTable from '../../shared/components/DataTable.jsx';
 import StatusBadge from '../../shared/components/StatusBadge.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { ADMIN_NAV } from '../adminNav.js';
-import { FLEET_VEHICLES } from './mockData.js';
 
 const tickStyle = { fill: '#64748B', fontSize: 11, fontFamily: 'Inter, sans-serif' };
 const tooltipStyle = { borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 };
@@ -142,6 +141,7 @@ export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [fleetVehicles, setFleetVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -154,13 +154,15 @@ export default function AdminDashboardPage() {
       if (!silent) setLoading(true);
       if (!silent) setError('');
       try {
-        const [analyticsRes, ordersRes] = await Promise.all([
+        const [analyticsRes, ordersRes, fleetRes] = await Promise.all([
           axiosClient.get('/admin/analytics'),
           axiosClient.get('/admin/orders', { params: { limit: 6 } }),
+          axiosClient.get('/admin/fleet-live'),
         ]);
         if (cancelled) return;
         setAnalytics(analyticsRes.data.data);
         setRecentOrders(ordersRes.data.data.orders);
+        setFleetVehicles(fleetRes.data.data.vehicles);
       } catch (err) {
         console.error('[AdminDashboardPage] failed to load dashboard data', err);
         if (!cancelled && !silent) setError(err.response?.data?.message || 'Could not load dashboard data. Is the backend running?');
@@ -289,7 +291,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <FleetTicker vehicles={FLEET_VEHICLES} />
+      <FleetTicker vehicles={fleetVehicles} />
 
       <div>
         <div className="flex items-center justify-between mb-3">

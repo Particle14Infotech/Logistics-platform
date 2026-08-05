@@ -177,6 +177,93 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     }
   }
 
+  // Admin's Disputes panel (web-portal-admin) has had a full list/resolve
+  // API since it was built, but nothing anywhere ever created a Dispute -
+  // this is that missing write side, reachable from any booking.
+  Future<void> _showDisputeDialog() async {
+    String category = 'other';
+    final descriptionController = TextEditingController();
+    String? error;
+    bool submitting = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Report an issue'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: category,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: const [
+                  DropdownMenuItem(value: 'payment', child: Text('Payment')),
+                  DropdownMenuItem(value: 'damage', child: Text('Damaged goods')),
+                  DropdownMenuItem(value: 'delay', child: Text('Delay')),
+                  DropdownMenuItem(value: 'behavior', child: Text('Driver behavior')),
+                  DropdownMenuItem(value: 'pricing', child: Text('Pricing')),
+                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                ],
+                onChanged: (v) => setDialogState(() => category = v ?? 'other'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descriptionController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'What happened?',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text(error!, style: GoogleFonts.poppins(color: AppTheme.error, fontSize: 12)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: submitting
+                  ? null
+                  : () async {
+                      if (descriptionController.text.trim().isEmpty) {
+                        setDialogState(() => error = 'Describe what happened.');
+                        return;
+                      }
+                      setDialogState(() {
+                        submitting = true;
+                        error = null;
+                      });
+                      try {
+                        await ref.read(bookingServiceProvider).raiseDispute(
+                              widget.orderId,
+                              category: category,
+                              description: descriptionController.text,
+                            );
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Reported - our team will look into it.")),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() {
+                          error = 'Could not submit this. Try again.';
+                          submitting = false;
+                        });
+                      }
+                    },
+              child: submitting ? const Text('Submitting…') : const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _cancel() async {
     final order = _order!;
     final driverAssigned = ['accepted', 'picked_up', 'in_transit'].contains(order.status);
@@ -557,6 +644,12 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         onSubmit: _submitReview,
                       ),
                     ],
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: _showDisputeDialog,
+                      icon: const Icon(Icons.flag_outlined),
+                      label: const Text('Report an issue'),
+                    ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
                       Text(_error!,

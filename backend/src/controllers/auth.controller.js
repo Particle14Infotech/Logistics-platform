@@ -3,6 +3,24 @@ const User = require('../models/user.model');
 const { success, AppError, catchAsync } = require('../utils/apiResponse');
 const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const { signAccessToken, signRefreshToken } = require('../utils/jwt');
+const emailOtpService = require('../services/emailOtp.service');
+
+// Both send-email-otp and verify-email-otp run before the app has any JWT
+// session (mid-registration/verification, only a Firebase session exists
+// yet) - authenticated via the Firebase ID token itself, sent as this
+// custom header rather than Authorization so it can never collide with
+// protect()'s own Bearer-JWT handling on routes that do use it.
+async function requireFirebaseToken(req) {
+  const idToken = req.headers['x-firebase-token'];
+  if (!idToken) throw new AppError('X-Firebase-Token header is required', 401);
+  if (!ensureInitialized()) throw new AppError('Firebase is not configured', 500);
+
+  try {
+    return await admin.auth().verifyIdToken(idToken);
+  } catch (err) {
+    throw new AppError('Invalid or expired Firebase token', 401);
+  }
+}
 
 // Which roles each mobile app is allowed to authenticate/create through
 // firebase-session below. Reserved roles (admin, enterprise_admin,
@@ -95,6 +113,32 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   const refreshToken = signRefreshToken(user);
 
   return success(res, { user, accessToken, refreshToken, isNewUser }, 'Firebase session established');
+});
+
+// POST /api/v1/auth/send-email-otp - alternative to Firebase's own "click
+// the link we emailed you" verification (EmailAuthScreen offers both, the
+// user's choice). Header: X-Firebase-Token.
+exports.sendEmailVerificationOtp = catchAsync(async (req, res) => {
+  const decoded = await requireFirebaseToken(req);
+  await emailOtpService.sendOtp(decoded.uid, decoded.email);
+  return success(res, null, 'Verification code sent');
+});
+
+// POST /api/v1/auth/verify-email-otp  { otp }  Header: X-Firebase-Token
+// On a correct code, marks the Firebase user's email verified server-side
+// via the Admin SDK - the same flag Firebase itself would set after the
+// user clicks the emailed link, so everything downstream (syncFirebaseSession
+// re-fetching a fresh ID token) behaves identically either way.
+exports.verifyEmailOtp = catchAsync(async (req, res) => {
+  const decoded = await requireFirebaseToken(req);
+  const { otp } = req.body;
+  if (!otp) throw new AppError('otp is required', 400);
+
+  const valid = emailOtpService.verifyOtp(decoded.uid, otp);
+  if (!valid) throw new AppError('Invalid or expired code', 400);
+
+  await admin.auth().updateUser(decoded.uid, { emailVerified: true });
+  return success(res, null, 'Email verified');
 });
 
 // POST /api/v1/auth/login (email/password - used by Admin/Enterprise)

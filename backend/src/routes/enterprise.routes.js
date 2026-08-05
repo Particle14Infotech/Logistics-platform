@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/enterprise.controller');
-const { protect, authorize } = require('../middlewares/auth.middleware');
+const { protect, authorize, protectApiKeyOrJwt } = require('../middlewares/auth.middleware');
 
 const enterpriseRoles = authorize('enterprise_admin', 'enterprise_user');
 const adminOnly = authorize('enterprise_admin');
@@ -12,9 +12,11 @@ router.get('/status', protect, ctrl.status);
 router.post('/create', protect, ctrl.createAccount);
 router.get('/dashboard', protect, enterpriseRoles, ctrl.dashboard);
 
-router.get('/orders', protect, enterpriseRoles, ctrl.listOrders);
-router.get('/orders/:id', protect, enterpriseRoles, ctrl.getOrderById);
-router.post('/bulk-booking', protect, enterpriseRoles, ctrl.bulkBooking);
+// API-key-capable (X-API-Key header) as well as normal JWT login - see
+// protectApiKeyOrJwt's comment for why only these three, not every route.
+router.get('/orders', protectApiKeyOrJwt, enterpriseRoles, ctrl.listOrders);
+router.get('/orders/:id', protectApiKeyOrJwt, enterpriseRoles, ctrl.getOrderById);
+router.post('/bulk-booking', protectApiKeyOrJwt, enterpriseRoles, ctrl.bulkBooking);
 
 router.get('/users', protect, enterpriseRoles, ctrl.listUsers);
 router.post('/users/invite', protect, adminOnly, ctrl.inviteUser);

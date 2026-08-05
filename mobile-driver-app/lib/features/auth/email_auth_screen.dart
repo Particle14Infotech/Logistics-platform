@@ -36,6 +36,12 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   bool _loading = false;
   String? _error;
   bool _resendSent = false;
+
+  // Alternative to the emailed link at the verify-email step - the user's
+  // choice between either, both stay available.
+  bool _useOtpEntry = false;
+  bool _otpSent = false;
+  final _otpController = TextEditingController();
   DateTime? _dob;
   // Tokens from syncFirebaseSession() for a brand-new user - held here
   // rather than committed via setSession() until the personal-details step
@@ -49,6 +55,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     _confirmPasswordController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
@@ -150,6 +157,44 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       setState(() => _resendSent = true);
     } catch (e) {
       setState(() => _error = 'Could not resend the email. Try again.');
+    }
+  }
+
+  Future<void> _sendOtp() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await _authService.sendEmailVerificationOtp();
+      setState(() => _otpSent = true);
+    } catch (e) {
+      setState(() => _error = 'Could not send the code. Try again.');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    if (_otpController.text.trim().length != 6) {
+      setState(() => _error = 'Enter the 6-digit code.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final valid = await _authService.verifyEmailOtp(_otpController.text.trim());
+      if (!valid) {
+        setState(() => _error = 'Incorrect or expired code.');
+        return;
+      }
+      await _syncSessionAndContinue();
+    } catch (e) {
+      setState(() => _error = 'Could not verify that code. Try again.');
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
@@ -414,6 +459,45 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   }
 
   Widget _buildVerifyEmailStep() {
+    if (_useOtpEntry) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!_otpSent) ...[
+            AuthButton(label: 'Send code', onPressed: _sendOtp, isLoading: _loading),
+          ] else ...[
+            AuthTextField(
+              label: 'Verification code',
+              hint: '6-digit code',
+              controller: _otpController,
+              keyboardType: TextInputType.number,
+              prefixIcon: Icons.pin_outlined,
+              maxLength: 6,
+            ),
+            const SizedBox(height: 16),
+            AuthButton(label: 'Verify code', onPressed: _verifyOtp, isLoading: _loading),
+            const SizedBox(height: 12),
+            Center(
+              child: TextButton(
+                onPressed: _sendOtp,
+                child: Text('Resend code', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: () => setState(() {
+                _useOtpEntry = false;
+                _error = null;
+              }),
+              child: Text('Use the link instead', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -426,6 +510,17 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
               _resendSent ? 'Verification email sent again' : 'Resend verification email',
               style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
             ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: TextButton(
+            onPressed: () => setState(() {
+              _useOtpEntry = true;
+              _otpSent = false;
+              _error = null;
+            }),
+            child: Text('Enter code instead', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
           ),
         ),
       ],

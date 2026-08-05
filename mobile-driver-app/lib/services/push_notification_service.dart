@@ -18,7 +18,10 @@ class PushNotificationService {
   // notification that has one in its data payload - the caller decides
   // where that navigates (driver app: /trip/:id or the Jobs tab depending
   // on whether it's an already-accepted trip vs a new job alert).
-  Future<void> initialize({required void Function(String bookingId, String? status) onBookingTap}) async {
+  Future<void> initialize({
+    required void Function(String bookingId, String? status) onBookingTap,
+    void Function(RemoteMessage message)? onForegroundMessage,
+  }) async {
     try {
       final messaging = FirebaseMessaging.instance;
       final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
@@ -32,10 +35,11 @@ class PushNotificationService {
 
       FirebaseMessaging.onMessage.listen((message) {
         debugPrint('FCM foreground message: ${message.notification?.title}');
-        // Foreground messages don't auto-show a system notification on
-        // Android - a full implementation would surface an in-app banner/
-        // snackbar here. Left as a log for now since there's no in-app
-        // notification-center UI yet to route it to.
+        // Previously just the log above - the app now has a notification
+        // center and an unread badge (see notification_provider.dart) that
+        // this can actually update instead of the push silently vanishing
+        // until the driver happens to open Notifications on their own.
+        onForegroundMessage?.call(message);
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((message) => _handleTap(message, onBookingTap));

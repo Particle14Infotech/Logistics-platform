@@ -33,6 +33,7 @@ router.get('/enterprises', ctrl.listEnterprises);
 router.put('/enterprises/:id/status', ctrl.updateEnterpriseStatus);
 
 router.get('/analytics', ctrl.analytics);
+router.get('/fleet-live', ctrl.fleetLive);
 
 router.get('/banners', ctrl.listBanners);
 router.post('/banners', ctrl.createBanner);

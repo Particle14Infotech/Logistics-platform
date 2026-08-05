@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/notification_model.dart';
+import '../../providers/notification_provider.dart';
 import '../../services/notification_service.dart';
 
 // In-app notification inbox - previously the dashboard had no bell icon at
 // all, and FCM foreground messages were only ever logged, never persisted.
-class NotificationCenterScreen extends StatefulWidget {
+class NotificationCenterScreen extends ConsumerStatefulWidget {
   const NotificationCenterScreen({super.key});
 
   @override
-  State<NotificationCenterScreen> createState() =>
+  ConsumerState<NotificationCenterScreen> createState() =>
       _NotificationCenterScreenState();
 }
 
-class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
+class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScreen> {
   final _service = NotificationService();
   List<AppNotification>? _notifications;
   String? _error;
@@ -38,12 +40,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Future<void> _markAllRead() async {
     await _service.markAllRead();
     await _load();
+    ref.invalidate(unreadNotificationCountProvider);
   }
 
   Future<void> _handleTap(AppNotification n) async {
     if (!n.isRead) {
       await _service.markRead(n.id);
       if (mounted) await _load();
+      ref.invalidate(unreadNotificationCountProvider);
     }
     final bookingId = n.data['bookingId'] as String?;
     if (bookingId != null && mounted) {

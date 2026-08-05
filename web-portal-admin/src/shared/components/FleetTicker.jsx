@@ -18,7 +18,7 @@ export default function FleetTicker({ vehicles }) {
     <div className="bg-panel border border-line rounded-xl shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-line">
         <span className="eyebrow">Live fleet · {vehicles.length} vehicles reporting</span>
-        <span className="text-xs text-mist">Updates every 4s</span>
+        <span className="text-xs text-mist">Updates every 20s</span>
       </div>
       <div className="flex overflow-x-auto no-scrollbar">
         {vehicles.map((v) => (

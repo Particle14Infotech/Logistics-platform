@@ -100,6 +100,13 @@ class BookingService {
     });
   }
 
+  Future<void> raiseDispute(String orderId, {required String category, required String description}) async {
+    await _dio.post('/booking/$orderId/dispute', data: {
+      'category': category,
+      'description': description.trim(),
+    });
+  }
+
   // Raw PDF bytes - caller saves to a temp file and shares/opens it, since
   // there's no browser to hand a download to on mobile.
   Future<List<int>> downloadInvoice(String id) async {

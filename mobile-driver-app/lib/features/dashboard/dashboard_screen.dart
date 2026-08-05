@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../models/trip_model.dart';
 import '../../widgets/status_pill.dart';
 
@@ -188,10 +189,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             color: Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: AppTheme.cardShadow),
-                        child: IconButton(
-                            onPressed: () => context.push('/notifications'),
-                            icon:
-                                const Icon(Icons.notifications_none, size: 22)),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                                onPressed: () => context.push('/notifications'),
+                                icon: const Icon(Icons.notifications_none, size: 22)),
+                            if ((ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0) > 0)
+                              Positioned(
+                                right: 6,
+                                top: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(color: AppTheme.error, borderRadius: BorderRadius.circular(8)),
+                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                  child: Text(
+                                    '${ref.watch(unreadNotificationCountProvider).valueOrNull}',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Container(

@@ -387,6 +387,42 @@ exports.analytics = catchAsync(async (req, res) => {
   });
 });
 
+// GET /api/v1/admin/fleet-live - vehicles currently on an active trip, for
+// the dashboard's FleetTicker (previously fed permanently-frozen mock data
+// - see web-portal-admin/src/admin/dashboard/mockData.js - this is the real
+// feed it was never wired to). No dedicated ETA service exists anywhere in
+// the backend, so rather than fabricate one, this reports how fresh each
+// vehicle's last known position is instead of a made-up arrival estimate.
+exports.fleetLive = catchAsync(async (req, res) => {
+  const orders = await Order.find({ status: { $in: ['accepted', 'picked_up', 'in_transit'] } })
+    .populate({ path: 'driverId', select: 'vehicleNumber updatedAt' })
+    .select('status pickupLocation dropLocation driverId')
+    .sort({ updatedAt: -1 })
+    .limit(20)
+    .lean();
+
+  // A driver can end up with more than one order in an "active" status in
+  // this data (test/seed data mostly, but not schema-enforced either way) -
+  // dedupe to one ticker entry per vehicle, keeping whichever is most
+  // recently updated (orders are already sorted updatedAt desc above).
+  const seenPlates = new Set();
+  const vehicles = [];
+  for (const o of orders) {
+    if (!o.driverId || seenPlates.has(o.driverId.vehicleNumber)) continue;
+    seenPlates.add(o.driverId.vehicleNumber);
+
+    const minutesAgo = Math.max(0, Math.round((Date.now() - new Date(o.driverId.updatedAt).getTime()) / 60000));
+    vehicles.push({
+      plate: o.driverId.vehicleNumber,
+      state: o.status === 'in_transit' ? 'in_transit' : 'loading',
+      route: `${o.pickupLocation?.address ?? '—'} → ${o.dropLocation?.address ?? '—'}`,
+      eta: minutesAgo === 0 ? 'Updated just now' : `Updated ${minutesAgo}m ago`,
+    });
+  }
+
+  return success(res, { vehicles });
+});
+
 // GET /api/v1/admin/vehicles?vehicleType=&isAvailable=&search=
 // Vehicles are derived from Driver records (one vehicle per driver in this
 // model) rather than a separate collection, since that's how the data is

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../services/push_notification_service.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -15,14 +17,14 @@ import '../profile/profile_screen.dart';
 // pattern (apps/app-driver/lib/screens/main_screen.dart in the provided
 // reference project) - IndexedStack keeps each tab's state alive when
 // switching, rather than rebuilding from scratch every time.
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   int _selectedIndex = 0;
   DateTime? _lastBackPress;
 
@@ -64,6 +66,19 @@ class _MainScreenState extends State<MainScreen> {
         } else {
           context.push('/trip/$bookingId');
         }
+      },
+      onForegroundMessage: (message) {
+        if (!mounted) return;
+        ref.invalidate(unreadNotificationCountProvider);
+        final title = message.notification?.title;
+        final body = message.notification?.body;
+        if (title == null && body == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text([title, body].whereType<String>().join(' — ')),
+            action: SnackBarAction(label: 'View', onPressed: () => context.push('/notifications')),
+          ),
+        );
       },
     );
     _requestLocationPermission();
