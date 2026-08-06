@@ -38,9 +38,9 @@ export default function FleetTicker({ vehicles }) {
               <span className={`w-2 h-2 rounded-full ${DOT_COLOR[v.state] ?? 'bg-mist'}`} />
             </div>
             <div className="text-xs text-mist truncate">{v.route}</div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-paper/80 capitalize">{v.state.replace('_', ' ')}</span>
-              <span className="text-signal font-medium">{v.eta}</span>
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-paper/80 capitalize whitespace-nowrap">{v.state.replace('_', ' ')}</span>
+              <span className="text-signal font-medium whitespace-nowrap">{v.eta}</span>
             </div>
           </div>
         ))}

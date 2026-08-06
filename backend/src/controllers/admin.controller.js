@@ -416,7 +416,18 @@ exports.fleetLive = catchAsync(async (req, res) => {
       plate: o.driverId.vehicleNumber,
       state: o.status === 'in_transit' ? 'in_transit' : 'loading',
       route: `${o.pickupLocation?.address ?? '—'} → ${o.dropLocation?.address ?? '—'}`,
-      eta: minutesAgo === 0 ? 'Updated just now' : `Updated ${minutesAgo}m ago`,
+      // Scaled to minutes/hours/days rather than always raw minutes - stale
+      // seed/demo data (a driver untouched for days) was producing strings
+      // like "Updated 14042m ago", long enough to overflow FleetTicker's
+      // fixed-width chips and wrap into the row below it.
+      eta:
+        minutesAgo === 0
+          ? 'Updated just now'
+          : minutesAgo < 60
+            ? `Updated ${minutesAgo}m ago`
+            : minutesAgo < 1440
+              ? `Updated ${Math.round(minutesAgo / 60)}h ago`
+              : `Updated ${Math.round(minutesAgo / 1440)}d ago`,
     });
   }
 
