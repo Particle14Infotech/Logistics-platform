@@ -252,11 +252,11 @@
   .contact-card a { font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; }
   .contact-card a:hover { color: var(--brand); }
   .contact-list { display: flex; flex-direction: column; gap: 16px; }
-  .contact-map-note {
-    border-radius: var(--radius); border: 1px dashed var(--line); background: var(--panel);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
-    padding: 40px 24px; text-align: center; color: var(--body); font-size: 13.5px;
+  .contact-map {
+    border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden;
+    min-height: 280px; background: var(--panel);
   }
+  .contact-map iframe { width: 100%; height: 100%; min-height: 280px; display: block; }
 
   /* Footer */
   footer.site { background: var(--footer-bg); color: var(--footer-text); padding: 64px 0 28px; }
@@ -613,9 +613,13 @@
             </div>
           </div>
         </div>
-        <div class="contact-map-note">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.4 7-11.5A7 7 0 0 0 5 9.5C5 14.6 12 21 12 21z" stroke="#A99BC2" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" stroke="#A99BC2" stroke-width="1.6"/></svg>
-          <div>Harni Colony, Vadodara Gujarat<br />Opp. Community Hall</div>
+        <div class="contact-map">
+          <iframe
+            src="https://www.google.com/maps?q=Opp.+Community+Hall,+Harni+Colony,+Dena,+Vadodara+Gujarat+390022&z=15&output=embed"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Raahmitr office — Harni Colony, Vadodara"
+          ></iframe>
         </div>
       </div>
     </div>
