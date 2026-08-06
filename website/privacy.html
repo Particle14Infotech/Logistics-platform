@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Raahmitr</title>
+<meta name="description" content="How Raahmitr collects, uses, and protects data across the customer app, driver app, and web portals." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23673AB7'/%3E%3Cpath d='M7 20h2.5M7 20v-6.5a1 1 0 0 1 1-1h8v7.5M7 20a2 2 0 1 0 4 0m-4 0a2 2 0 1 1 4 0m0 0h6.5m0 0a2 2 0 1 0 4 0m-4 0a2 2 0 1 1 4 0m0 0H25v-3.8a1 1 0 0 0-.29-.7L22 12.7a1 1 0 0 0-.7-.3H18.5' stroke='%23F7B500' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand: #673AB7; --brand-dark: #4A2E93; --brand-light: #F1EAFB;
+    --accent: #F7B500;
+    --ink: #17162B; --body: #55516D; --bg: #F6F4FA; --panel: #FFFFFF; --line: #DCD5EC;
+    --footer-bg: #14101F; --footer-text: #B9B4CC;
+    --max: 780px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; font-family: 'Inter', system-ui, sans-serif; color: var(--body); background: var(--bg);
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', 'Inter', sans-serif; color: var(--ink); line-height: 1.2; }
+  a { color: var(--brand); }
+  a:hover { color: var(--brand-dark); }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  header.site {
+    position: sticky; top: 0; z-index: 50; background: rgba(246,244,250,0.9);
+    backdrop-filter: saturate(180%) blur(10px); border-bottom: 1px solid var(--line);
+  }
+  .nav { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 78px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: var(--ink); text-decoration: none; }
+  .brand .mark { width: 36px; height: 36px; border-radius: 10px; background: var(--brand); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .brand-mitr { color: var(--accent); }
+  .nav a.back { font-size: 14.5px; font-weight: 600; color: var(--body); text-decoration: none; }
+  .nav a.back:hover { color: var(--brand); }
+
+  main { padding: 56px 0 90px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--brand); display: block; margin-bottom: 12px;
+  }
+  h1 { font-size: 34px; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .updated { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--body); margin-bottom: 40px; }
+  h2 { font-size: 21px; margin: 44px 0 12px; }
+  h3 { font-size: 16px; margin: 24px 0 8px; }
+  p { margin: 0 0 14px; font-size: 15.5px; }
+  ul { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 8px; font-size: 15.5px; }
+  strong { color: var(--ink); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 24px 28px; margin: 0 0 14px;
+  }
+  .toc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 28px; margin-bottom: 40px; }
+  .toc-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--body); display: block; margin-bottom: 10px; }
+  .toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; }
+  .toc li { font-size: 14px; margin-bottom: 6px; break-inside: avoid; }
+  .deletion-box {
+    background: var(--brand-light); border: 1px solid var(--line); border-radius: 14px; padding: 24px 28px; margin: 16px 0 14px;
+  }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 0.92em; background: var(--brand-light); padding: 2px 6px; border-radius: 4px; }
+
+  footer.site { background: var(--footer-bg); color: var(--footer-text); padding: 40px 0; margin-top: 40px; }
+  footer.site .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 13px; }
+  footer.site a { color: var(--footer-text); }
+  footer.site a:hover { color: #fff; }
+
+  @media (max-width: 620px) {
+    h1 { font-size: 27px; }
+    .toc ol { columns: 1; }
+    .card, .deletion-box { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a href="/" class="brand">
+      <span class="mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 16h1.8M3 16v-5.2A1 1 0 0 1 4 10h6.5v6M3 16a1.6 1.6 0 1 0 3.2 0m-3.2 0a1.6 1.6 0 1 1 3.2 0m0 0h5m0 0a1.6 1.6 0 1 0 3.2 0m-3.2 0a1.6 1.6 0 1 1 3.2 0m0 0H20v-3.1a1 1 0 0 0-.3-.7l-2.2-2.2a1 1 0 0 0-.7-.3H14.5" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      Raah<span class="brand-mitr">mitr</span>
+    </a>
+    <a href="/" class="back">← Back to raahmitr.com</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <span class="eyebrow">Legal</span>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Effective and last updated: 6 August 2026</p>
+
+    <p>This policy covers the Raahmitr customer app, the Raahmitr driver app, and the raahmitr.com web portals (collectively, the "Service"), operated by Raahmitr, Opp. Community Hall, Harni Colony, Dena, Vadodara, Gujarat 390022, India ("Raahmitr", "we", "us"). It explains what we collect, why, and how you can control it.</p>
+
+    <div class="toc">
+      <span class="toc-label">On this page</span>
+      <ol>
+        <li><a href="#collect">Information we collect</a></li>
+        <li><a href="#use">How we use it</a></li>
+        <li><a href="#share">Who we share it with</a></li>
+        <li><a href="#location">Location data specifically</a></li>
+        <li><a href="#storage">Storage &amp; security</a></li>
+        <li><a href="#retention">How long we keep it</a></li>
+        <li><a href="#deletion">Your rights &amp; deleting your account</a></li>
+        <li><a href="#children">Children's privacy</a></li>
+        <li><a href="#changes">Changes to this policy</a></li>
+        <li><a href="#contact">Contact us</a></li>
+      </ol>
+    </div>
+
+    <h2 id="collect">1. Information we collect</h2>
+
+    <h3>Account information (everyone)</h3>
+    <ul>
+      <li>Name, email address, phone number, and date of birth, collected when you sign up.</li>
+      <li>Password (as a Firebase-managed credential — we never see or store your raw password ourselves) or, for the Admin/Enterprise web portals, a securely hashed password.</li>
+      <li>For business ("Enterprise") accounts: company name and GSTIN.</li>
+      <li>Saved delivery addresses, if you add any.</li>
+    </ul>
+
+    <h3>Additional information (drivers &amp; fleet owners only)</h3>
+    <p>Driving for Raahmitr requires document verification, so the driver app collects more than the customer app:</p>
+    <ul>
+      <li><strong>Identity &amp; vehicle documents</strong> — driving licence, vehicle registration certificate (RC), insurance certificate, permit, pollution-control certificate, Aadhaar card, PAN card, and a photo/selfie for verification, each uploaded as a scan or camera photo.</li>
+      <li><strong>Bank account details</strong> — account number, IFSC code, and account holder name, used to pay out your earnings.</li>
+      <li><strong>Vehicle details</strong> — vehicle number and vehicle type.</li>
+      <li><strong>Earnings &amp; trip history</strong> — completed trips, ratings, and wallet balance.</li>
+    </ul>
+
+    <h3>Location data</h3>
+    <p>See the <a href="#location">dedicated section below</a> — it works differently for customers and drivers.</p>
+
+    <h3>Payment information</h3>
+    <p>Payments are processed by <strong>Razorpay</strong>, our payment gateway. We do not receive or store your full card number, CVV, or UPI PIN. If you choose to save a card for faster checkout, Razorpay stores a tokenized reference to it on our behalf, which you can remove at any time from within the app.</p>
+
+    <h3>Communications</h3>
+    <ul>
+      <li><strong>In-app chat</strong> — messages exchanged between a customer and their assigned driver are stored, tied to that specific booking, so either party can refer back to them during the trip.</li>
+      <li><strong>Support requests</strong> — anything you send to <a href="mailto:support@raahmitr.com">support@raahmitr.com</a> or by phone.</li>
+    </ul>
+
+    <h3>Device &amp; usage information</h3>
+    <ul>
+      <li>A push-notification token (via Firebase Cloud Messaging), so we can notify you about order/job updates.</li>
+      <li>Basic app usage analytics (via Firebase Analytics) to help us understand which features are used and fix problems.</li>
+      <li>Standard technical data any app collects to function correctly — device type, OS version, and network status.</li>
+    </ul>
+
+    <h2 id="use">2. How we use it</h2>
+    <ul>
+      <li>To create and manage your account, and verify driver identity/vehicle documents before approving them to accept jobs.</li>
+      <li>To match shippers with drivers, calculate fares, and process bookings from pickup to delivery.</li>
+      <li>To process payments and driver payouts.</li>
+      <li>To show live tracking during an active trip, and to enable in-app chat between a customer and their assigned driver.</li>
+      <li>To send booking/job notifications and, if you've opted in, service updates.</li>
+      <li>To respond to support requests and resolve disputes.</li>
+      <li>To maintain platform security — for example, detecting fraud or misuse.</li>
+    </ul>
+
+    <h2 id="share">3. Who we share it with</h2>
+    <ul>
+      <li><strong>Your assigned driver or customer, for one booking at a time</strong> — a customer's name, phone number, and live location are shared with the driver assigned to their order (and vice versa) only for the duration needed to complete that specific delivery.</li>
+      <li><strong>Razorpay</strong> — to process payments and payouts.</li>
+      <li><strong>Firebase / Google</strong> — for authentication, push notifications, and app analytics.</li>
+      <li><strong>Google Maps</strong> — to calculate routes and distances for fare estimates.</li>
+      <li><strong>Business ("Enterprise") customers</strong> — if you place an order through a company account, relevant order and delivery details are visible to that company's authorized team members.</li>
+      <li><strong>Law enforcement or regulators</strong> — only when legally required to.</li>
+    </ul>
+    <p>We do not sell your personal data, and we do not share driver KYC documents (licence, RC, Aadhaar, PAN, bank details) with anyone outside Raahmitr except where required by law or vehicle/insurance regulation.</p>
+
+    <h2 id="location">4. Location data specifically</h2>
+    <div class="card">
+      <h3 style="margin-top:0">Customer app</h3>
+      <p style="margin-bottom:0">We access your location only when you're actively using the app, to help you set a pickup point and to show you the live position of your assigned driver during a trip. We don't track your location in the background or when the app is closed.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Driver app</h3>
+      <p style="margin-bottom:0">While you're online and available for jobs, and continuously during an active trip, the driver app shares your location with Raahmitr — including briefly in the background if you switch apps mid-trip — so customers can see accurate live tracking and we can match you with nearby jobs. This uses a visible foreground notification while active, and stops as soon as you go offline or the trip ends.</p>
+    </div>
+
+    <h2 id="storage">5. Storage &amp; security</h2>
+    <p>Data is stored on secured servers (MongoDB Atlas for our database) with encrypted connections (HTTPS/TLS) between the app and our backend. Access to driver KYC documents and admin tooling is restricted to authorized Raahmitr staff. No system is perfectly secure, but we take reasonable, industry-standard measures to protect your information from unauthorized access.</p>
+
+    <h2 id="retention">6. How long we keep it</h2>
+    <p>We retain account and booking data for as long as your account is active, plus a reasonable period afterward for legal, tax (e.g. GST), accounting, and dispute-resolution purposes. Driver KYC documents are retained for as long as required by applicable transport/logistics regulation. You can request earlier deletion — see below.</p>
+
+    <h2 id="deletion">7. Your rights &amp; deleting your account</h2>
+    <p>You can request access to, correction of, or deletion of your personal data at any time.</p>
+    <div class="deletion-box">
+      <h3 style="margin-top:0">To delete your account and data</h3>
+      <p>Email <a href="mailto:support@raahmitr.com?subject=Account%20deletion%20request">support@raahmitr.com</a> from the address registered on your account (or include your registered phone number) with the subject "Account deletion request." We'll confirm your identity and process the request within 30 days.</p>
+      <p style="margin-bottom:0">Note: we may retain certain records (e.g. completed trip/payment history) for the period required by Indian tax and accounting law, even after account deletion, as described in <a href="#retention">Section 6</a>. Everything else — your profile, saved addresses, chat history, and (for drivers) KYC documents — is permanently deleted.</p>
+    </div>
+
+    <h2 id="children">8. Children's privacy</h2>
+    <p>The Service is not directed at children. Driving for Raahmitr requires a valid commercial driving licence and is restricted to adults. We don't knowingly collect personal data from anyone under 18.</p>
+
+    <h2 id="changes">9. Changes to this policy</h2>
+    <p>We may update this policy as the Service evolves. We'll update the "last updated" date above when we do, and post material changes here.</p>
+
+    <h2 id="contact">10. Contact us</h2>
+    <p>Questions about this policy or your data:</p>
+    <ul>
+      <li>Email: <a href="mailto:support@raahmitr.com">support@raahmitr.com</a></li>
+      <li>Address: Opp. Community Hall, Harni Colony, Dena, Vadodara, Gujarat 390022, India</li>
+    </ul>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span>© 2026 Raahmitr. All rights reserved.</span>
+    <a href="/">raahmitr.com</a>
+  </div>
+</footer>
+
+</body>
+</html>
