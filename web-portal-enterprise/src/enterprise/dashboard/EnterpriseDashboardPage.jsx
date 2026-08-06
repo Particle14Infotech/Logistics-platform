@@ -54,9 +54,9 @@ const axisTick = { fill: '#64748B', fontSize: 11, fontFamily: 'Inter, sans-serif
 // fixed meaning of each shipment status, not as arbitrary series identity.
 const STATUS_BAR_COLOR = {
   pending: '#FAB219',
-  accepted: '#2A78D6',
-  picked_up: '#2A78D6',
-  in_transit: '#2A78D6',
+  accepted: '#673AB7',
+  picked_up: '#673AB7',
+  in_transit: '#673AB7',
   awaiting_payment: '#FAB219',
   delivered: '#0CA30C',
   cancelled: '#D03B3B',
@@ -170,7 +170,7 @@ export default function EnterpriseDashboardPage() {
                       formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, 'Spend']}
                       contentStyle={tooltipStyle}
                     />
-                    <Line type="monotone" dataKey="spend" stroke="#2A78D6" strokeWidth={2} dot={{ r: 4, fill: '#2A78D6' }} />
+                    <Line type="monotone" dataKey="spend" stroke="#673AB7" strokeWidth={2} dot={{ r: 4, fill: '#673AB7' }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -219,7 +219,7 @@ export default function EnterpriseDashboardPage() {
                     tick={{ fill: '#0F172A', fontSize: 12 }}
                   />
                   <Tooltip cursor={{ fill: '#F1F5F9' }} formatter={(value) => [`${value} orders`, '']} contentStyle={tooltipStyle} />
-                  <Bar dataKey="orders" fill="#2A78D6" radius={[0, 4, 4, 0]} maxBarSize={18} />
+                  <Bar dataKey="orders" fill="#673AB7" radius={[0, 4, 4, 0]} maxBarSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

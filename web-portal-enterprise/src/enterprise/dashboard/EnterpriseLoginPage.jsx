@@ -188,16 +188,23 @@ export default function EnterpriseLoginPage() {
 
   return (
     <div className="min-h-screen flex bg-ink text-paper font-body">
-      {/* Left: brand panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r border-line bg-panel relative overflow-hidden">
-        <div className="flex items-center gap-2">
+      {/* Left: brand panel - the one deliberate glass moment in this portal,
+          matching the public website's hero treatment (frosted glass over
+          blurred brand-colored blobs). Everything else in this app stays
+          the plain dense-data console it needs to be; this panel is pure
+          brand, not a place anyone scans a table. */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r border-line bg-panel/60 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute w-[480px] h-[480px] rounded-full blur-[100px] opacity-25 -top-40 -left-36 bg-signal -z-10" aria-hidden="true" />
+        <div className="absolute w-[420px] h-[420px] rounded-full blur-[100px] opacity-20 -bottom-44 -right-32 bg-[#F7B500] -z-10" aria-hidden="true" />
+
+        <div className="relative z-10 flex items-center gap-2">
           <div className="w-8 h-8 rounded bg-signal flex items-center justify-center">
             <span className="font-display font-bold text-white text-sm">R</span>
           </div>
           <span className="font-display font-semibold tracking-tight">RAAH MITR</span>
         </div>
 
-        <div>
+        <div className="relative z-10">
           <span className="eyebrow">Enterprise portal</span>
           <h1 className="font-display text-4xl font-semibold leading-tight mt-3 max-w-md">
             Your shipments, invoices, and team — in one account.
@@ -208,7 +215,7 @@ export default function EnterpriseLoginPage() {
           </p>
         </div>
 
-        <div className="flex gap-8 text-xs text-mist">
+        <div className="relative z-10 flex gap-8 text-xs text-mist">
           <div><span className="text-paper text-lg font-display block">GST</span>compliant billing</div>
           <div><span className="text-paper text-lg font-display block">CSV</span>bulk booking</div>
           <div><span className="text-paper text-lg font-display block">API</span>direct integration</div>

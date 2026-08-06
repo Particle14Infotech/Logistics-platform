@@ -18,9 +18,9 @@ const tooltipStyle = { borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 1
 // way: never repurpose a status color for an unrelated series).
 const STATUS_BAR_COLOR = {
   pending: '#FAB219',
-  accepted: '#2A78D6',
-  picked_up: '#2A78D6',
-  in_transit: '#2A78D6',
+  accepted: '#673AB7',
+  picked_up: '#673AB7',
+  in_transit: '#673AB7',
   awaiting_payment: '#FAB219',
   delivered: '#0CA30C',
   cancelled: '#D03B3B',
@@ -277,7 +277,7 @@ export default function AdminDashboardPage() {
             title="Orders — last 7 days"
             data={analytics.last7Days}
             dataKey="orders"
-            color="#2A78D6"
+            color="#673AB7"
             onBarClick={(entry) => navigate(`/orders?dateFrom=${entry.date}&dateTo=${nextDayIso(entry.date)}`)}
           />
           <TrendChart
