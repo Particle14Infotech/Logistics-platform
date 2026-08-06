@@ -198,8 +198,13 @@ export default function AdminDashboardPage() {
   // these used to be pure display with nothing wired to onClick at all.
   const liveKpis = analytics
     ? [
-        { label: 'Active orders', value: analytics.activeOrders.toLocaleString('en-IN'), onClick: () => navigate('/orders') },
-        { label: 'Active trips', value: analytics.activeTrips.toLocaleString('en-IN'), onClick: () => navigate('/orders?status=in_transit') },
+        // Status lists here have to match analytics()'s own $in filters
+        // exactly (see admin.controller.js) - these used to link to just
+        // one status out of the set being counted (or, for Active orders,
+        // no filter at all), so the count shown and what you'd actually
+        // see after clicking disagreed.
+        { label: 'Active orders', value: analytics.activeOrders.toLocaleString('en-IN'), onClick: () => navigate('/orders?status=pending,accepted,picked_up,in_transit,awaiting_payment') },
+        { label: 'Active trips', value: analytics.activeTrips.toLocaleString('en-IN'), onClick: () => navigate('/orders?status=accepted,picked_up,in_transit,awaiting_payment') },
         { label: 'Drivers online', value: analytics.activeDrivers.toLocaleString('en-IN'), onClick: () => navigate('/drivers?isAvailable=true') },
         { label: 'Total drivers', value: analytics.totalDrivers.toLocaleString('en-IN'), onClick: () => navigate('/drivers') },
       ]

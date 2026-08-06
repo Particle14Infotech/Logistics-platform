@@ -124,9 +124,15 @@ export default function EnterpriseDashboardPage() {
   // these used to be pure display with nothing wired to onClick at all.
   const kpis = summary
     ? [
+        // Status lists here have to match dashboard()'s own $in filters
+        // exactly (see enterprise.controller.js) - Active shipments used to
+        // link to just one status out of the four being counted, and
+        // Pending invoices had nowhere to link to at all (listInvoices
+        // took no filter), so both showed a count that didn't match what
+        // you'd actually see after clicking.
         { label: 'Monthly spend', value: `₹${(summary.monthlySpend / 100000).toFixed(2)}L`, onClick: () => navigate('/invoices') },
-        { label: 'Active shipments', value: summary.activeShipments, onClick: () => navigate('/order-tracking?status=in_transit') },
-        { label: 'Pending invoices', value: summary.pendingInvoices, onClick: () => navigate('/invoices') },
+        { label: 'Active shipments', value: summary.activeShipments, onClick: () => navigate('/order-tracking?status=accepted,picked_up,in_transit,awaiting_payment') },
+        { label: 'Pending invoices', value: summary.pendingInvoices, onClick: () => navigate('/invoices?status=sent,draft') },
       ]
     : [];
 

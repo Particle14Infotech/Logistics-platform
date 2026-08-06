@@ -18,11 +18,19 @@ const razorpayService = require('../services/razorpay.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
+// status accepts a comma-separated list (e.g. "accepted,picked_up,in_transit")
+// as well as a single value - the dashboard's "Active trips"/"Active orders"
+// KPI cards count a multi-status set (see analytics() below) and need to
+// link somewhere that actually shows that whole set, not just one status
+// out of it.
 exports.listOrders = catchAsync(async (req, res) => {
   const { status, vehicleType, search, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
 
   const filter = {};
-  if (status) filter.status = status;
+  if (status) {
+    const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
+    filter.status = statuses.length > 1 ? { $in: statuses } : statuses[0];
+  }
   if (vehicleType) filter.vehicleType = vehicleType;
   if (dateFrom || dateTo) {
     filter.createdAt = {};

@@ -289,12 +289,19 @@ exports.dashboard = catchAsync(async (req, res) => {
 });
 
 // GET /api/v1/enterprise/orders?status=&dateFrom=&dateTo=&page=&limit=
+// status accepts a comma-separated list as well as a single value - same
+// reasoning as admin.controller.js's listOrders (the dashboard's "Active
+// shipments" KPI counts a multi-status set and needs to link somewhere
+// that shows all of it).
 exports.listOrders = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);
   const { status, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
 
   const filter = { enterpriseId: enterprise._id };
-  if (status) filter.status = status;
+  if (status) {
+    const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
+    filter.status = statuses.length > 1 ? { $in: statuses } : statuses[0];
+  }
   if (dateFrom || dateTo) {
     filter.createdAt = {};
     if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
@@ -511,9 +518,23 @@ exports.removeUser = catchAsync(async (req, res) => {
 });
 
 // GET /api/v1/enterprise/invoices
+// GET /api/v1/enterprise/invoices?status=
+// status accepts a comma-separated list as well as a single value - the
+// dashboard's "Pending invoices" KPI (status in ['sent','draft']) had
+// nowhere to actually link to before this: this endpoint took no filter
+// at all, so "Pending invoices" navigated straight to the unfiltered full
+// list regardless of the count shown.
 exports.listInvoices = catchAsync(async (req, res) => {
   const enterprise = await resolveEnterprise(req.user.id);
-  const invoices = await Invoice.find({ enterpriseId: enterprise._id }).sort({ periodEnd: -1 });
+  const { status } = req.query;
+
+  const filter = { enterpriseId: enterprise._id };
+  if (status) {
+    const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
+    filter.status = statuses.length > 1 ? { $in: statuses } : statuses[0];
+  }
+
+  const invoices = await Invoice.find(filter).sort({ periodEnd: -1 });
   return success(res, { invoices });
 });
 

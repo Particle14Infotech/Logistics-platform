@@ -252,7 +252,11 @@ async function seed() {
   if (existingEnterpriseOrders === 0) {
     const ENTERPRISE_ORDERS = [
       { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Distribution Center, Pune', vehicleType: 'medium_truck', price: 6200, status: 'delivered' },
-      { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Regional Hub, Ahmedabad', vehicleType: 'large_truck', price: 14500, status: 'in_transit' },
+      // driver assigned below - an order can't genuinely be in_transit
+      // with nobody driving it (this used to be missing, which is exactly
+      // the kind of order GET /admin/fleet-live silently drops instead of
+      // showing - see its own driverId-required check).
+      { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Regional Hub, Ahmedabad', vehicleType: 'large_truck', price: 14500, status: 'in_transit', driver: driverDocs[0] },
       { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Distribution Center, Pune', vehicleType: 'mini_truck', price: 2100, status: 'delivered' },
       { pickup: 'Vertex Pharma Warehouse, Mumbai', drop: 'Regional Hub, Surat', vehicleType: 'medium_truck', price: 5400, status: 'pending' },
     ];
@@ -260,6 +264,7 @@ async function seed() {
       const order = await Order.create({
         customerId: enterpriseUser._id,
         enterpriseId: enterprise._id,
+        driverId: o.driver?._id ?? null,
         pickupLocation: { type: 'Point', coordinates: [72.8, 19.0], address: o.pickup },
         dropLocation: { type: 'Point', coordinates: [73.8, 18.5], address: o.drop },
         vehicleType: o.vehicleType,
