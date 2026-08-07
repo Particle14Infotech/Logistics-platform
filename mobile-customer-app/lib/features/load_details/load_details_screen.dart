@@ -107,7 +107,8 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
             weightKg: weight,
           );
       notifier.setEstimate(estimate);
-      if (mounted) context.pushReplacement('/booking/estimate');
+      // push, not pushReplacement - see locations_screen.dart's _continue().
+      if (mounted) context.push('/booking/estimate');
     } catch (e) {
       setState(() => _error = 'Could not get a fare estimate. Check your connection and try again.');
     } finally {

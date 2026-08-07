@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Ported from the reference RaahMitr customer app's widgets/custom_textfield.dart.
-class CustomTextField extends StatelessWidget {
+class CustomTextField extends StatefulWidget {
   final String hintText;
   final IconData prefixIcon;
   final TextEditingController? controller;
@@ -21,6 +21,17 @@ class CustomTextField extends StatelessWidget {
   });
 
   @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  // Starts obscured whenever the caller asked for it (password/OTP fields);
+  // the eye icon below only ever un-hides it for as long as this widget is
+  // on screen - there was previously no way to check what you'd actually
+  // typed before submitting a login/signup form.
+  late bool _obscured = widget.obscureText;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 58,
@@ -30,16 +41,22 @@ class CustomTextField extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLength: maxLength > 0 ? maxLength : null,
-        obscureText: obscureText,
+        controller: widget.controller,
+        keyboardType: widget.keyboardType,
+        maxLength: widget.maxLength > 0 ? widget.maxLength : null,
+        obscureText: _obscured,
         decoration: InputDecoration(
           counterText: '',
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
-          prefixIcon: Icon(prefixIcon, color: Colors.grey.shade600),
-          hintText: hintText,
+          prefixIcon: Icon(widget.prefixIcon, color: Colors.grey.shade600),
+          suffixIcon: widget.obscureText
+              ? IconButton(
+                  icon: Icon(_obscured ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey.shade500, size: 20),
+                  onPressed: () => setState(() => _obscured = !_obscured),
+                )
+              : null,
+          hintText: widget.hintText,
           hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400, fontSize: 16),
         ),
       ),

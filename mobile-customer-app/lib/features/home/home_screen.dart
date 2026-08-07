@@ -266,10 +266,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
               ),
-              if (_banners.isNotEmpty) ...[
-                const SizedBox(height: 18),
-                _PromoBannerCarousel(banners: _banners),
-              ],
               const SizedBox(height: 26),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -331,6 +327,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         style:
                             GoogleFonts.poppins(color: Colors.grey.shade500))),
               ...displayedBookings.map((b) => _BookingCard(order: b)),
+              // Pushed to the very bottom, below everything a customer
+              // actually came here for - this used to sit right under the
+              // hero card, which is the first thing people saw on every
+              // launch, so a broken banner image was maximally visible.
+              if (_banners.isNotEmpty) ...[
+                const SizedBox(height: 22),
+                _PromoBannerCarousel(banners: _banners),
+              ],
             ],
           ),
         ),
@@ -339,9 +343,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _PromoBannerCarousel extends StatelessWidget {
+class _PromoBannerCarousel extends StatefulWidget {
   final List<BannerModel> banners;
   const _PromoBannerCarousel({required this.banners});
+
+  @override
+  State<_PromoBannerCarousel> createState() => _PromoBannerCarouselState();
+}
+
+class _PromoBannerCarouselState extends State<_PromoBannerCarousel> {
+  // A banner with a broken/unreachable imageUrl (misconfigured in Admin's
+  // Content > Banners - e.g. a placeholder URL that was never swapped for
+  // a real one) used to show a plain "broken image" icon box right on the
+  // home screen. Tracking failures here lets it just quietly drop out of
+  // the carousel instead.
+  final Set<int> _failed = {};
 
   Future<void> _open(BannerModel banner) async {
     final url = banner.linkUrl;
@@ -352,14 +368,19 @@ class _PromoBannerCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visible = [for (var i = 0; i < widget.banners.length; i++) if (!_failed.contains(i)) i];
+    // Every banner failed to load - no point reserving a blank 120px strip.
+    if (visible.isEmpty) return const SizedBox.shrink();
+
     return SizedBox(
       height: 120,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: banners.length,
+        itemCount: visible.length,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, i) {
-          final banner = banners[i];
+        itemBuilder: (context, vi) {
+          final i = visible[vi];
+          final banner = widget.banners[i];
           return ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Material(
@@ -373,11 +394,10 @@ class _PromoBannerCarousel extends StatelessWidget {
                     imageUrl: banner.imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey.shade200,
-                      alignment: Alignment.center,
-                      child: Icon(Icons.image_not_supported_outlined, color: Colors.grey.shade400),
-                    ),
+                    errorListener: (_) {
+                      if (mounted) setState(() => _failed.add(i));
+                    },
+                    errorWidget: (context, url, error) => const SizedBox.shrink(),
                   ),
                 ),
               ),

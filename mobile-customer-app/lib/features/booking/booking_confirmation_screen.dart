@@ -42,7 +42,18 @@ class _BookingConfirmationScreenState
   @override
   Widget build(BuildContext context) {
     final order = _order;
-    return Scaffold(
+    return PopScope(
+      // The wizard screens behind this one (Locations/Vehicle/Details) are
+      // still on the stack since they now use push, not pushReplacement -
+      // but their draft was just reset() in fare_estimate_screen.dart, so
+      // popping back into them would land on stale/empty steps for an
+      // order that's already been placed. Route back-button/back-gesture
+      // to Home instead, same as the explicit "Back to Home" button below.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) context.go('/home');
+      },
+      child: Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: Padding(
@@ -176,8 +187,13 @@ class _BookingConfirmationScreenState
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
+                    // push, not go - go() wipes the whole stack down to
+                    // just this route, and booking_detail_screen.dart has
+                    // no PopScope of its own, so a lone back press/gesture
+                    // there had nothing left to pop and exited the app
+                    // outright instead of returning here.
                     onPressed: () =>
-                        context.go('/booking/detail/${widget.orderId}'),
+                        context.push('/booking/detail/${widget.orderId}'),
                     child: const Text('Track Shipment'),
                   ),
                 ),
@@ -200,6 +216,7 @@ class _BookingConfirmationScreenState
             ],
           ),
         ),
+      ),
       ),
     );
   }

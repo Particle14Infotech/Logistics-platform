@@ -29,6 +29,11 @@ class AuthTextField extends StatefulWidget {
 
 class _AuthTextFieldState extends State<AuthTextField> {
   final _focusNode = FocusNode();
+  // Starts obscured whenever the caller asked for it (password fields);
+  // the eye icon below only ever un-hides it for as long as this widget is
+  // on screen - there was previously no way to check what you'd actually
+  // typed before submitting a login/signup form.
+  late bool _obscured = widget.obscureText;
 
   @override
   void dispose() {
@@ -78,7 +83,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
               focusNode: _focusNode,
               keyboardType: widget.keyboardType,
               maxLength: widget.maxLength > 0 ? widget.maxLength : null,
-              obscureText: widget.obscureText,
+              obscureText: _obscured,
               style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
@@ -103,6 +108,17 @@ class _AuthTextFieldState extends State<AuthTextField> {
                     : null,
                 prefixIconConstraints:
                     const BoxConstraints(minWidth: 0, minHeight: 0),
+                suffixIcon: widget.obscureText
+                    ? IconButton(
+                        icon: Icon(
+                            _obscured
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: AppTheme.textGrey,
+                            size: 20),
+                        onPressed: () => setState(() => _obscured = !_obscured),
+                      )
+                    : null,
               ),
             ),
           ),

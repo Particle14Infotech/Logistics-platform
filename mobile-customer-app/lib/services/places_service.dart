@@ -45,6 +45,21 @@ class PlacesService {
     }
   }
 
+  // Forward geocode for free-typed text that was never resolved through
+  // autocomplete/getDetails (user typed an address and hit Continue
+  // without tapping a suggestion). Used as a last attempt to recover real
+  // coordinates before falling back to a coordinate-less booking, which
+  // the backend prices using a flat placeholder distance.
+  Future<PlaceDetails?> geocode(String address) async {
+    try {
+      final response = await _dio.get('/places/geocode', queryParameters: {'address': address});
+      final data = response.data['data'];
+      return PlaceDetails(address: data['address'] as String, lat: (data['lat'] as num).toDouble(), lng: (data['lng'] as num).toDouble());
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<PlaceDetails?> reverseGeocode(double lat, double lng) async {
     try {
       final response = await _dio.get('/places/reverse-geocode', queryParameters: {'lat': lat, 'lng': lng});

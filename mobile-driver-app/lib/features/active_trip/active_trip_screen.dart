@@ -349,10 +349,41 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
   }
 
+  // Back button/gesture while a trip is actually live (GPS broadcasting,
+  // socket connected) needs to ask first - previously there was no
+  // PopScope here at all, so a stray back gesture silently tore down the
+  // location Timer/socket/foreground service mid-delivery with zero
+  // warning. Once the trip is delivered/cancelled there's nothing live
+  // left to protect, so it pops freely like any other screen.
+  bool get _tripIsLive => _trip != null && _kLiveStatuses.contains(_trip!.status);
+
+  Future<bool> _confirmLeaveTrip() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave this trip?'),
+        content: const Text(
+            'Going back stops sharing your live location with the customer until you reopen this trip. The trip itself stays active.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Stay')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Leave')),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final trip = _trip;
-    return Scaffold(
+    return PopScope(
+      canPop: !_tripIsLive,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final leave = await _confirmLeaveTrip();
+        if (leave && context.mounted) Navigator.of(context).pop();
+      },
+      child: Scaffold(
       backgroundColor: AppTheme.cream,
       appBar: AppBar(title: const Text('Active Trip')),
       body: trip == null
@@ -596,6 +627,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 

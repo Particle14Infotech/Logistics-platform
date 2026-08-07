@@ -86,7 +86,16 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
     setState(() => _actingOnId = job.id);
     try {
       await ref.read(driverServiceProvider).acceptOrder(job.id);
-      if (mounted) context.pushReplacement('/trip/${job.id}');
+      // push, not pushReplacement - this screen is a tab inside MainScreen's
+      // IndexedStack (see main_screen.dart), not its own GoRoute, so the
+      // navigator's actual top-of-stack entry here is '/dashboard' itself.
+      // pushReplacement was removing '/dashboard' from the stack entirely,
+      // leaving ActiveTripScreen as the ONLY route - a single back
+      // press/gesture then had nothing left to pop and exited the whole
+      // app outright, silently killing the live GPS broadcast mid-trip.
+      // Matches the correct pattern already used at
+      // dashboard_screen.dart's _HeroBanner onTap.
+      if (mounted) context.push('/trip/${job.id}');
     } catch (e) {
       if (mounted) {
         // Surface the backend's actual reason (e.g. "Go online before

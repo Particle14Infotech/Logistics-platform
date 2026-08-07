@@ -54,7 +54,8 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
   void _continue() {
     if (_selected == null) return;
     ref.read(bookingDraftProvider.notifier).setVehicleType(_selected!);
-    context.pushReplacement('/booking/details');
+    // push, not pushReplacement - see locations_screen.dart's _continue().
+    context.push('/booking/details');
   }
 
   @override

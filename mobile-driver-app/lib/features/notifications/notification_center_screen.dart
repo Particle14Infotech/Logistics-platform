@@ -64,11 +64,15 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
         title: const Text('Notifications'),
         actions: [
           if (hasUnread)
-            TextButton(
+            TextButton.icon(
               onPressed: _markAllRead,
-              child: Text('Mark all read',
-                  style:
-                      GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+              // This AppBar's background is AppTheme.cream (near-white, see
+              // AppTheme.light's appBarTheme) - the button was rendering in
+              // Colors.white text, invisible against it, so the feature
+              // existed but nobody could ever see it to tap it.
+              icon: const Icon(Icons.done_all, size: 16, color: AppTheme.amberDeep),
+              label: Text('Mark all read',
+                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.amberDeep)),
             ),
         ],
       ),
