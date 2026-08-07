@@ -64,6 +64,36 @@ exports.details = catchAsync(async (req, res) => {
   });
 });
 
+// GET /api/v1/places/geocode?address=...
+// Forward geocode for free-typed addresses that were never resolved through
+// autocomplete/details (user typed then hit Continue without tapping a
+// suggestion). Without this, booking.controller.js's computeDistanceKm()
+// had no coordinates to work with and silently fell back to a flat 10km
+// placeholder distance - wrong for basically every real route, and with no
+// indication to the customer that the price they saw wasn't real.
+exports.geocode = catchAsync(async (req, res) => {
+  const { address } = req.query;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) throw new AppError('Maps is not configured on the server', 503);
+  if (!address || !address.trim()) throw new AppError('address is required', 400);
+
+  const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+    params: { address, key: apiKey, components: 'country:IN' },
+    timeout: 5000,
+  });
+
+  if (response.data?.status !== 'OK') throw new AppError('Could not find this address', 404);
+
+  const result = response.data.results[0];
+  const location = result.geometry.location;
+
+  return success(res, {
+    address: result.formatted_address,
+    lat: location.lat,
+    lng: location.lng,
+  });
+});
+
 // GET /api/v1/places/reverse-geocode?lat=...&lng=...
 exports.reverseGeocode = catchAsync(async (req, res) => {
   const { lat, lng } = req.query;
