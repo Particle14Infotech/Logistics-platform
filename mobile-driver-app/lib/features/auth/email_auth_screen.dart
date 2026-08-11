@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,6 +68,28 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   final _phoneOtpController = TextEditingController();
   String? _verificationId;
 
+  // Shared by both the email- and phone-OTP "Resend code" buttons - a real
+  // user impatiently mashing resend is the one realistic way to trigger
+  // Firebase's own per-number anti-abuse throttle (it blocks rapid repeat
+  // sends to protect the phone's owner from being SMS-bombed - not
+  // something this app can raise or configure, it's Google's own
+  // infrastructure). A simple cooldown here stops that before it happens.
+  Timer? _resendTimer;
+  int _resendSecondsLeft = 0;
+
+  void _startResendCooldown() {
+    _resendTimer?.cancel();
+    setState(() => _resendSecondsLeft = 30);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendSecondsLeft <= 1) {
+        timer.cancel();
+        setState(() => _resendSecondsLeft = 0);
+      } else {
+        setState(() => _resendSecondsLeft--);
+      }
+    });
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -75,6 +99,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     _phoneController.dispose();
     _otpController.dispose();
     _phoneOtpController.dispose();
+    _resendTimer?.cancel();
     super.dispose();
   }
 
@@ -105,11 +130,9 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
         return;
       }
       await _syncSessionAndContinue();
-    } on fb.FirebaseAuthException catch (e) {
-      setState(() => _error = _messageFor(e));
     } catch (e, st) {
       debugPrint('[_login] EXCEPTION: $e\n$st');
-      setState(() => _error = 'Could not log in. Try again.');
+      setState(() => _error = _extractErrorMessage(e, 'Could not log in. Try again.'));
     } finally {
       setState(() => _loading = false);
     }
@@ -164,7 +187,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       await _syncSessionAndContinue();
     } catch (e, st) {
       debugPrint('[_checkVerifiedAndContinue] EXCEPTION: $e\n$st');
-      setState(() => _error = 'Could not check verification status. Try again.');
+      setState(() => _error = _extractErrorMessage(e, 'Could not check verification status. Try again.'));
     } finally {
       setState(() => _loading = false);
     }
@@ -187,6 +210,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     try {
       await _authService.sendEmailVerificationOtp();
       setState(() => _otpSent = true);
+      _startResendCooldown();
     } catch (e) {
       setState(() => _error = 'Could not send the code. Try again.');
     } finally {
@@ -211,7 +235,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       }
       await _syncSessionAndContinue();
     } catch (e) {
-      setState(() => _error = 'Could not verify that code. Try again.');
+      setState(() => _error = _extractErrorMessage(e, 'Could not verify that code. Try again.'));
     } finally {
       setState(() => _loading = false);
     }
@@ -329,6 +353,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
         _verificationId = verificationId;
         _phoneStep = _PhoneStep.enterOtp;
       });
+      _startResendCooldown();
     } on fb.FirebaseAuthException catch (e) {
       setState(() => _error = _messageFor(e));
     } catch (e, st) {
@@ -352,11 +377,9 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     try {
       await _authService.verifyPhoneOtp(_verificationId!, code);
       await _syncSessionAndContinue();
-    } on fb.FirebaseAuthException catch (e) {
-      setState(() => _error = _messageFor(e));
     } catch (e, st) {
       debugPrint('[_verifyPhoneOtp] EXCEPTION: $e\n$st');
-      setState(() => _error = 'Could not verify that code. Try again.');
+      setState(() => _error = _extractErrorMessage(e, 'Could not verify that code. Try again.'));
     } finally {
       setState(() => _loading = false);
     }
@@ -389,6 +412,23 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     }
   }
 
+  // Every call site that reaches _syncSessionAndContinue() (password,
+  // email OTP, phone OTP - the Firebase step already succeeded by then)
+  // can still fail at OUR backend's /auth/firebase-session, e.g. this
+  // phone number already belongs to a different-role account. That's a
+  // real, specific, useful reason - it was previously getting swallowed
+  // by a generic catch-all that always showed "Could not verify that
+  // code", which was actively misleading (the code itself was correct;
+  // the phone/account it belonged to was the actual problem).
+  String _extractErrorMessage(Object error, String fallback) {
+    if (error is fb.FirebaseAuthException) return _messageFor(error);
+    if (error is DioException) {
+      final message = error.response?.data?['message'];
+      if (message is String && message.isNotEmpty) return message;
+    }
+    return fallback;
+  }
+
   // True on the two "mid-verification" screens (email link/OTP pending,
   // phone OTP pending) - both get a plain back arrow instead of the
   // spacer+method-toggle header the entry screens share.
@@ -396,14 +436,18 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       (_method == _AuthMethod.email && _step == _Step.verifyEmail) ||
       (_method == _AuthMethod.phone && _phoneStep == _PhoneStep.enterOtp);
 
-  void _backFromVerification() => setState(() {
-        if (_method == _AuthMethod.email) {
-          _step = _Step.login;
-        } else {
-          _phoneStep = _PhoneStep.enterNumber;
-        }
-        _error = null;
-      });
+  void _backFromVerification() {
+    _resendTimer?.cancel();
+    setState(() {
+      if (_method == _AuthMethod.email) {
+        _step = _Step.login;
+      } else {
+        _phoneStep = _PhoneStep.enterNumber;
+      }
+      _error = null;
+      _resendSecondsLeft = 0;
+    });
+  }
 
   String get _title {
     if (_method == _AuthMethod.phone && _step != _Step.personalDetails) {
@@ -584,8 +628,11 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
           const SizedBox(height: 12),
           Center(
             child: TextButton(
-              onPressed: _sendPhoneOtp,
-              child: Text('Resend code', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+              onPressed: _resendSecondsLeft > 0 ? null : _sendPhoneOtp,
+              child: Text(
+                _resendSecondsLeft > 0 ? 'Resend code in ${_resendSecondsLeft}s' : 'Resend code',
+                style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
+              ),
             ),
           ),
         ],
@@ -674,8 +721,11 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
             const SizedBox(height: 12),
             Center(
               child: TextButton(
-                onPressed: _sendOtp,
-                child: Text('Resend code', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+                onPressed: _resendSecondsLeft > 0 ? null : _sendOtp,
+                child: Text(
+                  _resendSecondsLeft > 0 ? 'Resend code in ${_resendSecondsLeft}s' : 'Resend code',
+                  style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
+                ),
               ),
             ),
           ],

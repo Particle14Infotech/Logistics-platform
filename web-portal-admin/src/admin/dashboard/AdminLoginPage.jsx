@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { auth as firebaseAuth } from '../../firebase.js';
@@ -55,6 +55,30 @@ export default function AdminLoginPage() {
   const recaptchaVerifierRef = useRef(null);
   const confirmationResultRef = useRef(null);
 
+  // Shared by both the email- and phone-OTP "Resend code" buttons - a real
+  // user impatiently mashing resend is the one realistic way to trigger
+  // Firebase's own per-number anti-abuse throttle (it blocks rapid repeat
+  // sends to protect the phone's owner from being SMS-bombed - not
+  // something this app can raise or configure, it's Google's own
+  // infrastructure). A simple cooldown here stops that before it happens.
+  const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
+  const resendIntervalRef = useRef(null);
+  useEffect(() => () => clearInterval(resendIntervalRef.current), []);
+
+  const startResendCooldown = () => {
+    clearInterval(resendIntervalRef.current);
+    setResendSecondsLeft(30);
+    resendIntervalRef.current = setInterval(() => {
+      setResendSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(resendIntervalRef.current);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  };
+
   const navigate = useNavigate();
   const location = useLocation();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -105,6 +129,7 @@ export default function AdminLoginPage() {
     try {
       await axiosClient.post('/auth/portal/request-otp', { email: email.trim(), appContext: 'admin' });
       setEmailOtpSent(true);
+      startResendCooldown();
     } catch (err) {
       setError(err.response?.data?.message || 'Could not send the code. Try again.');
     } finally {
@@ -173,6 +198,7 @@ export default function AdminLoginPage() {
         "Couldn't verify this device automatically. Try again, or use email/password instead."
       );
       setPhoneOtpSent(true);
+      startResendCooldown();
     } catch (err) {
       console.error('[AdminLoginPage] sending phone OTP failed', err);
       setError(err.code ? messageFor(err) : 'Could not send the code. Try again.');
@@ -355,8 +381,13 @@ export default function AdminLoginPage() {
                     className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-2 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors tracking-widest"
                   />
                   <div className="flex justify-end mb-4">
-                    <button type="button" onClick={handleRequestEmailOtp} className="text-xs text-mist hover:text-signal transition-colors">
-                      Resend code
+                    <button
+                      type="button"
+                      onClick={handleRequestEmailOtp}
+                      disabled={resendSecondsLeft > 0}
+                      className="text-xs text-mist hover:text-signal transition-colors disabled:opacity-60 disabled:hover:text-mist"
+                    >
+                      {resendSecondsLeft > 0 ? `Resend code in ${resendSecondsLeft}s` : 'Resend code'}
                     </button>
                   </div>
                 </>
@@ -406,8 +437,13 @@ export default function AdminLoginPage() {
                     className="w-full bg-panel border border-line rounded-md px-3 py-2.5 text-sm mb-2 placeholder:text-mist/60 focus:border-signal focus:outline-none transition-colors tracking-widest"
                   />
                   <div className="flex justify-end mb-4">
-                    <button type="button" onClick={handleSendPhoneOtp} className="text-xs text-mist hover:text-signal transition-colors">
-                      Resend code
+                    <button
+                      type="button"
+                      onClick={handleSendPhoneOtp}
+                      disabled={resendSecondsLeft > 0}
+                      className="text-xs text-mist hover:text-signal transition-colors disabled:opacity-60 disabled:hover:text-mist"
+                    >
+                      {resendSecondsLeft > 0 ? `Resend code in ${resendSecondsLeft}s` : 'Resend code'}
                     </button>
                   </div>
                 </>
