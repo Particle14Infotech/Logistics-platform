@@ -144,6 +144,16 @@ class AuthService {
   // this method for a verificationId to show the OTP field with. The OTP
   // screen covers that case anyway - autofill still fills the code in for
   // the user to submit normally.
+  //
+  // The .timeout() below matters more than it looks: when Android's silent
+  // Play Integrity check fails (routine for a sideloaded APK not installed
+  // from Play Store), Firebase falls back to a visible reCAPTCHA challenge
+  // in an external Custom Tab. If THAT flow itself errors out (seen in
+  // testing: Brave's storage partitioning breaks Firebase's own
+  // sessionStorage-dependent redirect handshake) that error happens
+  // entirely inside the browser tab - none of the callbacks below ever
+  // fire, so without a hard deadline this Future (and the caller's loading
+  // spinner) would hang forever with zero feedback in-app.
   Future<String> sendPhoneOtp(String phoneNumber) async {
     final completer = Completer<String>();
     await _firebaseAuth.verifyPhoneNumber(
@@ -160,7 +170,13 @@ class AuthService {
         if (!completer.isCompleted) completer.complete(verificationId);
       },
     );
-    return completer.future;
+    return completer.future.timeout(
+      const Duration(seconds: 45),
+      onTimeout: () => throw fb.FirebaseAuthException(
+        code: 'verification-timeout',
+        message: "Couldn't verify this device automatically. Try again, or use email login instead.",
+      ),
+    );
   }
 
   Future<fb.User> verifyPhoneOtp(String verificationId, String smsCode) async {

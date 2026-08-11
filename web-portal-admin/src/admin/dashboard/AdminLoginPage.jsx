@@ -12,6 +12,15 @@ const ENTERPRISE_PORTAL_LOGIN_URL = import.meta.env.DEV
   ? 'http://localhost:5176/login'
   : 'https://enterprise.raahmitr.com/login';
 
+// signInWithPhoneNumber's returned promise depends on the invisible
+// reCAPTCHA challenge actually resolving - a browser that partitions/
+// blocks the storage that handshake needs (seen in testing: Brave) can
+// leave it neither resolving nor rejecting, so the "Please wait…" button
+// spins forever with no feedback. This turns that into a real, visible
+// error after a bounded wait instead.
+const withTimeout = (promise, ms, message) =>
+  Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject({ code: 'verification-timeout', message }), ms))]);
+
 // Admin login screen - password calls POST /api/v1/auth/login (bcrypt,
 // unrelated to Firebase); email OTP and phone OTP are two independent
 // alternatives alongside it, not replacements.
@@ -150,7 +159,11 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError('');
     try {
-      confirmationResultRef.current = await signInWithPhoneNumber(firebaseAuth, `+91${phone.trim()}`, getRecaptchaVerifier());
+      confirmationResultRef.current = await withTimeout(
+        signInWithPhoneNumber(firebaseAuth, `+91${phone.trim()}`, getRecaptchaVerifier()),
+        45000,
+        "Couldn't verify this device automatically. Try again, or use email/password instead."
+      );
       setPhoneOtpSent(true);
     } catch (err) {
       console.error('[AdminLoginPage] sending phone OTP failed', err);
