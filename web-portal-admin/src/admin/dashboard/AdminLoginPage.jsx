@@ -12,6 +12,14 @@ const ENTERPRISE_PORTAL_LOGIN_URL = import.meta.env.DEV
   ? 'http://localhost:5176/login'
   : 'https://enterprise.raahmitr.com/login';
 
+// Email OTP login is fully built (backend + this UI) but SENDGRID_API_KEY
+// was never actually set on the server - it's been silently logging codes
+// server-side instead of emailing them the whole time. Hiding the tab
+// until a real email service is wired up, rather than leaving up a login
+// method that always fails to deliver its code. Flip back to true once
+// that's done - nothing else needs to change.
+const EMAIL_OTP_ENABLED = false;
+
 // signInWithPhoneNumber's returned promise depends on the invisible
 // reCAPTCHA challenge actually resolving - a browser that partitions/
 // blocks the storage that handshake needs (seen in testing: Brave) can
@@ -244,9 +252,9 @@ export default function AdminLoginPage() {
           <div className="flex gap-1 bg-panel border border-line rounded-md p-1 mb-6">
             {[
               ['password', 'Password'],
-              ['emailOtp', 'Email OTP'],
+              EMAIL_OTP_ENABLED && ['emailOtp', 'Email OTP'],
               ['phoneOtp', 'Phone OTP'],
-            ].map(([value, label]) => (
+            ].filter(Boolean).map(([value, label]) => (
               <button
                 key={value}
                 type="button"
