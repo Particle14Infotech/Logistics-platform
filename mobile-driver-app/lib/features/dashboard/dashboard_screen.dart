@@ -596,21 +596,32 @@ class _PendingApprovalViewState extends State<_PendingApprovalView> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () => context.push('/documents'),
-              icon: const Icon(Icons.upload_file),
-              label: const Text('Upload remaining documents'),
+            // Both buttons previously had no width constraint, so Material
+            // shrink-wrapped them to just their content - a small pill
+            // floating in the middle of the screen instead of a proper
+            // full-width action, and visibly inconsistent with every other
+            // primary/secondary button pair in this app.
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => context.push('/documents'),
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Upload remaining documents'),
+              ),
             ),
             const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _checking ? null : _handleCheckStatus,
-              child: _checking
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Check status'),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _checking ? null : _handleCheckStatus,
+                child: _checking
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Check status'),
+              ),
             ),
           ],
         ),

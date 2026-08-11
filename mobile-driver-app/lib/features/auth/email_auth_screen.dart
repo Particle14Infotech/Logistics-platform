@@ -198,7 +198,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       await _authService.resendVerificationEmail();
       setState(() => _resendSent = true);
     } catch (e) {
-      setState(() => _error = 'Could not resend the email. Try again.');
+      setState(() => _error = _extractErrorMessage(e, 'Could not resend the email. Try again.'));
     }
   }
 
@@ -212,7 +212,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       setState(() => _otpSent = true);
       _startResendCooldown();
     } catch (e) {
-      setState(() => _error = 'Could not send the code. Try again.');
+      setState(() => _error = _extractErrorMessage(e, 'Could not send the code. Try again.'));
     } finally {
       setState(() => _loading = false);
     }
