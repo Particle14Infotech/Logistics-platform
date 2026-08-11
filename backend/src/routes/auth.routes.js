@@ -5,6 +5,8 @@ const { protect } = require('../middlewares/auth.middleware');
 router.post('/firebase-session', ctrl.firebaseSession);
 router.post('/send-email-otp', ctrl.sendEmailVerificationOtp);
 router.post('/verify-email-otp', ctrl.verifyEmailOtp);
+router.post('/portal/request-otp', ctrl.requestPortalOtp);
+router.post('/portal/verify-otp', ctrl.verifyPortalOtp);
 router.post('/login', ctrl.login);
 router.get('/profile', protect, ctrl.getProfile);
 router.put('/profile', protect, ctrl.updateProfile);

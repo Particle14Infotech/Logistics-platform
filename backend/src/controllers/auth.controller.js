@@ -4,6 +4,7 @@ const { success, AppError, catchAsync } = require('../utils/apiResponse');
 const { admin, ensureInitialized } = require('../config/firebaseAdmin');
 const { signAccessToken, signRefreshToken } = require('../utils/jwt');
 const emailOtpService = require('../services/emailOtp.service');
+const portalLoginOtpService = require('../services/portalLoginOtp.service');
 
 // Both send-email-otp and verify-email-otp run before the app has any JWT
 // session (mid-registration/verification, only a Firebase session exists
@@ -40,7 +41,22 @@ const APP_ALLOWED_ROLES = {
   // exchanges its Firebase session through this same shared endpoint - see
   // EnterpriseLoginPage.jsx.
   enterprise: ['enterprise_admin', 'enterprise_user'],
+  // Admin portal's phone-OTP login (email/password there still goes through
+  // the separate bcrypt exports.login below, unchanged) - see
+  // AdminLoginPage.jsx.
+  admin: ['admin'],
 };
+
+// customer/driver phone or email sign-in auto-creates an account on first
+// use - that's the point, frictionless self-signup. admin/enterprise are
+// privileged roles that must never come into existence this way: an admin
+// account only ever gets created by another admin (or seeded directly),
+// and enterprise has its own dedicated signup form that also creates the
+// Enterprise company record alongside the User (POST /enterprise/firebase-signup) -
+// auto-creating a bare User here for either would either grant admin
+// access to anyone who can prove a phone number, or leave an enterprise
+// account permanently missing its company profile.
+const NO_AUTO_CREATE_CONTEXTS = new Set(['enterprise', 'admin']);
 
 // POST /api/v1/auth/firebase-session  { idToken, appContext, role? }
 // Exchanges a verified Firebase ID token for this app's own JWT session, so
@@ -71,9 +87,6 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   }
 
   const isPhoneAuth = !!decoded.phone_number;
-  if (isPhoneAuth && appContext === 'enterprise') {
-    throw new AppError('Phone sign-in is not available for the enterprise portal - use email/password.', 400);
-  }
   if (!isPhoneAuth && !decoded.email_verified) throw new AppError('Email not verified', 403);
 
   const matchQuery = isPhoneAuth ? { phone: decoded.phone_number } : { email: decoded.email };
@@ -103,14 +116,18 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   if (user?.isBlocked) throw new AppError('This account has been blocked. Contact support.', 403);
 
   if (!user) {
-    // Enterprise has a dedicated signup form (POST /enterprise/firebase-signup)
-    // that collects company details and creates the Enterprise doc alongside
-    // the User - auto-creating a bare User here for a brand-new email would
-    // leave it with no Enterprise record and no way to ever get one, since
-    // firebase-session would just find that same bare User on every later
-    // attempt instead of retrying signup.
-    if (appContext === 'enterprise') {
-      throw new AppError('No account found with this email - use Sign Up to create a new enterprise account.', 404);
+    if (NO_AUTO_CREATE_CONTEXTS.has(appContext)) {
+      if (appContext === 'enterprise' && !isPhoneAuth) {
+        throw new AppError('No account found with this email - use Sign Up to create a new enterprise account.', 404);
+      }
+      // Phone sign-in (either context) or an admin email with no match -
+      // there's no self-service signup to point at, since neither role can
+      // be created this way at all. Existing account just hasn't linked
+      // this phone number yet.
+      throw new AppError(
+        `No ${appContext} account is linked to this ${isPhoneAuth ? 'phone number' : 'email'} - log in with your password first, then add ${isPhoneAuth ? 'this phone number' : 'it'} in your profile.`,
+        404
+      );
     }
 
     const newRole = role && allowedRoles.includes(role) ? role : allowedRoles[0];
@@ -127,6 +144,61 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   const refreshToken = signRefreshToken(user);
 
   return success(res, { user, accessToken, refreshToken, isNewUser }, 'Firebase session established');
+});
+
+// Which roles each portal is allowed to sign in as via passwordless email
+// OTP - same role split as APP_ALLOWED_ROLES' admin/enterprise entries,
+// kept separate since this path has nothing to do with Firebase (no
+// idToken, no email_verified check - the code itself is the proof).
+const PORTAL_OTP_ALLOWED_ROLES = {
+  admin: ['admin'],
+  enterprise: ['enterprise_admin', 'enterprise_user'],
+};
+
+// POST /api/v1/auth/portal/request-otp  { email, appContext }
+// Passwordless login for Admin/Enterprise, alongside (not replacing)
+// existing password login - a code emailed straight from this backend via
+// SendGrid, no Firebase involved for this particular path.
+exports.requestPortalOtp = catchAsync(async (req, res) => {
+  const { email, appContext } = req.body;
+  const allowedRoles = PORTAL_OTP_ALLOWED_ROLES[appContext];
+  if (!allowedRoles) throw new AppError('appContext must be "admin" or "enterprise"', 400);
+  if (!email) throw new AppError('email is required', 400);
+
+  const user = await User.findOne({ email: email.trim().toLowerCase(), role: { $in: allowedRoles } });
+  // Identical response whether or not an account exists - this is a login
+  // bypass with no password check, so letting the response confirm/deny an
+  // email's existence would make the whole portal user base enumerable.
+  // The send itself is silently skipped on no match/blocked.
+  if (user && !user.isBlocked) {
+    await portalLoginOtpService.sendLoginOtp(user.email);
+  }
+  return success(res, null, 'If that email has an account, a code has been sent.');
+});
+
+// POST /api/v1/auth/portal/verify-otp  { email, code, appContext }
+exports.verifyPortalOtp = catchAsync(async (req, res) => {
+  const { email, code, appContext } = req.body;
+  const allowedRoles = PORTAL_OTP_ALLOWED_ROLES[appContext];
+  if (!allowedRoles) throw new AppError('appContext must be "admin" or "enterprise"', 400);
+  if (!email || !code) throw new AppError('email and code are required', 400);
+
+  const result = portalLoginOtpService.verifyLoginOtp(email.trim().toLowerCase(), code.trim());
+  if (result === 'expired') throw new AppError('That code expired - request a new one.', 400);
+  if (result === 'too-many-attempts') throw new AppError('Too many incorrect attempts - request a new code.', 429);
+  if (result !== 'ok') throw new AppError('Incorrect code.', 400);
+
+  // The code could only have been sent to a real, unblocked, correctly-
+  // roled account (see requestPortalOtp) - re-checking here just guards
+  // against the account being blocked/deleted in the few minutes between
+  // the two calls, not a normal path.
+  const user = await User.findOne({ email: email.trim().toLowerCase(), role: { $in: allowedRoles } });
+  if (!user) throw new AppError('Incorrect code.', 400);
+  if (user.isBlocked) throw new AppError('This account has been blocked. Contact support.', 403);
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+  return success(res, { user, accessToken, refreshToken }, 'Signed in');
 });
 
 // POST /api/v1/auth/send-email-otp - alternative to Firebase's own "click

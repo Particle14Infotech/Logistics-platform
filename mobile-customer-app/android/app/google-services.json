@@ -12,7 +12,16 @@
           "package_name": "com.example.logistics_customer_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "84806642758-4q95s2sbkk3v6qlv66uc7it4565bt46e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.logistics_customer_app",
+            "certificate_hash": "eec7cb2d50f69bcee3a4c8dfb84393d38812a791"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
@@ -31,7 +40,16 @@
           "package_name": "com.example.logistics_driver_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "84806642758-krioqrgbhm62l9d1384o0pl65647ed9f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.logistics_driver_app",
+            "certificate_hash": "f4e59e73ac50022f16760b2626bff4f4cea38030"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
@@ -50,7 +68,16 @@
           "package_name": "raahmitr.customer"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "84806642758-dkjdi8qq5ksmp4j4e484ll5fe9d0sd33.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "raahmitr.customer",
+            "certificate_hash": "eec7cb2d50f69bcee3a4c8dfb84393d38812a791"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
@@ -69,7 +96,16 @@
           "package_name": "raahmitr.driver"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "84806642758-0nl6mnclfta15e804ud4b5u7uodvmp8j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "raahmitr.driver",
+            "certificate_hash": "f4e59e73ac50022f16760b2626bff4f4cea38030"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBUahv_BCz_uhfzbb3ocATzbQcgFADp-gc"
