@@ -11,6 +11,8 @@ import '../../widgets/auth_button.dart';
 import '../../widgets/auth_text_field.dart';
 
 enum _Step { login, register, verifyEmail, personalDetails }
+enum _AuthMethod { email, phone }
+enum _PhoneStep { enterNumber, enterOtp }
 
 // Email/password login is the only auth path - Firebase owns the credential
 // and email-verification state; this screen only calls
@@ -48,6 +50,22 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   // completes.
   AuthResult? _pendingAuthResult;
 
+  // Phone/SMS sign-in - a second method alongside email/password, not a
+  // replacement (see auth_service.dart's phone auth section). Firebase
+  // treats "new phone number" and "phone number that's signed in before"
+  // identically (signInWithCredential creates the account if needed), so
+  // unlike the email method there's no separate login/register step here -
+  // _syncSessionAndContinue()'s existing isNewUser branch into
+  // personalDetails already covers a brand-new phone signup too.
+  // Deliberately reuses _phoneController (already declared above for the
+  // personalDetails step) rather than a second one - the number entered to
+  // request an OTP is the same number personalDetails would otherwise ask
+  // for again, so it arrives there pre-filled instead of asked for twice.
+  _AuthMethod _method = _AuthMethod.email;
+  _PhoneStep _phoneStep = _PhoneStep.enterNumber;
+  final _phoneOtpController = TextEditingController();
+  String? _verificationId;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -56,6 +74,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _otpController.dispose();
+    _phoneOtpController.dispose();
     super.dispose();
   }
 
@@ -292,6 +311,57 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     }
   }
 
+  bool _isValidPhone(String value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value);
+
+  Future<void> _sendPhoneOtp() async {
+    final phone = _phoneController.text.trim();
+    if (!_isValidPhone(phone)) {
+      setState(() => _error = 'Enter a valid 10-digit mobile number.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final verificationId = await _authService.sendPhoneOtp('+91$phone');
+      setState(() {
+        _verificationId = verificationId;
+        _phoneStep = _PhoneStep.enterOtp;
+      });
+    } on fb.FirebaseAuthException catch (e) {
+      setState(() => _error = _messageFor(e));
+    } catch (e, st) {
+      debugPrint('[_sendPhoneOtp] EXCEPTION: $e\n$st');
+      setState(() => _error = 'Could not send the code. Try again.');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _verifyPhoneOtp() async {
+    final code = _phoneOtpController.text.trim();
+    if (code.length != 6) {
+      setState(() => _error = 'Enter the 6-digit code.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await _authService.verifyPhoneOtp(_verificationId!, code);
+      await _syncSessionAndContinue();
+    } on fb.FirebaseAuthException catch (e) {
+      setState(() => _error = _messageFor(e));
+    } catch (e, st) {
+      debugPrint('[_verifyPhoneOtp] EXCEPTION: $e\n$st');
+      setState(() => _error = 'Could not verify that code. Try again.');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
   String _messageFor(fb.FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use':
@@ -305,10 +375,50 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       case 'invalid-credential':
         return 'Incorrect email or password.';
       case 'too-many-requests':
+      case 'quota-exceeded':
         return 'Too many attempts. Try again in a moment.';
+      case 'invalid-phone-number':
+        return 'That phone number looks invalid.';
+      case 'invalid-verification-code':
+      case 'invalid-otp':
+        return 'Incorrect or expired code.';
+      case 'session-expired':
+        return 'That code expired - request a new one.';
       default:
         return e.message ?? 'Something went wrong. Try again.';
     }
+  }
+
+  // True on the two "mid-verification" screens (email link/OTP pending,
+  // phone OTP pending) - both get a plain back arrow instead of the
+  // spacer+method-toggle header the entry screens share.
+  bool get _onVerificationStep =>
+      (_method == _AuthMethod.email && _step == _Step.verifyEmail) ||
+      (_method == _AuthMethod.phone && _phoneStep == _PhoneStep.enterOtp);
+
+  void _backFromVerification() => setState(() {
+        if (_method == _AuthMethod.email) {
+          _step = _Step.login;
+        } else {
+          _phoneStep = _PhoneStep.enterNumber;
+        }
+        _error = null;
+      });
+
+  String get _title {
+    if (_method == _AuthMethod.phone && _step != _Step.personalDetails) {
+      return _phoneStep == _PhoneStep.enterOtp ? 'Verify Your Number' : 'Welcome!';
+    }
+    return _titleFor(_step);
+  }
+
+  String get _subtitle {
+    if (_method == _AuthMethod.phone && _step != _Step.personalDetails) {
+      return _phoneStep == _PhoneStep.enterOtp
+          ? "We've sent a 6-digit code to\n+91 ${_phoneController.text.trim()}"
+          : 'Log in or sign up with your mobile number';
+    }
+    return _subtitleFor(_step);
   }
 
   @override
@@ -321,10 +431,10 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_step == _Step.verifyEmail)
+              if (_step == _Step.verifyEmail || _onVerificationStep)
                 IconButton(
                   padding: EdgeInsets.zero,
-                  onPressed: () => setState(() => _step = _Step.login),
+                  onPressed: _backFromVerification,
                   icon: const Icon(Icons.arrow_back, color: AppTheme.textDark),
                 )
               else
@@ -332,19 +442,23 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
               const SizedBox(height: 8),
 
               Text(
-                _titleFor(_step),
+                _title,
                 style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.textDark),
               ),
               const SizedBox(height: 8),
               Text(
-                _subtitleFor(_step),
+                _subtitle,
                 style: GoogleFonts.poppins(fontSize: 15, color: AppTheme.textGrey, height: 1.5),
               ),
               const SizedBox(height: 32),
 
-              if (_step == _Step.login) _buildLoginStep(),
-              if (_step == _Step.register) _buildRegisterStep(),
-              if (_step == _Step.verifyEmail) _buildVerifyEmailStep(),
+              if (!_onVerificationStep && _step == _Step.login) _buildMethodToggle(),
+              if (!_onVerificationStep && _step == _Step.login) const SizedBox(height: 24),
+
+              if (_method == _AuthMethod.email && _step == _Step.login) _buildLoginStep(),
+              if (_method == _AuthMethod.email && _step == _Step.register) _buildRegisterStep(),
+              if (_method == _AuthMethod.email && _step == _Step.verifyEmail) _buildVerifyEmailStep(),
+              if (_method == _AuthMethod.phone && _step == _Step.login) _buildPhoneStep(),
               if (_step == _Step.personalDetails) _buildPersonalDetailsStep(),
 
               if (_error != null) ...[
@@ -411,6 +525,85 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
             child: Text("Don't have an account? Sign up", style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildMethodToggle() {
+    Widget tab(String label, _AuthMethod method) {
+      final selected = _method == method;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() {
+            _method = method;
+            _error = null;
+          }),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: selected ? AppTheme.amber : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: selected ? AppTheme.textDark : AppTheme.textGrey,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: AppTheme.cardWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.borderColor)),
+      child: Row(children: [tab('Email', _AuthMethod.email), tab('Phone', _AuthMethod.phone)]),
+    );
+  }
+
+  Widget _buildPhoneStep() {
+    if (_phoneStep == _PhoneStep.enterOtp) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AuthTextField(
+            label: 'Verification code',
+            hint: '6-digit code',
+            controller: _phoneOtpController,
+            keyboardType: TextInputType.number,
+            prefixIcon: Icons.pin_outlined,
+            maxLength: 6,
+          ),
+          const SizedBox(height: 16),
+          AuthButton(label: 'Verify & Continue', onPressed: _verifyPhoneOtp, isLoading: _loading),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton(
+              onPressed: _sendPhoneOtp,
+              child: Text('Resend code', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AuthTextField(
+          label: 'Phone number',
+          hint: '98765 43210',
+          controller: _phoneController,
+          keyboardType: TextInputType.phone,
+          prefixIcon: Icons.phone_outlined,
+          maxLength: 10,
+        ),
+        const SizedBox(height: 24),
+        AuthButton(label: 'Send OTP', onPressed: _sendPhoneOtp, isLoading: _loading),
       ],
     );
   }

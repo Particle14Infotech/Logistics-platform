@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../core/network/dio_client.dart';
@@ -124,5 +125,47 @@ class AuthService {
     final cred = fb.EmailAuthProvider.credential(email: user.email!, password: currentPassword);
     await user.reauthenticateWithCredential(cred);
     await user.updatePassword(newPassword);
+  }
+
+  // --- Firebase phone/SMS auth --------------------------------------------
+  // A second, independent sign-in method alongside email/password (not a
+  // replacement) - Firebase sends and verifies the SMS code itself via the
+  // native SDK (Play Integrity on Android, no separate SMS gateway/API key
+  // needed on our end). syncFirebaseSession() below is the same call the
+  // email flow ends with; the backend's /auth/firebase-session endpoint
+  // branches on whether the verified token carries a phone number or an
+  // email, so this reuses that whole path rather than needing its own.
+
+  // verifyPhoneNumber is callback-based, not Future-based - this adapts it
+  // to the same "await, then react" shape as the rest of this class.
+  // verificationCompleted (Android-only instant auto-verification, no code
+  // typed at all) is deliberately unhandled: signing in immediately from
+  // inside this callback would race the caller, which is still awaiting
+  // this method for a verificationId to show the OTP field with. The OTP
+  // screen covers that case anyway - autofill still fills the code in for
+  // the user to submit normally.
+  Future<String> sendPhoneOtp(String phoneNumber) async {
+    final completer = Completer<String>();
+    await _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (_) {},
+      verificationFailed: (e) {
+        if (!completer.isCompleted) completer.completeError(e);
+      },
+      codeSent: (verificationId, resendToken) {
+        if (!completer.isCompleted) completer.complete(verificationId);
+      },
+      codeAutoRetrievalTimeout: (verificationId) {
+        if (!completer.isCompleted) completer.complete(verificationId);
+      },
+    );
+    return completer.future;
+  }
+
+  Future<fb.User> verifyPhoneOtp(String verificationId, String smsCode) async {
+    final credential = fb.PhoneAuthProvider.credential(verificationId: verificationId, smsCode: smsCode);
+    final result = await _firebaseAuth.signInWithCredential(credential);
+    return result.user!;
   }
 }

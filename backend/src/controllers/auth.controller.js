@@ -43,11 +43,19 @@ const APP_ALLOWED_ROLES = {
 };
 
 // POST /api/v1/auth/firebase-session  { idToken, appContext, role? }
-// Exchanges a verified Firebase ID token (email/password auth, handled
-// entirely client-side by the Firebase SDK) for this app's own JWT session,
-// so downstream routes/middleware never need to know Firebase exists. Mirrors
+// Exchanges a verified Firebase ID token for this app's own JWT session, so
+// downstream routes/middleware never need to know Firebase exists. Mirrors
 // verifyOtp's shape/response - Firebase is the credential+verification
 // authority, this backend still owns the session.
+//
+// Handles two independent Firebase sign-in methods through the same
+// endpoint: email/password (decoded.email + email_verified) and phone/SMS
+// (decoded.phone_number, set by Firebase itself once the SMS code is
+// confirmed client-side - there's no separate "email_verified"-equivalent
+// flag to check, the token wouldn't exist yet without it). Whichever one
+// signed the token in, the match/create logic below just swaps which field
+// it keys off - everything else (role gating, blocked check, JWT issuance)
+// is identical either way.
 exports.firebaseSession = catchAsync(async (req, res) => {
   const { idToken, role, appContext } = req.body;
   if (!idToken) throw new AppError('idToken is required', 400);
@@ -62,11 +70,17 @@ exports.firebaseSession = catchAsync(async (req, res) => {
     throw new AppError('Invalid or expired Firebase token', 401);
   }
 
-  if (!decoded.email_verified) throw new AppError('Email not verified', 403);
+  const isPhoneAuth = !!decoded.phone_number;
+  if (isPhoneAuth && appContext === 'enterprise') {
+    throw new AppError('Phone sign-in is not available for the enterprise portal - use email/password.', 400);
+  }
+  if (!isPhoneAuth && !decoded.email_verified) throw new AppError('Email not verified', 403);
+
+  const matchQuery = isPhoneAuth ? { phone: decoded.phone_number } : { email: decoded.email };
 
   const rejectWrongApp = (existingRole) => {
     throw new AppError(
-      `This email is registered as a${existingRole === 'admin' ? 'n' : ''} ${existingRole.replace('_', ' ')} account - please use the correct app or portal to sign in.`,
+      `This ${isPhoneAuth ? 'phone number' : 'email'} is registered as a${existingRole === 'admin' ? 'n' : ''} ${existingRole.replace('_', ' ')} account - please use the correct app or portal to sign in.`,
       403
     );
   };
@@ -77,7 +91,7 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   if (user && !allowedRoles.includes(user.role)) rejectWrongApp(user.role);
 
   if (!user) {
-    user = await User.findOne({ email: decoded.email });
+    user = await User.findOne(matchQuery);
     if (user) {
       if (!allowedRoles.includes(user.role)) rejectWrongApp(user.role);
       user.firebaseUid = decoded.uid;
@@ -101,7 +115,7 @@ exports.firebaseSession = catchAsync(async (req, res) => {
 
     const newRole = role && allowedRoles.includes(role) ? role : allowedRoles[0];
     user = await User.create({
-      email: decoded.email,
+      ...matchQuery,
       firebaseUid: decoded.uid,
       isVerified: true,
       role: newRole,
