@@ -69,7 +69,8 @@ const NO_AUTO_CREATE_CONTEXTS = new Set(['enterprise', 'admin']);
 // role - the existing one. Strip a leading +91/91 so both forms collapse
 // to the one format the rest of the app already uses everywhere else.
 function normalizePhone(phoneNumber) {
-  return phoneNumber.replace(/^\+?91/, '');
+  const digitsOnly = phoneNumber.replace(/[\s-]/g, '');
+  return digitsOnly.replace(/^\+?91/, '');
 }
 
 // POST /api/v1/auth/firebase-session  { idToken, appContext, role? }
@@ -274,11 +275,39 @@ exports.getProfile = catchAsync(async (req, res) => {
 // /auth/register above).
 exports.updateProfile = catchAsync(async (req, res) => {
   const { name, email, phone, dob, notificationsEnabled, gstin } = req.body;
-  const user = await User.findByIdAndUpdate(
-    req.user.id,
-    { name, email, phone, dob, notificationsEnabled, gstin },
-    { new: true }
-  );
+
+  let normalizedPhone = phone;
+  if (phone) {
+    // Same normalization firebase-session applies to a phone-auth token -
+    // without it, a number typed here with a +91 prefix, spaces, or
+    // dashes would never match what phone login actually looks up,
+    // silently breaking "add your number once, log in with it later" for
+    // however it happened to be typed.
+    normalizedPhone = normalizePhone(phone);
+    if (!/^[6-9]\d{9}$/.test(normalizedPhone)) {
+      throw new AppError('Enter a valid 10-digit mobile number.', 400);
+    }
+  }
+
+  let user;
+  try {
+    user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, email, phone: normalizedPhone, dob, notificationsEnabled, gstin },
+      { new: true }
+    );
+  } catch (err) {
+    // phone/email both carry a unique index (see user.model.js) - without
+    // this, saving a number already on another account surfaced as a raw
+    // Mongo E11000 message (exposes the collection/index name, and reads
+    // like a server crash rather than "someone else already has this").
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0] || 'value';
+      throw new AppError(`This ${field} is already linked to another account.`, 409);
+    }
+    throw err;
+  }
+
   return success(res, { user }, 'Profile updated');
 });
 
