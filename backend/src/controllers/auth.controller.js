@@ -58,6 +58,20 @@ const APP_ALLOWED_ROLES = {
 // account permanently missing its company profile.
 const NO_AUTO_CREATE_CONTEXTS = new Set(['enterprise', 'admin']);
 
+// Firebase phone auth always hands back E.164 (+91XXXXXXXXXX - both apps
+// only ever send numbers with that prefix, this is an India-only service).
+// Every other place a phone number gets saved - profile edits, seed data,
+// driver/enterprise signup - stores the bare 10 digits with no country
+// code. Without normalizing here, the same real phone number matched
+// nothing (different string, same unique-per-user field) and firebase-
+// session would silently create a brand-new, disconnected account instead
+// of recognizing - or correctly rejecting, if it belongs to a different
+// role - the existing one. Strip a leading +91/91 so both forms collapse
+// to the one format the rest of the app already uses everywhere else.
+function normalizePhone(phoneNumber) {
+  return phoneNumber.replace(/^\+?91/, '');
+}
+
 // POST /api/v1/auth/firebase-session  { idToken, appContext, role? }
 // Exchanges a verified Firebase ID token for this app's own JWT session, so
 // downstream routes/middleware never need to know Firebase exists. Mirrors
@@ -89,7 +103,7 @@ exports.firebaseSession = catchAsync(async (req, res) => {
   const isPhoneAuth = !!decoded.phone_number;
   if (!isPhoneAuth && !decoded.email_verified) throw new AppError('Email not verified', 403);
 
-  const matchQuery = isPhoneAuth ? { phone: decoded.phone_number } : { email: decoded.email };
+  const matchQuery = isPhoneAuth ? { phone: normalizePhone(decoded.phone_number) } : { email: decoded.email };
 
   const rejectWrongApp = (existingRole) => {
     throw new AppError(
