@@ -11,6 +11,7 @@ class AuthTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final int maxLength;
   final bool obscureText;
+  final List<String>? autofillHints;
 
   const AuthTextField({
     required this.label,
@@ -20,6 +21,7 @@ class AuthTextField extends StatefulWidget {
     this.prefixIcon,
     this.maxLength = 0,
     this.obscureText = false,
+    this.autofillHints,
     super.key,
   });
 
@@ -84,6 +86,14 @@ class _AuthTextFieldState extends State<AuthTextField> {
               keyboardType: widget.keyboardType,
               maxLength: widget.maxLength > 0 ? widget.maxLength : null,
               obscureText: _obscured,
+              // Without this, a plain numeric field (like an OTP box) has
+              // no way to tell Android what kind of number it expects -
+              // the keyboard's own suggestion strip falls back to
+              // "recently typed numbers" (phone numbers, in practice),
+              // which is both irrelevant and looks broken sitting under a
+              // "6-digit code" field. The right hint also lets Android
+              // surface the actual received SMS code instead.
+              autofillHints: widget.autofillHints,
               style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,

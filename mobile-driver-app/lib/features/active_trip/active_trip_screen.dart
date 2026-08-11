@@ -668,6 +668,11 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, letterSpacing: 8),
+              // Not actually SMS-autofillable (this code is read aloud by
+              // the customer, never texted to the driver) but the hint
+              // still stops Android's keyboard suggesting irrelevant
+              // recently-typed numbers under a plain numeric field.
+              autofillHints: const [AutofillHints.oneTimeCode],
               decoration: const InputDecoration(
                   counterText: '',
                   border: OutlineInputBorder(),
@@ -696,6 +701,11 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, letterSpacing: 8),
+              // Not actually SMS-autofillable (this code is read aloud by
+              // the customer, never texted to the driver) but the hint
+              // still stops Android's keyboard suggesting irrelevant
+              // recently-typed numbers under a plain numeric field.
+              autofillHints: const [AutofillHints.oneTimeCode],
               decoration: const InputDecoration(
                   counterText: '',
                   border: OutlineInputBorder(),

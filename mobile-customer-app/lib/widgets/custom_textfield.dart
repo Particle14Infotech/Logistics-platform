@@ -9,6 +9,7 @@ class CustomTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final int maxLength;
   final bool obscureText;
+  final List<String>? autofillHints;
 
   const CustomTextField({
     super.key,
@@ -18,6 +19,7 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.maxLength = 0,
     this.obscureText = false,
+    this.autofillHints,
   });
 
   @override
@@ -45,6 +47,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
         keyboardType: widget.keyboardType,
         maxLength: widget.maxLength > 0 ? widget.maxLength : null,
         obscureText: _obscured,
+        // Without this, a plain numeric field (like an OTP box) has no way
+        // to tell Android what kind of number it expects - the keyboard's
+        // own suggestion strip falls back to "recently typed numbers"
+        // (phone numbers, in practice), which is both irrelevant and looks
+        // broken sitting under a "6-digit code" field. The right hint also
+        // lets Android surface the actual received SMS code instead.
+        autofillHints: widget.autofillHints,
         decoration: InputDecoration(
           counterText: '',
           border: InputBorder.none,
