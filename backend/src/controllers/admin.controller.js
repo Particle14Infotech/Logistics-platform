@@ -16,6 +16,7 @@ const { applyWalletTransaction } = require('../services/wallet.service');
 const { sendToUsers, isConfigured } = require('../services/notification.service');
 const razorpayService = require('../services/razorpay.service');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
+const { buildDriverReport, renderDriverReportPdf } = require('../services/driverReport.service');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
 // status accepts a comma-separated list (e.g. "accepted,picked_up,in_transit")
@@ -213,6 +214,24 @@ exports.getDriverWallet = catchAsync(async (req, res) => {
 
   const transactions = await WalletTransaction.find({ driverId: driver._id }).sort({ createdAt: -1 }).limit(100);
   return success(res, { balance: driver.walletBalance, transactions });
+});
+
+// GET /api/v1/admin/drivers/:id/report - complete trip + wallet history
+// (no caps, unlike the detail page's own widgets above) - same data the
+// PDF export below renders, just as JSON.
+exports.getDriverReport = catchAsync(async (req, res) => {
+  const driver = await Driver.findById(req.params.id).populate('userId', 'name phone email createdAt');
+  if (!driver) throw new AppError('Driver not found', 404);
+  const report = await buildDriverReport(driver._id);
+  return success(res, { driver, ...report });
+});
+
+// GET /api/v1/admin/drivers/:id/report/pdf
+exports.getDriverReportPdf = catchAsync(async (req, res) => {
+  const driver = await Driver.findById(req.params.id).populate('userId', 'name phone email createdAt');
+  if (!driver) throw new AppError('Driver not found', 404);
+  const report = await buildDriverReport(driver._id);
+  renderDriverReportPdf(res, driver, report);
 });
 
 // GET /api/v1/admin/analytics - KPI + revenue snapshot for the dashboard

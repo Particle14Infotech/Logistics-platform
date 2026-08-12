@@ -84,6 +84,20 @@ const orderSchema = new mongoose.Schema(
     deliveryOtp: String,
     podImageUrl: String,
 
+    // Paperwork the consignor hands the driver at the pickup point (LR
+    // copy, invoice, packing list, gate pass - whatever's physically
+    // handed over, so no fixed set of types). Any file format, no cap on
+    // count - see driver.controller.js's uploadPickupDocuments. Required
+    // (at least one) before updateOrderStatus allows picked_up ->
+    // in_transit, same spot the existing start-code check already gates.
+    pickupDocuments: [
+      {
+        url: { type: String, required: true },
+        originalName: String,
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
+
     // Compliance/paperwork fields for the printed Lorry Receipt (LR) /
     // waybill (see booking.controller.js's downloadInvoicePdf) - filled in
     // by admin staff after booking (PUT /booking/:id/waybill-details),

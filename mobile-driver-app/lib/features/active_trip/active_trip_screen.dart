@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,6 +46,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   bool _cashCollected = false;
   bool _downloadingInvoice = false;
   bool _addingEwayBill = false;
+  bool _uploadingDocs = false;
 
   final _socketService = SocketService();
   Timer? _gpsTimer;
@@ -232,6 +234,40 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     );
     if (confirmed != true || !mounted) return;
     _advanceStatus('picked_up', manualConfirm: true);
+  }
+
+  // Any format, any number of files - picked and uploaded in one batch per
+  // tap, merged into the current TripModel via copyWith so the "Start trip"
+  // gate below re-evaluates immediately without a full re-fetch (which would
+  // re-trigger _load()'s GPS/socket setup - see its own comment).
+  Future<void> _pickAndUploadDocuments() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.any,
+      withData: false,
+    );
+    final picked = result?.files.where((f) => f.path != null).toList() ?? [];
+    if (picked.isEmpty) return;
+
+    setState(() {
+      _uploadingDocs = true;
+      _error = null;
+    });
+    try {
+      final docs = await ref
+          .read(driverServiceProvider)
+          .uploadPickupDocuments(widget.tripId, picked);
+      if (mounted) {
+        setState(() => _trip = _trip?.copyWith(pickupDocuments: docs));
+      }
+    } catch (e) {
+      final serverMessage = e is DioException && e.response?.data is Map
+          ? e.response?.data['message'] as String?
+          : null;
+      setState(() => _error = serverMessage ?? 'Could not upload the document(s).');
+    } finally {
+      if (mounted) setState(() => _uploadingDocs = false);
+    }
   }
 
   Future<void> _startTrip() async {
@@ -655,35 +691,65 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           ],
         );
       case 'picked_up':
+        final hasDocuments = trip.pickupDocuments.isNotEmpty;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-                "Ask the customer for their start code to begin the trip:",
-                textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _startOtpController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, letterSpacing: 8),
-              // Not actually SMS-autofillable (this code is read aloud by
-              // the customer, never texted to the driver) but the hint
-              // still stops Android's keyboard suggesting irrelevant
-              // recently-typed numbers under a plain numeric field.
-              autofillHints: const [AutofillHints.oneTimeCode],
-              decoration: const InputDecoration(
-                  counterText: '',
-                  border: OutlineInputBorder(),
-                  hintText: '000000'),
+            _PickupDocumentsCard(
+              documents: trip.pickupDocuments,
+              uploading: _uploadingDocs,
+              onAddPressed: _uploadingDocs ? null : _pickAndUploadDocuments,
             ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: _updating ? null : _startTrip,
-              icon: const Icon(Icons.local_shipping),
-              label: Text(_updating ? 'Starting…' : 'Start trip'),
-            ),
+            const SizedBox(height: 16),
+            if (!hasDocuments)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, color: AppTheme.amber, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Upload at least one pickup document (LR copy, invoice, gate pass, etc.) handed over at the pickup point before you can start the trip.',
+                        style: TextStyle(fontSize: 12.5),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              const Text(
+                  "Ask the customer for their start code to begin the trip:",
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _startOtpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 24, letterSpacing: 8),
+                // Not actually SMS-autofillable (this code is read aloud by
+                // the customer, never texted to the driver) but the hint
+                // still stops Android's keyboard suggesting irrelevant
+                // recently-typed numbers under a plain numeric field.
+                autofillHints: const [AutofillHints.oneTimeCode],
+                decoration: const InputDecoration(
+                    counterText: '',
+                    border: OutlineInputBorder(),
+                    hintText: '000000'),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                onPressed: _updating ? null : _startTrip,
+                icon: const Icon(Icons.local_shipping),
+                label: Text(_updating ? 'Starting…' : 'Start trip'),
+              ),
+            ],
           ],
         );
       case 'in_transit':
@@ -825,6 +891,86 @@ class _DetailRow extends StatelessWidget {
         Text(value,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
       ],
+    );
+  }
+}
+
+// Icon by file extension - documents can be anything (image, PDF, DOCX,
+// whatever the shipper physically hands over), so there's no thumbnail to
+// show, just a best-effort visual hint.
+IconData _iconForFile(String? name) {
+  final ext = (name ?? '').split('.').last.toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'heic', 'webp'].contains(ext)) return Icons.image_outlined;
+  if (ext == 'pdf') return Icons.picture_as_pdf_outlined;
+  if (['doc', 'docx'].contains(ext)) return Icons.description_outlined;
+  if (['xls', 'xlsx'].contains(ext)) return Icons.grid_on_outlined;
+  return Icons.insert_drive_file_outlined;
+}
+
+// Pickup-point paperwork: shows whatever's already uploaded and an "Add
+// documents" action that lets the driver pick any number of files of any
+// format in one go (see driver_service.dart's uploadPickupDocuments). The
+// picked_up case above hides the start-trip controls entirely until this
+// list is non-empty, mirroring the backend's own hard gate.
+class _PickupDocumentsCard extends StatelessWidget {
+  final List<PickupDocument> documents;
+  final bool uploading;
+  final VoidCallback? onAddPressed;
+  const _PickupDocumentsCard({
+    required this.documents,
+    required this.uploading,
+    required this.onAddPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.folder_open_outlined, size: 18, color: AppTheme.amber),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('Pickup documents',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              Text('${documents.length}',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+            ],
+          ),
+          if (documents.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            ...documents.map((doc) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(_iconForFile(doc.originalName),
+                          size: 18, color: Colors.grey.shade600),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          doc.originalName ?? 'Document',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                      const Icon(Icons.check_circle,
+                          size: 16, color: AppTheme.success),
+                    ],
+                  ),
+                )),
+          ],
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: onAddPressed,
+            icon: const Icon(Icons.attach_file),
+            label: Text(uploading ? 'Uploading…' : 'Add documents'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -13,6 +13,8 @@ router.get('/drivers/:id', ctrl.getDriverById);
 router.put('/drivers/:id', ctrl.updateDriverStatus);
 router.get('/drivers/:id/wallet', ctrl.getDriverWallet);
 router.post('/drivers/:id/payout', ctrl.payoutDriver);
+router.get('/drivers/:id/report', ctrl.getDriverReport);
+router.get('/drivers/:id/report/pdf', ctrl.getDriverReportPdf);
 
 router.get('/vehicles', ctrl.listVehicles);
 

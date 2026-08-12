@@ -29,6 +29,19 @@ const upload = multer({
 });
 exports.uploadMiddleware = upload.single('file');
 
+// Pickup documents (LR copy, invoice, packing list, gate pass - whatever
+// the consignor physically hands over) - deliberately no fileFilter, since
+// unlike a selfie/KYC photo this can legitimately be a PDF, a Word doc, or
+// anything else, not just an image. Same 5MB-per-file ceiling as the image
+// uploader above (basic abuse/storage hygiene, not a real limit anyone
+// hits from paperwork photos or scans) and no cap on file count at all -
+// multer just accepts as many parts as the request actually has.
+const pickupDocsUpload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+exports.uploadPickupDocumentsMiddleware = pickupDocsUpload.array('files');
+
 // Maps the :documentType route param to the corresponding field on
 // Driver.documents - keeps the URL/param a stable, readable key ('license',
 // 'rc', ...) independent of the exact schema field name.
@@ -77,6 +90,28 @@ exports.uploadDocument = catchAsync(async (req, res) => {
   await driver.save();
 
   return success(res, { documentType, url: driver.documents[field] }, 'Document uploaded for review');
+});
+
+// POST /api/v1/driver/orders/:id/pickup-documents  (multipart, field name 'files', repeatable)
+// Paperwork handed over at the pickup point - any format, any number of
+// files, additive (each call appends rather than replacing). Only allowed
+// once the trip is actually picked_up (there's nothing to upload before
+// that), and this is the same requirement updateOrderStatus checks before
+// allowing picked_up -> in_transit.
+exports.uploadPickupDocuments = catchAsync(async (req, res) => {
+  const driver = await getOwnDriverDoc(req.user.id);
+  const order = await Order.findOne({ _id: req.params.id, driverId: driver._id });
+  if (!order) throw new AppError('Trip not found', 404);
+  if (order.status !== 'picked_up') {
+    throw new AppError('Pickup documents can only be added once the shipment has been picked up', 400);
+  }
+  if (!req.files || req.files.length === 0) throw new AppError('No files received', 400);
+
+  const newDocs = req.files.map((f) => ({ url: `/uploads/${f.filename}`, originalName: f.originalname }));
+  order.pickupDocuments.push(...newDocs);
+  await order.save();
+
+  return success(res, { pickupDocuments: order.pickupDocuments }, `${newDocs.length} document(s) uploaded`);
 });
 
 // GET /api/v1/driver/profile
@@ -372,6 +407,14 @@ exports.updateOrderStatus = catchAsync(async (req, res) => {
   }
   if (status === 'in_transit' && (!otp || otp !== order.startOtp)) {
     throw new AppError('Incorrect start code', 400);
+  }
+  // Paperwork the consignor hands over at pickup - required before the
+  // trip can actually start, same as the start code itself. Checked here
+  // (not just left to the app to enforce) since this is the one place
+  // that transition can really happen - a client-side-only check would be
+  // trivial to bypass by calling the API directly.
+  if (status === 'in_transit' && order.pickupDocuments.length === 0) {
+    throw new AppError('Upload the pickup documents before starting the trip', 400);
   }
 
   order.status = status;

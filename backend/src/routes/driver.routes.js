@@ -17,6 +17,7 @@ router.post('/reject/:bookingId', ctrl.rejectOrder);
 router.get('/orders', ctrl.listMyOrders);
 router.get('/orders/:id', ctrl.getOrder);
 router.put('/orders/:id/status', ctrl.updateOrderStatus);
+router.post('/orders/:id/pickup-documents', ctrl.uploadPickupDocumentsMiddleware, ctrl.uploadPickupDocuments);
 router.post('/pod/:bookingId', ctrl.uploadPod);
 
 router.get('/earnings', ctrl.earnings);

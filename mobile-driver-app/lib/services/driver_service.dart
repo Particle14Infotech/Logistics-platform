@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import '../core/network/dio_client.dart';
 import '../models/driver_profile_model.dart';
 import '../models/trip_model.dart';
@@ -99,6 +100,23 @@ class DriverService {
       if (manualConfirm) 'manualConfirm': true,
     });
     return TripModel.fromJson(response.data['data']['order'] as Map<String, dynamic>);
+  }
+
+  // Any file format, any number of files in one call - the backend applies
+  // no fileFilter and no count cap (see driver.controller.js's
+  // pickupDocsUpload). Returns just the updated document list, not the full
+  // order, so the caller merges it into its existing TripModel via copyWith
+  // rather than re-fetching (avoids retriggering _load()'s GPS/socket setup
+  // on active_trip_screen.dart).
+  Future<List<PickupDocument>> uploadPickupDocuments(String bookingId, List<PlatformFile> files) async {
+    final formData = FormData.fromMap({
+      'files': [
+        for (final f in files) await MultipartFile.fromFile(f.path!, filename: f.name),
+      ],
+    });
+    final response = await _dio.post('/driver/orders/$bookingId/pickup-documents', data: formData);
+    final docs = response.data['data']['pickupDocuments'] as List<dynamic>;
+    return docs.map((d) => PickupDocument.fromJson(d as Map<String, dynamic>)).toList();
   }
 
   Future<TripModel> confirmDelivery(String bookingId, String otp, {bool cashCollected = false}) async {

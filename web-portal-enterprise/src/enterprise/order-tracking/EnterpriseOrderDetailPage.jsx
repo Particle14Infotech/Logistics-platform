@@ -18,6 +18,15 @@ import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
+// Pickup documents are stored as relative paths like '/uploads/xyz.pdf',
+// served directly by the backend (express.static, no auth) - a plain <a>
+// works, no need to route through the authenticated downloadFile() helper.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
+function resolveDocUrl(url) {
+  return url.startsWith('/') ? `${BACKEND_ORIGIN}${url}` : url;
+}
+
 function MapRecenter({ position }) {
   const map = useMap();
   useEffect(() => {
@@ -230,6 +239,36 @@ export default function EnterpriseOrderDetailPage() {
                 <div className="flex justify-between"><span className="text-mist">Delivery OTP</span><span className="font-mono">{order.deliveryOtp ?? '—'}</span></div>
               </div>
             </div>
+          </div>
+
+          <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">Pickup documents</span>
+              <span className="text-xs text-mist">{order.pickupDocuments?.length ?? 0}</span>
+            </div>
+            {order.pickupDocuments?.length > 0 ? (
+              <div className="grid sm:grid-cols-2 gap-1.5">
+                {order.pickupDocuments.map((doc, i) => (
+                  <a
+                    key={i}
+                    href={resolveDocUrl(doc.url)}
+                    target="_blank"
+                    rel="noreferrer"
+                    download={doc.originalName || undefined}
+                    className="flex items-center justify-between px-3 py-2 border border-line rounded-md hover:border-signal transition-colors text-sm"
+                  >
+                    <span className="truncate">{doc.originalName || `Document ${i + 1}`}</span>
+                    <span className="text-signal text-xs shrink-0 ml-2">Download →</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-mist">
+                {['picked_up', 'in_transit', 'awaiting_payment', 'delivered'].includes(order.status)
+                  ? 'None uploaded.'
+                  : 'Not collected yet - uploaded by the driver at pickup, before the trip can start.'}
+              </p>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

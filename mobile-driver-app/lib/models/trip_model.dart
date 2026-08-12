@@ -1,5 +1,28 @@
 import 'location_model.dart';
 
+// Paperwork handed over at the pickup point (LR copy, invoice, gate pass,
+// etc.) - see backend's order.model.js pickupDocuments and driver.
+// controller.js's uploadPickupDocuments. Any file format, so originalName is
+// the only hint the UI has for choosing an icon/label; url is server-
+// relative (`/uploads/...`), same as other upload fields in this app.
+class PickupDocument {
+  final String url;
+  final String? originalName;
+  final DateTime? uploadedAt;
+
+  PickupDocument({required this.url, this.originalName, this.uploadedAt});
+
+  factory PickupDocument.fromJson(Map<String, dynamic> json) {
+    return PickupDocument(
+      url: json['url'] as String,
+      originalName: json['originalName'] as String?,
+      uploadedAt: json['uploadedAt'] != null
+          ? DateTime.tryParse(json['uploadedAt'] as String)
+          : null,
+    );
+  }
+}
+
 class TripModel {
   final String id;
   final LocationModel pickupLocation;
@@ -16,6 +39,7 @@ class TripModel {
   final String? customerName;
   final String? customerPhone;
   final DateTime createdAt;
+  final List<PickupDocument> pickupDocuments;
 
   TripModel({
     required this.id,
@@ -33,9 +57,10 @@ class TripModel {
     this.customerName,
     this.customerPhone,
     required this.createdAt,
+    this.pickupDocuments = const [],
   });
 
-  TripModel copyWith({String? status}) {
+  TripModel copyWith({String? status, List<PickupDocument>? pickupDocuments}) {
     return TripModel(
       id: id,
       pickupLocation: pickupLocation,
@@ -52,6 +77,7 @@ class TripModel {
       customerName: customerName,
       customerPhone: customerPhone,
       createdAt: createdAt,
+      pickupDocuments: pickupDocuments ?? this.pickupDocuments,
     );
   }
 
@@ -73,6 +99,9 @@ class TripModel {
       customerName: customer is Map<String, dynamic> ? customer['name'] as String? : null,
       customerPhone: customer is Map<String, dynamic> ? customer['phone'] as String? : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      pickupDocuments: (json['pickupDocuments'] as List<dynamic>? ?? [])
+          .map((d) => PickupDocument.fromJson(d as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

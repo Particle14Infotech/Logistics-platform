@@ -11,6 +11,7 @@ const Order = require('../models/order.model');
 const Invoice = require('../models/invoice.model');
 const PricingConfig = require('../models/pricingConfig.model');
 const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
+const { buildDriverReport, renderDriverReportPdf } = require('../services/driverReport.service');
 
 const VEHICLE_BASE_PRICE = { bike: 100, auto: 150, mini_truck: 300, medium_truck: 600, large_truck: 1000 };
 
@@ -649,4 +650,45 @@ exports.listDrivers = catchAsync(async (req, res) => {
     .populate('userId', 'name phone')
     .sort({ createdAt: -1 });
   return success(res, { drivers });
+});
+
+// Shared ownership check for the three driver-detail endpoints below -
+// 404s (not 403) for a driver belonging to someone else's fleet or the
+// public marketplace, so this never confirms/denies another enterprise's
+// driver even exists.
+async function getOwnDriver(req) {
+  const enterprise = await resolveEnterprise(req.user.id);
+  const driver = await Driver.findOne({ _id: req.params.id, enterpriseId: enterprise._id }).populate('userId', 'name phone email createdAt');
+  if (!driver) throw new AppError('Driver not found', 404);
+  return driver;
+}
+
+// GET /api/v1/enterprise/drivers/:id
+exports.getDriverById = catchAsync(async (req, res) => {
+  const driver = await getOwnDriver(req);
+  const [totalOrders, deliveredOrders] = await Promise.all([
+    Order.countDocuments({ driverId: driver._id }),
+    Order.countDocuments({ driverId: driver._id, status: 'delivered' }),
+  ]);
+  return success(res, { driver, stats: { totalOrders, deliveredOrders } });
+});
+
+// GET /api/v1/enterprise/drivers/:id/report - complete trip + wallet
+// history. Naturally scoped to this enterprise already: a dedicated fleet
+// driver can only ever accept orders belonging to their own enterprise (see
+// driver.controller.js's availableOrders), so buildDriverReport's order
+// list here can't contain another company's shipments even without extra
+// filtering - the getOwnDriver() ownership check above is what actually
+// gates access to the report at all.
+exports.getDriverReport = catchAsync(async (req, res) => {
+  const driver = await getOwnDriver(req);
+  const report = await buildDriverReport(driver._id);
+  return success(res, { driver, ...report });
+});
+
+// GET /api/v1/enterprise/drivers/:id/report/pdf
+exports.getDriverReportPdf = catchAsync(async (req, res) => {
+  const driver = await getOwnDriver(req);
+  const report = await buildDriverReport(driver._id);
+  renderDriverReportPdf(res, driver, report);
 });

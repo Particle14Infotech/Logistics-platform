@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import DataTable from '../../shared/components/DataTable.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
@@ -10,6 +11,7 @@ import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 // code itself isn't secret (unlike the API key) - it's meant to be handed
 // to drivers, so it's always shown in full.
 export default function EnterpriseDriversPage() {
+  const navigate = useNavigate();
   const [inviteCode, setInviteCode] = useState(null);
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ export default function EnterpriseDriversPage() {
           <div>
             <span className="eyebrow">{drivers.length} driver{drivers.length === 1 ? '' : 's'} linked</span>
             <div className="mt-2">
-              <DataTable columns={driverColumns} rows={drivers} keyField="_id" />
+              <DataTable columns={driverColumns} rows={drivers} keyField="_id" onRowClick={(row) => navigate(`/drivers/${row._id}`)} />
             </div>
           </div>
         </>

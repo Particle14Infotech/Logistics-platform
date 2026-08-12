@@ -35,5 +35,8 @@ router.post('/api-key/regenerate', protect, adminOnly, ctrl.regenerateApiKey);
 router.get('/driver-invite-code', protect, adminOnly, ctrl.getDriverInviteCode);
 router.post('/driver-invite-code/regenerate', protect, adminOnly, ctrl.regenerateDriverInviteCode);
 router.get('/drivers', protect, enterpriseRoles, ctrl.listDrivers);
+router.get('/drivers/:id', protect, enterpriseRoles, ctrl.getDriverById);
+router.get('/drivers/:id/report', protect, enterpriseRoles, ctrl.getDriverReport);
+router.get('/drivers/:id/report/pdf', protect, enterpriseRoles, ctrl.getDriverReportPdf);
 
 module.exports = router;

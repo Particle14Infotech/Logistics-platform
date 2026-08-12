@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
+import StatusBadge from '../../shared/components/StatusBadge.jsx';
+import DataTable from '../../shared/components/DataTable.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
+import { downloadFile } from '../../shared/utils/downloadFile.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
 const DOCUMENT_LABELS = {
@@ -42,9 +45,12 @@ export default function AdminDriverDetailPage() {
   const [driver, setDriver] = useState(null);
   const [stats, setStats] = useState(null);
   const [wallet, setWallet] = useState(null);
+  const [report, setReport] = useState(null);
+  const [reportError, setReportError] = useState('');
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [payingOut, setPayingOut] = useState(false);
+  const [downloadingReport, setDownloadingReport] = useState(false);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
 
@@ -67,9 +73,41 @@ export default function AdminDriverDetailPage() {
     }
   }, [id]);
 
+  // Full trip + financial history (every order, every wallet transaction) -
+  // deliberately a separate call from fetchDriver above, since the wallet
+  // widget only ever needed the last 10 transactions and this can be a much
+  // larger payload for a long-tenured driver. Loaded eagerly anyway (not
+  // behind a click) so "everything about this driver" is on the page by
+  // default, matching the ask - the PDF button just exports the same data.
+  const fetchReport = useCallback(async () => {
+    setReportError('');
+    try {
+      const { data } = await axiosClient.get(`/admin/drivers/${id}/report`);
+      setReport(data.data);
+    } catch (err) {
+      console.error('[AdminDriverDetailPage] failed to load report', err);
+      setReportError(err.response?.data?.message || 'Could not load the full driver report.');
+    }
+  }, [id]);
+
   useEffect(() => {
     fetchDriver();
-  }, [fetchDriver]);
+    fetchReport();
+  }, [fetchDriver, fetchReport]);
+
+  const downloadReport = async () => {
+    setDownloadingReport(true);
+    setReportError('');
+    try {
+      const name = (driver?.userId?.name || 'driver').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+      await downloadFile(`/admin/drivers/${id}/report/pdf`, `${name}-report.pdf`);
+    } catch (err) {
+      console.error('[AdminDriverDetailPage] report PDF download failed', err);
+      setReportError(err.response?.data?.message || 'Could not download the report.');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
 
   const processPayout = async () => {
     if (!window.confirm(`Mark ₹${wallet?.balance ?? 0} as paid out to this driver? Only do this after actually transferring the money via their bank details.`)) return;
@@ -259,6 +297,85 @@ export default function AdminDriverDetailPage() {
             </div>
             {documentEntries.length === 0 && (
               <p className="text-xs text-mist mt-3">No documents uploaded yet — this driver cannot be approved until KYC is complete.</p>
+            )}
+          </div>
+
+          <div className="bg-panel border border-line rounded-lg p-4 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <span className="eyebrow">Full driver report</span>
+                <p className="text-xs text-mist mt-1">Every trip and every wallet transaction for this driver, in one place.</p>
+              </div>
+              <button
+                onClick={downloadReport}
+                disabled={downloadingReport}
+                className="bg-signal text-white text-sm font-medium rounded-md px-4 py-2 hover:brightness-110 disabled:opacity-50 transition-all"
+              >
+                {downloadingReport ? 'Preparing…' : 'Download full report (PDF)'}
+              </button>
+            </div>
+
+            {reportError && <p className="text-xs text-stop">{reportError}</p>}
+
+            {report && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {[
+                    ['Total trips', report.summary.totalTrips],
+                    ['Delivered', report.summary.deliveredTrips],
+                    ['Cancelled', report.summary.cancelledTrips],
+                    ['Distance', `${report.summary.totalDistanceKm} km`],
+                    ['Earnings credited', `₹${report.summary.totalEarnings}`],
+                    ['Paid out', `₹${report.summary.totalPayouts}`],
+                  ].map(([label, value]) => (
+                    <div key={label} className="border border-line rounded-md px-3 py-2.5">
+                      <div className="text-xs text-mist">{label}</div>
+                      <div className="text-lg font-display font-semibold mt-0.5">{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <span className="eyebrow block mb-2">Trips ({report.orders.length})</span>
+                  <DataTable
+                    keyField="_id"
+                    rows={report.orders}
+                    onRowClick={(row) => navigate(`/orders/${row._id}`)}
+                    columns={[
+                      { key: 'date', label: 'Date', render: (o) => new Date(o.createdAt).toLocaleDateString('en-IN') },
+                      { key: 'id', label: 'Order', render: (o) => <span className="font-mono">{o._id.slice(-8).toUpperCase()}</span> },
+                      { key: 'route', label: 'Route', render: (o) => `${o.pickupLocation?.address ?? '—'} → ${o.dropLocation?.address ?? '—'}` },
+                      { key: 'status', label: 'Status', render: (o) => <StatusBadge status={o.status} /> },
+                      { key: 'price', label: 'Price', render: (o) => `₹${o.price}` },
+                      { key: 'payment', label: 'Payment', render: (o) => (o.paymentMethod === 'cod' ? 'COD' : 'Online') },
+                      { key: 'customer', label: 'Customer', render: (o) => o.enterpriseId?.companyName ?? o.customerId?.name ?? '—' },
+                    ]}
+                  />
+                </div>
+
+                <div>
+                  <span className="eyebrow block mb-2">Wallet transactions ({report.walletTransactions.length})</span>
+                  <DataTable
+                    keyField="_id"
+                    rows={report.walletTransactions}
+                    columns={[
+                      { key: 'date', label: 'Date', render: (t) => new Date(t.createdAt).toLocaleDateString('en-IN') },
+                      { key: 'type', label: 'Type', render: (t) => WALLET_TYPE_LABELS[t.type] ?? t.type },
+                      {
+                        key: 'amount',
+                        label: 'Amount',
+                        render: (t) => (
+                          <span className={t.amount >= 0 ? 'text-go' : 'text-stop'}>
+                            {t.amount >= 0 ? '+' : '-'}₹{Math.abs(t.amount)}
+                          </span>
+                        ),
+                      },
+                      { key: 'balanceAfter', label: 'Balance after', render: (t) => `₹${t.balanceAfter}` },
+                      { key: 'note', label: 'Note', render: (t) => t.note ?? '—' },
+                    ]}
+                  />
+                </div>
+              </>
             )}
           </div>
         </>
