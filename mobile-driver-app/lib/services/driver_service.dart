@@ -108,7 +108,7 @@ class DriverService {
   // order, so the caller merges it into its existing TripModel via copyWith
   // rather than re-fetching (avoids retriggering _load()'s GPS/socket setup
   // on active_trip_screen.dart).
-  Future<List<PickupDocument>> uploadPickupDocuments(String bookingId, List<PlatformFile> files) async {
+  Future<List<TripDocument>> uploadPickupDocuments(String bookingId, List<PlatformFile> files) async {
     final formData = FormData.fromMap({
       'files': [
         for (final f in files) await MultipartFile.fromFile(f.path!, filename: f.name),
@@ -116,7 +116,20 @@ class DriverService {
     });
     final response = await _dio.post('/driver/orders/$bookingId/pickup-documents', data: formData);
     final docs = response.data['data']['pickupDocuments'] as List<dynamic>;
-    return docs.map((d) => PickupDocument.fromJson(d as Map<String, dynamic>)).toList();
+    return docs.map((d) => TripDocument.fromJson(d as Map<String, dynamic>)).toList();
+  }
+
+  // Same shape as uploadPickupDocuments above, at the opposite end of the
+  // trip - see driver.controller.js's uploadDeliveryDocuments.
+  Future<List<TripDocument>> uploadDeliveryDocuments(String bookingId, List<PlatformFile> files) async {
+    final formData = FormData.fromMap({
+      'files': [
+        for (final f in files) await MultipartFile.fromFile(f.path!, filename: f.name),
+      ],
+    });
+    final response = await _dio.post('/driver/orders/$bookingId/delivery-documents', data: formData);
+    final docs = response.data['data']['deliveryDocuments'] as List<dynamic>;
+    return docs.map((d) => TripDocument.fromJson(d as Map<String, dynamic>)).toList();
   }
 
   Future<TripModel> confirmDelivery(String bookingId, String otp, {bool cashCollected = false}) async {

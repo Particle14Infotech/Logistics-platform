@@ -46,7 +46,8 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   bool _cashCollected = false;
   bool _downloadingInvoice = false;
   bool _addingEwayBill = false;
-  bool _uploadingDocs = false;
+  bool _uploadingPickupDocs = false;
+  bool _uploadingDeliveryDocs = false;
 
   final _socketService = SocketService();
   Timer? _gpsTimer;
@@ -240,7 +241,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   // tap, merged into the current TripModel via copyWith so the "Start trip"
   // gate below re-evaluates immediately without a full re-fetch (which would
   // re-trigger _load()'s GPS/socket setup - see its own comment).
-  Future<void> _pickAndUploadDocuments() async {
+  Future<void> _pickAndUploadPickupDocuments() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.any,
@@ -250,7 +251,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     if (picked.isEmpty) return;
 
     setState(() {
-      _uploadingDocs = true;
+      _uploadingPickupDocs = true;
       _error = null;
     });
     try {
@@ -266,7 +267,40 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           : null;
       setState(() => _error = serverMessage ?? 'Could not upload the document(s).');
     } finally {
-      if (mounted) setState(() => _uploadingDocs = false);
+      if (mounted) setState(() => _uploadingPickupDocs = false);
+    }
+  }
+
+  // Same as _pickAndUploadPickupDocuments above, for proof-of-delivery
+  // paperwork instead - gates the "Confirm delivery" controls in the
+  // in_transit case below, mirroring the pickup-side gate.
+  Future<void> _pickAndUploadDeliveryDocuments() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.any,
+      withData: false,
+    );
+    final picked = result?.files.where((f) => f.path != null).toList() ?? [];
+    if (picked.isEmpty) return;
+
+    setState(() {
+      _uploadingDeliveryDocs = true;
+      _error = null;
+    });
+    try {
+      final docs = await ref
+          .read(driverServiceProvider)
+          .uploadDeliveryDocuments(widget.tripId, picked);
+      if (mounted) {
+        setState(() => _trip = _trip?.copyWith(deliveryDocuments: docs));
+      }
+    } catch (e) {
+      final serverMessage = e is DioException && e.response?.data is Map
+          ? e.response?.data['message'] as String?
+          : null;
+      setState(() => _error = serverMessage ?? 'Could not upload the document(s).');
+    } finally {
+      if (mounted) setState(() => _uploadingDeliveryDocs = false);
     }
   }
 
@@ -695,10 +729,11 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _PickupDocumentsCard(
+            _TripDocumentsCard(
+              title: 'Pickup documents',
               documents: trip.pickupDocuments,
-              uploading: _uploadingDocs,
-              onAddPressed: _uploadingDocs ? null : _pickAndUploadDocuments,
+              uploading: _uploadingPickupDocs,
+              onAddPressed: _uploadingPickupDocs ? null : _pickAndUploadPickupDocuments,
             ),
             const SizedBox(height: 16),
             if (!hasDocuments)
@@ -754,57 +789,88 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         );
       case 'in_transit':
         final codRemaining = trip.price - trip.advanceAmount;
+        final hasDeliveryDocuments = trip.deliveryDocuments.isNotEmpty;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-                "Ask the customer for their delivery code to confirm drop-off:",
-                textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, letterSpacing: 8),
-              // Not actually SMS-autofillable (this code is read aloud by
-              // the customer, never texted to the driver) but the hint
-              // still stops Android's keyboard suggesting irrelevant
-              // recently-typed numbers under a plain numeric field.
-              autofillHints: const [AutofillHints.oneTimeCode],
-              decoration: const InputDecoration(
-                  counterText: '',
-                  border: OutlineInputBorder(),
-                  hintText: '000000'),
+            _TripDocumentsCard(
+              title: 'Delivery documents',
+              documents: trip.deliveryDocuments,
+              uploading: _uploadingDeliveryDocs,
+              onAddPressed: _uploadingDeliveryDocs ? null : _pickAndUploadDeliveryDocuments,
             ),
-            if (trip.paymentMethod == 'cod') ...[
-              const SizedBox(height: 8),
-              CheckboxListTile(
-                value: _cashCollected,
-                onChanged: (value) =>
-                    setState(() => _cashCollected = value ?? false),
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                    'I have collected ₹$codRemaining in cash from the customer'),
-              ),
-            ],
-            if (trip.paymentMethod == 'online' &&
-                trip.advanceAmount > 0 &&
-                !trip.remainderPaid) ...[
-              const SizedBox(height: 8),
-              Text(
-                'The customer still owes ₹$codRemaining online. Confirming will mark drop-off as done and ask them to pay - the trip completes automatically once they do.',
-                style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
+            const SizedBox(height: 16),
+            if (!hasDeliveryDocuments)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, color: AppTheme.amber, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Upload at least one delivery document (signed receipt, POD photo, etc.) before you can confirm delivery.',
+                        style: TextStyle(fontSize: 12.5),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              const Text(
+                  "Ask the customer for their delivery code to confirm drop-off:",
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _otpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
                 textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 24, letterSpacing: 8),
+                // Not actually SMS-autofillable (this code is read aloud by
+                // the customer, never texted to the driver) but the hint
+                // still stops Android's keyboard suggesting irrelevant
+                // recently-typed numbers under a plain numeric field.
+                autofillHints: const [AutofillHints.oneTimeCode],
+                decoration: const InputDecoration(
+                    counterText: '',
+                    border: OutlineInputBorder(),
+                    hintText: '000000'),
+              ),
+              if (trip.paymentMethod == 'cod') ...[
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  value: _cashCollected,
+                  onChanged: (value) =>
+                      setState(() => _cashCollected = value ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                      'I have collected ₹$codRemaining in cash from the customer'),
+                ),
+              ],
+              if (trip.paymentMethod == 'online' &&
+                  trip.advanceAmount > 0 &&
+                  !trip.remainderPaid) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'The customer still owes ₹$codRemaining online. Confirming will mark drop-off as done and ask them to pay - the trip completes automatically once they do.',
+                  style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                onPressed: _updating ? null : _confirmDelivery,
+                icon: const Icon(Icons.check_circle),
+                label: Text(_updating ? 'Confirming…' : 'Confirm delivery'),
               ),
             ],
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: _updating ? null : _confirmDelivery,
-              icon: const Icon(Icons.check_circle),
-              label: Text(_updating ? 'Confirming…' : 'Confirm delivery'),
-            ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _addingEwayBill ? null : _showAddEwayBillDialog,
@@ -907,16 +973,21 @@ IconData _iconForFile(String? name) {
   return Icons.insert_drive_file_outlined;
 }
 
-// Pickup-point paperwork: shows whatever's already uploaded and an "Add
+// Per-stage paperwork - shows whatever's already uploaded and an "Add
 // documents" action that lets the driver pick any number of files of any
-// format in one go (see driver_service.dart's uploadPickupDocuments). The
-// picked_up case above hides the start-trip controls entirely until this
-// list is non-empty, mirroring the backend's own hard gate.
-class _PickupDocumentsCard extends StatelessWidget {
-  final List<PickupDocument> documents;
+// format in one go. Used at both ends of the trip: pickup-point documents
+// on the picked_up case (see driver_service.dart's uploadPickupDocuments)
+// and proof-of-delivery documents on the in_transit case
+// (uploadDeliveryDocuments) - both cases hide their respective "advance the
+// trip" controls entirely until their list is non-empty, mirroring the
+// backend's own hard gates on each transition.
+class _TripDocumentsCard extends StatelessWidget {
+  final String title;
+  final List<TripDocument> documents;
   final bool uploading;
   final VoidCallback? onAddPressed;
-  const _PickupDocumentsCard({
+  const _TripDocumentsCard({
+    required this.title,
     required this.documents,
     required this.uploading,
     required this.onAddPressed,
@@ -932,9 +1003,9 @@ class _PickupDocumentsCard extends StatelessWidget {
             children: [
               const Icon(Icons.folder_open_outlined, size: 18, color: AppTheme.amber),
               const SizedBox(width: 8),
-              const Expanded(
-                child: Text('Pickup documents',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+              Expanded(
+                child: Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
               Text('${documents.length}',
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),

@@ -98,6 +98,20 @@ const orderSchema = new mongoose.Schema(
       },
     ],
 
+    // Same idea at the other end of the trip - proof of delivery paperwork
+    // (signed delivery receipt, POD photo, discharge certificate, etc.),
+    // any file format, no cap on count. See driver.controller.js's
+    // uploadDeliveryDocuments. Required (at least one) before uploadPod
+    // allows in_transit -> awaiting_payment/delivered - mirrors the
+    // pickupDocuments gate above, just at the opposite end of the trip.
+    deliveryDocuments: [
+      {
+        url: { type: String, required: true },
+        originalName: String,
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
+
     // Compliance/paperwork fields for the printed Lorry Receipt (LR) /
     // waybill (see booking.controller.js's downloadInvoicePdf) - filled in
     // by admin staff after booking (PUT /booking/:id/waybill-details),

@@ -41,6 +41,11 @@ const pickupDocsUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 exports.uploadPickupDocumentsMiddleware = pickupDocsUpload.array('files');
+// Same multer instance (no fileFilter, no count cap) reused for delivery-
+// side documents - the upload mechanics are identical, only the allowed
+// order status and the field they're saved to differ. See
+// uploadDeliveryDocuments below.
+exports.uploadDeliveryDocumentsMiddleware = pickupDocsUpload.array('files');
 
 // Maps the :documentType route param to the corresponding field on
 // Driver.documents - keeps the URL/param a stable, readable key ('license',
@@ -112,6 +117,27 @@ exports.uploadPickupDocuments = catchAsync(async (req, res) => {
   await order.save();
 
   return success(res, { pickupDocuments: order.pickupDocuments }, `${newDocs.length} document(s) uploaded`);
+});
+
+// POST /api/v1/driver/orders/:id/delivery-documents  (multipart, field name 'files', repeatable)
+// Proof-of-delivery paperwork - any format, any number of files, additive.
+// Only allowed while the trip is in_transit (the stage before delivery is
+// confirmed) - this is the same requirement uploadPod checks below before
+// allowing in_transit -> awaiting_payment/delivered.
+exports.uploadDeliveryDocuments = catchAsync(async (req, res) => {
+  const driver = await getOwnDriverDoc(req.user.id);
+  const order = await Order.findOne({ _id: req.params.id, driverId: driver._id });
+  if (!order) throw new AppError('Trip not found', 404);
+  if (order.status !== 'in_transit') {
+    throw new AppError('Delivery documents can only be added while the trip is in transit', 400);
+  }
+  if (!req.files || req.files.length === 0) throw new AppError('No files received', 400);
+
+  const newDocs = req.files.map((f) => ({ url: `/uploads/${f.filename}`, originalName: f.originalname }));
+  order.deliveryDocuments.push(...newDocs);
+  await order.save();
+
+  return success(res, { deliveryDocuments: order.deliveryDocuments }, `${newDocs.length} document(s) uploaded`);
 });
 
 // GET /api/v1/driver/profile
@@ -450,6 +476,13 @@ exports.uploadPod = catchAsync(async (req, res) => {
   const order = await Order.findOne({ _id: req.params.bookingId, driverId: driver._id });
   if (!order) throw new AppError('Trip not found', 404);
   if (order.status !== 'in_transit') throw new AppError('Trip must be in transit before delivery can be confirmed', 400);
+  // Proof-of-delivery paperwork, required before the trip can actually end -
+  // mirrors the pickupDocuments check in updateOrderStatus above, just at
+  // the opposite transition. Checked server-side (not just left to the app)
+  // since this is the one place the transition can really happen.
+  if (order.deliveryDocuments.length === 0) {
+    throw new AppError('Upload the delivery documents before completing delivery', 400);
+  }
   if (!otp || otp !== order.deliveryOtp) throw new AppError('Incorrect delivery code', 400);
   // The remaining cash must be physically collected before a cod delivery
   // can be finalized - closes the loop with an explicit record, rather

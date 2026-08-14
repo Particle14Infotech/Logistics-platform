@@ -1,7 +1,7 @@
 name: logistics_driver_app
 description: Driver / Fleet Owner app - Smart Truck Booking & Logistics Platform
 publish_to: 'none'
-version: 1.0.0+4
+version: 1.0.0+6
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -51,8 +51,14 @@ dependencies:
   # the Flutter tool's own default compileSdk is 36 now, so that's no
   # longer a blocker.
   file_picker: any
-  # Barcode/QR scanning for proof-of-pickup confirmation
-  mobile_scanner: ^5.2.3
+  # Barcode/QR scanning for proof-of-pickup confirmation. Pinned to at
+  # least 6.0.0 (not the usual ^ from whatever's currently resolved) -
+  # 5.2.3's bundled MLKit/CameraX native libs (libbarhopper_v3.so,
+  # libimage_processing_util_jni.so) predate Google's 16 KB page size
+  # support and get rejected by Play Console; 6.0.11+ pulls camera-core
+  # 1.5.0 and play-services-mlkit-barcode-scanning 18.3.1+, which ship
+  # 16 KB-aligned .so files.
+  mobile_scanner: ^6.0.11
   # Native dialer for the customer call button
   url_launcher: ^6.3.1
   # Custom sound + a persistent notification for new job alerts (previously

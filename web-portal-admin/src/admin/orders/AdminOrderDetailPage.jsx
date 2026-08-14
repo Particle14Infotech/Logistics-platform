@@ -381,6 +381,36 @@ export default function AdminOrderDetailPage() {
               )}
             </div>
 
+            <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="eyebrow">Delivery documents</span>
+                <span className="text-xs text-mist">{order.deliveryDocuments?.length ?? 0}</span>
+              </div>
+              {order.deliveryDocuments?.length > 0 ? (
+                <div className="space-y-1.5 mt-1">
+                  {order.deliveryDocuments.map((doc, i) => (
+                    <a
+                      key={i}
+                      href={resolveDocUrl(doc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={doc.originalName || undefined}
+                      className="flex items-center justify-between px-3 py-2 border border-line rounded-md hover:border-signal transition-colors text-sm"
+                    >
+                      <span className="truncate">{doc.originalName || `Document ${i + 1}`}</span>
+                      <span className="text-signal text-xs shrink-0 ml-2">Download →</span>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-mist mt-2">
+                  {['awaiting_payment', 'delivered'].includes(order.status)
+                    ? 'None uploaded.'
+                    : 'Not collected yet - uploaded by the driver while in transit, before delivery can be confirmed.'}
+                </p>
+              )}
+            </div>
+
             {waybillForm && (
               <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
                 <span className="eyebrow">Waybill details</span>
