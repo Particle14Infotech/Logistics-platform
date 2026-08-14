@@ -47,23 +47,10 @@ exports.uploadPickupDocumentsMiddleware = pickupDocsUpload.array('files');
 // uploadDeliveryDocuments below.
 exports.uploadDeliveryDocumentsMiddleware = pickupDocsUpload.array('files');
 
-// Maps the :documentType route param to the corresponding field on
-// Driver.documents - keeps the URL/param a stable, readable key ('license',
-// 'rc', ...) independent of the exact schema field name.
-const DOCUMENT_TYPE_MAP = {
-  photo: 'photoUrl',
-  license: 'licenseUrl',
-  license_back: 'licenseBackUrl',
-  rc: 'rcUrl',
-  rc_back: 'rcBackUrl',
-  aadhaar: 'aadhaarUrl',
-  aadhaar_back: 'aadhaarBackUrl',
-  insurance: 'insuranceUrl',
-  permit: 'permitUrl',
-  pollution: 'pollutionCertUrl',
-  pan: 'panCardUrl',
-  cheque: 'chequeUrl',
-};
+// Shared with admin.controller.js (see that file's updateDriverDocument) so
+// the driver app's own upload and the admin portal's replace/upload can
+// never drift out of sync on which param maps to which field.
+const DOCUMENT_TYPE_MAP = require('../constants/driverDocumentTypes');
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 

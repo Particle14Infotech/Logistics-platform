@@ -11,6 +11,7 @@ router.put('/orders/:id/assign', ctrl.assignDriver);
 router.get('/drivers', ctrl.listDrivers);
 router.get('/drivers/:id', ctrl.getDriverById);
 router.put('/drivers/:id', ctrl.updateDriverStatus);
+router.put('/drivers/:id/documents/:documentType', ctrl.updateDriverDocumentMiddleware, ctrl.updateDriverDocument);
 router.get('/drivers/:id/wallet', ctrl.getDriverWallet);
 router.post('/drivers/:id/payout', ctrl.payoutDriver);
 router.get('/drivers/:id/report', ctrl.getDriverReport);

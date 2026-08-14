@@ -1,4 +1,8 @@
+const multer = require('multer');
+const path = require('path');
+const crypto = require('crypto');
 const { catchAsync, success, AppError } = require('../utils/apiResponse');
+const DOCUMENT_TYPE_MAP = require('../constants/driverDocumentTypes');
 const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
 const User = require('../models/user.model');
@@ -182,6 +186,49 @@ exports.getDriverById = catchAsync(async (req, res) => {
   ]);
 
   return success(res, { driver, stats: { totalOrders, deliveredOrders } });
+});
+
+// Same storage/filter as driver.controller.js's own KYC upload (image only,
+// 5MB cap) - lets ops staff fix a blurry/wrong scan or fill in a document
+// the driver never got around to uploading, without needing the driver's
+// own phone. Local-disk storage for dev, same as every other upload in this
+// app - see driver.controller.js's storage comment for the S3 swap note.
+const driverDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `admin-${req.params.id}-${crypto.randomBytes(6).toString('hex')}${ext}`);
+  },
+});
+const driverDocUpload = multer({
+  storage: driverDocStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) return cb(new AppError('Only image files are allowed', 400));
+    cb(null, true);
+  },
+});
+exports.updateDriverDocumentMiddleware = driverDocUpload.single('file');
+
+// PUT /api/v1/admin/drivers/:id/documents/:documentType  (multipart, field name 'file')
+// Overwrites whichever KYC document is at that slot - same field, same
+// behavior whether it was previously empty (first upload) or already had a
+// file (replace). Doesn't touch isApproved: unlike the driver's own
+// re-upload (which invites re-review), this is the admin correcting/filling
+// in a document themselves, so there's no separate reviewer to re-trigger.
+exports.updateDriverDocument = catchAsync(async (req, res) => {
+  const { documentType } = req.params;
+  const field = DOCUMENT_TYPE_MAP[documentType];
+  if (!field) throw new AppError(`Unknown document type "${documentType}"`, 400);
+  if (!req.file) throw new AppError('No file received', 400);
+
+  const driver = await Driver.findById(req.params.id);
+  if (!driver) throw new AppError('Driver not found', 404);
+
+  driver.documents = { ...(driver.documents || {}), [field]: `/uploads/${req.file.filename}` };
+  await driver.save();
+
+  return success(res, { documentType, url: driver.documents[field] }, 'Document updated');
 });
 
 // POST /api/v1/admin/drivers/:id/payout  { amount? }

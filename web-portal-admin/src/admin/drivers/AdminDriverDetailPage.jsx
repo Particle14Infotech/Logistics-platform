@@ -4,23 +4,27 @@ import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import StatusBadge from '../../shared/components/StatusBadge.jsx';
 import DataTable from '../../shared/components/DataTable.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
-import { downloadFile } from '../../shared/utils/downloadFile.js';
+import { downloadFile, downloadFileFromUrl } from '../../shared/utils/downloadFile.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
-const DOCUMENT_LABELS = {
-  licenseUrl: 'Driving License (Front)',
-  licenseBackUrl: 'Driving License (Back)',
-  rcUrl: 'Vehicle RC (Front)',
-  rcBackUrl: 'Vehicle RC (Back)',
-  aadhaarUrl: 'Aadhaar Card (Front)',
-  aadhaarBackUrl: 'Aadhaar Card (Back)',
-  photoUrl: 'Photo ID',
-  insuranceUrl: 'Insurance',
-  permitUrl: 'Permit',
-  pollutionCertUrl: 'Pollution certificate',
-  panCardUrl: 'PAN card',
-  chequeUrl: 'Cancelled Cheque',
-};
+// field = key on Driver.documents (what the API response uses), type =
+// the :documentType route param backend/src/constants/driverDocumentTypes.js
+// maps back to that same field - needed here since the update endpoint is
+// keyed by the short param, not the schema field name.
+const DOCUMENT_FIELDS = [
+  { field: 'licenseUrl', type: 'license', label: 'Driving License (Front)' },
+  { field: 'licenseBackUrl', type: 'license_back', label: 'Driving License (Back)' },
+  { field: 'rcUrl', type: 'rc', label: 'Vehicle RC (Front)' },
+  { field: 'rcBackUrl', type: 'rc_back', label: 'Vehicle RC (Back)' },
+  { field: 'aadhaarUrl', type: 'aadhaar', label: 'Aadhaar Card (Front)' },
+  { field: 'aadhaarBackUrl', type: 'aadhaar_back', label: 'Aadhaar Card (Back)' },
+  { field: 'photoUrl', type: 'photo', label: 'Photo ID' },
+  { field: 'insuranceUrl', type: 'insurance', label: 'Insurance' },
+  { field: 'permitUrl', type: 'permit', label: 'Permit' },
+  { field: 'pollutionCertUrl', type: 'pollution', label: 'Pollution certificate' },
+  { field: 'panCardUrl', type: 'pan', label: 'PAN card' },
+  { field: 'chequeUrl', type: 'cheque', label: 'Cancelled Cheque' },
+];
 
 // Uploaded documents (e.g. a driver's selfie from the mobile app) are stored
 // as relative paths like '/uploads/xyz.jpg', served by the backend, not this
@@ -53,6 +57,11 @@ export default function AdminDriverDetailPage() {
   const [downloadingReport, setDownloadingReport] = useState(false);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
+  // Keyed by documentType (e.g. 'license') rather than one shared boolean -
+  // uploading a replacement for one document shouldn't disable every other
+  // document's own upload/replace button while it's in flight.
+  const [uploadingDoc, setUploadingDoc] = useState(null);
+  const [docError, setDocError] = useState('');
 
   const fetchDriver = useCallback(async () => {
     setLoading(true);
@@ -138,8 +147,40 @@ export default function AdminDriverDetailPage() {
     }
   };
 
-  const documentEntries = driver ? Object.entries(DOCUMENT_LABELS).filter(([key]) => driver.documents?.[key]) : [];
-  const missingDocuments = driver ? Object.entries(DOCUMENT_LABELS).filter(([key]) => !driver.documents?.[key]) : [];
+  // Uploads/replaces one KYC document - same endpoint and behavior whether
+  // the slot was previously empty or already had a file, so "Upload" and
+  // "Replace" below are just different labels on the same handler.
+  const handleDocumentFile = async (documentType, file) => {
+    if (!file) return;
+    setUploadingDoc(documentType);
+    setDocError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await axiosClient.put(`/admin/drivers/${id}/documents/${documentType}`, formData);
+      await fetchDriver();
+    } catch (err) {
+      console.error('[AdminDriverDetailPage] document upload failed', err);
+      setDocError(err.response?.data?.message || 'Could not upload that document.');
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
+  const handleDownloadDoc = async (doc) => {
+    setDocError('');
+    try {
+      const ext = driver.documents[doc.field].split('.').pop().split('?')[0];
+      const name = (driver.userId?.name || 'driver').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+      await downloadFileFromUrl(resolveDocUrl(driver.documents[doc.field]), `${name}-${doc.type}.${ext}`);
+    } catch (err) {
+      console.error('[AdminDriverDetailPage] document download failed', err);
+      setDocError('Could not download that document.');
+    }
+  };
+
+  const documentEntries = driver ? DOCUMENT_FIELDS.filter((d) => driver.documents?.[d.field]) : [];
+  const missingDocuments = driver ? DOCUMENT_FIELDS.filter((d) => !driver.documents?.[d.field]) : [];
 
   return (
     <ConsoleShell navItems={ADMIN_NAV} brandSuffix="ADMIN" footerLabel="Ops Admin" loginPath="/login" dateLabel="25 JUL 2026">
@@ -274,24 +315,67 @@ export default function AdminDriverDetailPage() {
           )}
 
           <div className="bg-panel border border-line rounded-lg p-4">
-            <span className="eyebrow">KYC documents</span>
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">KYC documents</span>
+              <span className="text-xs text-mist">View, download, or replace any document below.</span>
+            </div>
+            {docError && <p className="text-xs text-stop mt-2">{docError}</p>}
             <div className="grid sm:grid-cols-2 gap-2 mt-3">
-              {documentEntries.map(([key, label]) => (
-                <a
-                  key={key}
-                  href={resolveDocUrl(driver.documents[key])}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between px-3 py-2.5 border border-line rounded-md hover:border-signal transition-colors text-sm"
+              {documentEntries.map((doc) => (
+                <div
+                  key={doc.field}
+                  className="flex items-center justify-between gap-2 px-3 py-2.5 border border-line rounded-md text-sm"
                 >
-                  <span>{label}</span>
-                  <span className="text-signal text-xs">View →</span>
-                </a>
+                  <span className="truncate">{doc.label}</span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <a
+                      href={resolveDocUrl(driver.documents[doc.field])}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-signal text-xs hover:underline"
+                    >
+                      View
+                    </a>
+                    <button onClick={() => handleDownloadDoc(doc)} className="text-signal text-xs hover:underline">
+                      Download
+                    </button>
+                    <label className="text-xs text-mist hover:text-signal cursor-pointer transition-colors">
+                      {uploadingDoc === doc.type ? 'Uploading…' : 'Replace'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingDoc === doc.type}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = '';
+                          handleDocumentFile(doc.type, file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
               ))}
-              {missingDocuments.map(([key, label]) => (
-                <div key={key} className="flex items-center justify-between px-3 py-2.5 border border-dashed border-line rounded-md text-sm opacity-50">
-                  <span>{label}</span>
-                  <span className="text-xs text-mist">Not uploaded</span>
+              {missingDocuments.map((doc) => (
+                <div
+                  key={doc.field}
+                  className="flex items-center justify-between gap-2 px-3 py-2.5 border border-dashed border-line rounded-md text-sm"
+                >
+                  <span className="truncate text-mist">{doc.label}</span>
+                  <label className="text-xs text-signal hover:underline cursor-pointer shrink-0">
+                    {uploadingDoc === doc.type ? 'Uploading…' : 'Upload'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingDoc === doc.type}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = '';
+                        handleDocumentFile(doc.type, file);
+                      }}
+                    />
+                  </label>
                 </div>
               ))}
             </div>

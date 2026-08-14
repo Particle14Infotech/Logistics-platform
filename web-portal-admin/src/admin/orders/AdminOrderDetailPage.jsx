@@ -8,7 +8,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import StatusBadge from '../../shared/components/StatusBadge.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
-import { downloadFile } from '../../shared/utils/downloadFile.js';
+import { downloadFile, downloadFileFromUrl } from '../../shared/utils/downloadFile.js';
 import { socketService } from '../../shared/services/socketService.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
@@ -18,10 +18,13 @@ import { ADMIN_NAV } from '../adminNav.js';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
-// Pickup documents are stored as relative paths like '/uploads/xyz.pdf',
-// served directly by the backend (express.static, no auth) - same pattern
-// AdminDriverDetailPage.jsx uses for KYC documents, so a plain <a> works,
-// no need to route through the authenticated downloadFile() blob helper.
+// Pickup/delivery documents are stored as relative paths like
+// '/uploads/xyz.pdf', served directly by the backend (express.static, no
+// auth) - so no need to route the "View" link through the authenticated
+// downloadFile() helper. "Download" still needs downloadFileFromUrl though
+// (see that helper's comment) - api.raahmitr.com is a different origin
+// from this app, and a plain <a download> silently doesn't force a
+// download for a cross-origin href in most browsers.
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
 function resolveDocUrl(url) {
@@ -53,6 +56,7 @@ export default function AdminOrderDetailPage() {
   const [chatError, setChatError] = useState('');
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
   const [invoiceError, setInvoiceError] = useState('');
+  const [docDownloadError, setDocDownloadError] = useState('');
   const [waybillForm, setWaybillForm] = useState(null);
   const [savingWaybill, setSavingWaybill] = useState(false);
   const [waybillError, setWaybillError] = useState('');
@@ -200,6 +204,16 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const handleDownloadDoc = async (doc, i) => {
+    setDocDownloadError('');
+    try {
+      await downloadFileFromUrl(resolveDocUrl(doc.url), doc.originalName || `document-${i + 1}`);
+    } catch (err) {
+      console.error('[AdminOrderDetailPage] document download failed', err);
+      setDocDownloadError('Could not download that document.');
+    }
+  };
+
   return (
     <ConsoleShell navItems={ADMIN_NAV} brandSuffix="ADMIN" footerLabel="Ops Admin" loginPath="/login" dateLabel="25 JUL 2026">
       <button onClick={() => navigate('/orders')} className="text-sm text-mist hover:text-signal transition-colors">
@@ -336,6 +350,8 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
 
+          {docDownloadError && <div className="border border-stop/30 bg-stop/10 text-stop text-sm rounded-lg p-3">{docDownloadError}</div>}
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-panel border border-line rounded-lg p-4 space-y-3">
               <span className="eyebrow">Pickup / delivery codes</span>
@@ -359,17 +375,13 @@ export default function AdminOrderDetailPage() {
               {order.pickupDocuments?.length > 0 ? (
                 <div className="space-y-1.5 mt-1">
                   {order.pickupDocuments.map((doc, i) => (
-                    <a
-                      key={i}
-                      href={resolveDocUrl(doc.url)}
-                      target="_blank"
-                      rel="noreferrer"
-                      download={doc.originalName || undefined}
-                      className="flex items-center justify-between px-3 py-2 border border-line rounded-md hover:border-signal transition-colors text-sm"
-                    >
+                    <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 border border-line rounded-md text-sm">
                       <span className="truncate">{doc.originalName || `Document ${i + 1}`}</span>
-                      <span className="text-signal text-xs shrink-0 ml-2">Download →</span>
-                    </a>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <a href={resolveDocUrl(doc.url)} target="_blank" rel="noreferrer" className="text-signal text-xs hover:underline">View</a>
+                        <button onClick={() => handleDownloadDoc(doc, i)} className="text-signal text-xs hover:underline">Download</button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -389,17 +401,13 @@ export default function AdminOrderDetailPage() {
               {order.deliveryDocuments?.length > 0 ? (
                 <div className="space-y-1.5 mt-1">
                   {order.deliveryDocuments.map((doc, i) => (
-                    <a
-                      key={i}
-                      href={resolveDocUrl(doc.url)}
-                      target="_blank"
-                      rel="noreferrer"
-                      download={doc.originalName || undefined}
-                      className="flex items-center justify-between px-3 py-2 border border-line rounded-md hover:border-signal transition-colors text-sm"
-                    >
+                    <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 border border-line rounded-md text-sm">
                       <span className="truncate">{doc.originalName || `Document ${i + 1}`}</span>
-                      <span className="text-signal text-xs shrink-0 ml-2">Download →</span>
-                    </a>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <a href={resolveDocUrl(doc.url)} target="_blank" rel="noreferrer" className="text-signal text-xs hover:underline">View</a>
+                        <button onClick={() => handleDownloadDoc(doc, i)} className="text-signal text-xs hover:underline">Download</button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : (
