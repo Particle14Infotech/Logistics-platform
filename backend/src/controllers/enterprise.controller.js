@@ -9,11 +9,8 @@ const Enterprise = require('../models/enterprise.model');
 const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
 const Invoice = require('../models/invoice.model');
-const PricingConfig = require('../models/pricingConfig.model');
-const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
+const VehicleCategory = require('../models/vehicleCategory.model');
 const { buildDriverReport, renderDriverReportPdf } = require('../services/driverReport.service');
-
-const VEHICLE_BASE_PRICE = { bike: 100, auto: 150, mini_truck: 300, medium_truck: 600, large_truck: 1000 };
 
 // Resolves the Enterprise doc for the logged-in user, whether they're the
 // admin (adminUserId) or an invited sub-user (subUsers array). JWTs only
@@ -377,34 +374,36 @@ exports.bulkBooking = catchAsync(async (req, res) => {
   if (!Array.isArray(rows) || rows.length === 0) throw new AppError('rows must be a non-empty array', 400);
 
   const results = { created: 0, failed: 0, errors: [] };
-  // Fetched once for the whole batch rather than per-row - admin-configured
-  // max weight per vehicle type, falling back to the hardcoded defaults for
-  // any type without a PricingConfig doc yet.
-  const maxWeightByType = new Map(
-    (await PricingConfig.find().select('vehicleType maxWeightKg')).map((c) => [c.vehicleType, c.maxWeightKg])
+  // Fetched once for the whole batch rather than per-row - each active
+  // category's base fare and max weight, keyed by its vehicleType slug.
+  const categoryByType = new Map(
+    (await VehicleCategory.find({ isActive: true }).select('vehicleType baseFare maxWeightKg')).map((c) => [
+      c.vehicleType,
+      c,
+    ])
   );
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     try {
       if (!row.pickupAddress || !row.dropAddress) throw new Error('pickupAddress and dropAddress are required');
-      if (!VEHICLE_BASE_PRICE[row.vehicleType]) throw new Error(`Invalid vehicleType "${row.vehicleType}"`);
+      const category = categoryByType.get(row.vehicleType);
+      if (!category) throw new Error(`Invalid vehicleType "${row.vehicleType}"`);
 
       const weightKg = Number(row.weightKg) || 0;
       // `|| 0` above only catches 0/NaN/falsy, not negative numbers - without
       // this, a negative weightKg skipped the maxWeight check below (never
       // > maxWeight) and reduced basePrice directly at line ~395.
       if (weightKg < 0) throw new Error('weightKg cannot be negative');
-      const maxWeight = maxWeightByType.get(row.vehicleType) ?? VEHICLE_MAX_WEIGHT_KG[row.vehicleType];
-      if (maxWeight != null && weightKg > maxWeight) {
-        throw new Error(`Weight exceeds the ${maxWeight}kg limit for ${row.vehicleType}`);
+      if (weightKg > category.maxWeightKg) {
+        throw new Error(`Weight exceeds the ${category.maxWeightKg}kg limit for ${row.vehicleType}`);
       }
       // Contract pricing (set via PUT /enterprise/contract-pricing, shown back
       // to the enterprise admin on EnterpriseContractsPage) previously had no
       // effect here at all - the discount would save and display correctly
       // but never actually reduce what was charged.
       const discountPercent = enterprise.contractPricing?.[row.vehicleType]?.discountPercent || 0;
-      const basePrice = VEHICLE_BASE_PRICE[row.vehicleType] + weightKg * 0.5;
+      const basePrice = category.baseFare + weightKg * 0.5;
       const price = Math.round(basePrice * (1 - discountPercent / 100));
 
       // Coordinates come from the Places autocomplete selection on the

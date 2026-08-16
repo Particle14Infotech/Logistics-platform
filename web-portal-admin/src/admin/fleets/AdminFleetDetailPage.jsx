@@ -12,6 +12,16 @@ export default function AdminFleetDetailPage() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog - used to show a real category name instead of a raw
+  // slug->spaces transform in the table.
+  const [categories, setCategories] = useState([]);
+  const categoryByType = new Map(categories.map((c) => [c.vehicleType, c]));
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminFleetDetailPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchFleet = useCallback(async () => {
     setLoading(true);
@@ -36,7 +46,7 @@ export default function AdminFleetDetailPage() {
     { key: 'driver', label: 'Driver', render: (r) => r.driver?.name ?? '—' },
     { key: 'phone', label: 'Phone', render: (r) => <span className="font-mono text-xs">{r.driver?.phone ?? '—'}</span> },
     { key: 'vehicleNumber', label: 'Vehicle', render: (r) => <span className="font-mono text-xs">{r.vehicleNumber}</span> },
-    { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{categoryByType.get(r.vehicleType)?.name ?? r.vehicleType.replace('_', ' ')}</span> },
     {
       key: 'kyc',
       label: 'KYC docs',

@@ -2,7 +2,7 @@ const router = require('express').Router();
 const ctrl = require('../controllers/booking.controller');
 const { protect } = require('../middlewares/auth.middleware');
 
-router.get('/vehicle-types', protect, ctrl.vehicleTypes);
+router.get('/vehicle-categories', protect, ctrl.vehicleCategories);
 router.post('/estimate', protect, ctrl.estimate);
 router.post('/create', protect, ctrl.create);
 router.get('/:id', protect, ctrl.getById);

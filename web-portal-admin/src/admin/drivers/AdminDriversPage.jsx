@@ -5,8 +5,6 @@ import DataTable from '../../shared/components/DataTable.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
-const VEHICLE_OPTIONS = ['', 'bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'];
-
 function ApprovalBadge({ isApproved }) {
   return isApproved ? (
     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-go/10 text-go">Approved</span>
@@ -37,6 +35,14 @@ export default function AdminDriversPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used for the filter dropdown's options.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminDriversPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchDrivers = useCallback(async () => {
     setLoading(true);
@@ -74,7 +80,7 @@ export default function AdminDriversPage() {
     { key: 'name', label: 'Driver', render: (r) => r.userId?.name ?? '—' },
     { key: 'phone', label: 'Phone', render: (r) => <span className="font-mono text-xs">{r.userId?.phone ?? '—'}</span> },
     { key: 'vehicle', label: 'Vehicle', render: (r) => <span className="font-mono text-xs">{r.vehicleNumber}</span> },
-    { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{categories.find((c) => c.vehicleType === r.vehicleType)?.name ?? r.vehicleType.replace('_', ' ')}</span> },
     { key: 'rating', label: 'Rating', render: (r) => <span>{r.ratingCount ? `${r.rating?.toFixed(1)} ★ (${r.ratingCount})` : 'New driver'}</span> },
     { key: 'approval', label: 'KYC status', render: (r) => <ApprovalBadge isApproved={r.isApproved} /> },
     { key: 'online', label: 'Availability', render: (r) => <OnlineBadge isAvailable={r.isAvailable} /> },
@@ -109,10 +115,9 @@ export default function AdminDriversPage() {
           onChange={(e) => setVehicleType(e.target.value)}
           className="bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
         >
-          {VEHICLE_OPTIONS.map((v) => (
-            <option key={v} value={v}>
-              {v ? v.replace('_', ' ') : 'All vehicles'}
-            </option>
+          <option value="">All vehicles</option>
+          {categories.map((c) => (
+            <option key={c.vehicleType} value={c.vehicleType}>{c.name}{c.lengthFt ? ` • ${c.lengthFt}ft` : ''}</option>
           ))}
         </select>
         <select

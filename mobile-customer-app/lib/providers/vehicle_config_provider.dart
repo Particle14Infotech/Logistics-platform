@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/vehicle_category_model.dart';
 import '../services/booking_service.dart';
 
-// Live max-weight-per-vehicle-type, admin-editable via the web portal's
-// Pricing page. Screens that check cargo weight against vehicle capacity
-// should prefer this over kVehicleTypes' hardcoded maxWeightKg, falling
-// back to the static value only while this is still loading or on failure.
-final vehicleMaxWeightsProvider = FutureProvider<Map<String, int>>((ref) {
-  return BookingService().getVehicleWeightLimits();
+// The live vehicle category catalog, admin-managed via the web portal's
+// Vehicle Categories page - fetched once (Riverpod FutureProviders cache by
+// default) and shared by every screen that needs to show/pick a vehicle
+// type, instead of each screen calling the API separately or falling back
+// to a static hardcoded list.
+final vehicleCategoriesProvider = FutureProvider<List<VehicleCategoryModel>>((ref) {
+  return BookingService().getVehicleCategories();
 });

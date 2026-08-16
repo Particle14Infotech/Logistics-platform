@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/constants/vehicle_types.dart';
 import '../../models/location_model.dart';
+import '../../models/vehicle_category_model.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/vehicle_config_provider.dart';
 import '../../services/booking_service.dart';
@@ -69,11 +69,10 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
     }
 
     final weight = double.tryParse(_weightController.text.trim());
-    final vehicle = kVehicleTypes.firstWhere((v) => v.value == _vehicleType);
-    final liveMaxWeights = ref.read(vehicleMaxWeightsProvider).valueOrNull;
-    final maxWeight = liveMaxWeights?[vehicle.value] ?? vehicle.maxWeightKg;
-    if (weight != null && weight > maxWeight) {
-      setState(() => _error = '${vehicle.label} can carry up to $maxWeight kg.');
+    final categories = ref.read(vehicleCategoriesProvider).valueOrNull ?? [];
+    final vehicle = categories.firstWhere((c) => c.vehicleType == _vehicleType);
+    if (weight != null && weight > vehicle.maxWeightKg) {
+      setState(() => _error = '${vehicle.name} can carry up to ${vehicle.maxWeightKg} kg.');
       return;
     }
 
@@ -99,6 +98,7 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categoriesAsync = ref.watch(vehicleCategoriesProvider);
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(title: const Text('Price Calculator')),
@@ -124,24 +124,30 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
             const SizedBox(height: 20),
             Text('Vehicle type', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
             const SizedBox(height: 8),
-            ...kVehicleTypes.map((v) {
-              final selected = _vehicleType == v.value;
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: selected ? AppTheme.primary : AppTheme.borderColor, width: selected ? 2 : 1),
-                ),
-                child: RadioListTile<String>(
-                  value: v.value,
-                  groupValue: _vehicleType,
-                  onChanged: (value) => setState(() => _vehicleType = value),
-                  secondary: Icon(v.icon),
-                  title: Text(v.label),
-                  subtitle: Text(v.description),
-                ),
-              );
-            }),
+            categoriesAsync.when(
+              loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Center(child: CircularProgressIndicator())),
+              error: (err, _) => const Text('Could not load vehicle types.'),
+              data: (categories) => Column(
+                children: categories.map((v) {
+                  final selected = _vehicleType == v.vehicleType;
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: selected ? AppTheme.primary : AppTheme.borderColor, width: selected ? 2 : 1),
+                    ),
+                    child: RadioListTile<String>(
+                      value: v.vehicleType,
+                      groupValue: _vehicleType,
+                      onChanged: (value) => setState(() => _vehicleType = value),
+                      secondary: Image.asset(vehicleImageAsset(v.imageKey), width: 40, height: 40, fit: BoxFit.contain),
+                      title: Text(v.displayTitle),
+                      subtitle: Text(v.weightLabel),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _weightController,

@@ -12,7 +12,7 @@ const Driver = require('../src/models/driver.model');
 const Order = require('../src/models/order.model');
 const Payment = require('../src/models/payment.model');
 const Review = require('../src/models/review.model');
-const PricingConfig = require('../src/models/pricingConfig.model');
+const VehicleCategory = require('../src/models/vehicleCategory.model');
 const Dispute = require('../src/models/dispute.model');
 const Invoice = require('../src/models/invoice.model');
 const Banner = require('../src/models/banner.model');
@@ -147,23 +147,27 @@ async function seed() {
     seededOrders = await Order.find({ customerId: sampleCustomer._id });
   }
 
-  // --- Pricing Config (one rate card per vehicle type) ---
-  const DEFAULT_PRICING = [
-    { vehicleType: 'bike', baseFare: 25, perKmRate: 6, maxWeightKg: 20 },
-    { vehicleType: 'auto', baseFare: 40, perKmRate: 9, maxWeightKg: 250 },
-    { vehicleType: 'mini_truck', baseFare: 80, perKmRate: 15, perKgRate: 0.5, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 750 },
-    { vehicleType: 'medium_truck', baseFare: 150, perKmRate: 22, perKgRate: 0.8, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 2500 },
-    { vehicleType: 'large_truck', baseFare: 300, perKmRate: 35, perKgRate: 1.2, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 10000 },
+  // --- Vehicle Categories (one rate card per category - the original 5
+  // fixed types, kept as first-class catalog rows so existing drivers/
+  // orders using these exact slugs keep matching correctly. Ops can add
+  // richer categories (Flat Bed, Container, etc.) on top via the admin
+  // portal's Vehicle Categories page.) ---
+  const DEFAULT_CATEGORIES = [
+    { vehicleType: 'bike', bodyType: 'bike', subType: 'bike', name: 'Bike', imageKey: 'bike', baseFare: 25, perKmRate: 6, maxWeightKg: 20, sortOrder: 1 },
+    { vehicleType: 'auto', bodyType: 'auto', subType: 'auto', name: 'Auto', imageKey: 'auto', baseFare: 40, perKmRate: 9, maxWeightKg: 250, sortOrder: 2 },
+    { vehicleType: 'mini_truck', bodyType: 'open', subType: 'tata_ace', name: 'Mini Truck', imageKey: 'tata_ace', baseFare: 80, perKmRate: 15, perKgRate: 0.5, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 750, sortOrder: 3 },
+    { vehicleType: 'medium_truck', bodyType: 'open', subType: 'open', name: 'Medium Truck', imageKey: 'open', baseFare: 150, perKmRate: 22, perKgRate: 0.8, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 2500, sortOrder: 4 },
+    { vehicleType: 'large_truck', bodyType: 'open', subType: 'multi_axle_open', name: 'Large Truck', imageKey: 'multi_axle_open', baseFare: 300, perKmRate: 35, perKgRate: 1.2, advanceRequired: true, advanceMode: 'percentage', advanceValue: 30, maxWeightKg: 10000, sortOrder: 5 },
   ];
-  let pricingCreated = 0;
-  for (const p of DEFAULT_PRICING) {
-    const existing = await PricingConfig.findOne({ vehicleType: p.vehicleType });
+  let categoriesCreated = 0;
+  for (const c of DEFAULT_CATEGORIES) {
+    const existing = await VehicleCategory.findOne({ vehicleType: c.vehicleType });
     if (!existing) {
-      await PricingConfig.create(p);
-      pricingCreated++;
+      await VehicleCategory.create(c);
+      categoriesCreated++;
     }
   }
-  console.log(pricingCreated > 0 ? `✅ ${pricingCreated} pricing configs created` : 'ℹ️  Pricing configs already exist');
+  console.log(categoriesCreated > 0 ? `✅ ${categoriesCreated} vehicle categories created` : 'ℹ️  Vehicle categories already exist');
 
   // --- Sample Payments (tied to the delivered order) ---
   const deliveredOrder = seededOrders.find((o) => o.status === 'delivered');

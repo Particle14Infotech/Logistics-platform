@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/constants/vehicle_types.dart';
+import '../../widgets/vehicle_category_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
 import '../../services/auth_service.dart';
@@ -197,10 +197,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (_editingVehicle) ...[
-                            DropdownButtonFormField<String>(
-                              initialValue: _vehicleType,
-                              decoration: const InputDecoration(labelText: 'Vehicle type', border: OutlineInputBorder()),
-                              items: kVehicleTypes.map((v) => DropdownMenuItem(value: v.value, child: Text(v.label))).toList(),
+                            VehicleCategoryField(
+                              value: _vehicleType,
                               onChanged: (v) => setState(() => _vehicleType = v),
                             ),
                             const SizedBox(height: 12),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/constants/vehicle_types.dart';
 import '../../providers/fleet_provider.dart';
+import '../../widgets/vehicle_category_field.dart';
 
 // Adds a vehicle + its driver under this fleet (SRS 3.2.9-adjacent, fleet
 // variant). The driver account either gets created fresh or reuses an
@@ -106,10 +106,8 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
             const SizedBox(height: 20),
             const Text('Vehicle details', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _vehicleType,
-              decoration: const InputDecoration(labelText: 'Vehicle type', border: OutlineInputBorder()),
-              items: kVehicleTypes.map((v) => DropdownMenuItem(value: v.value, child: Text(v.label))).toList(),
+            VehicleCategoryField(
+              value: _vehicleType,
               onChanged: (v) => setState(() => _vehicleType = v),
             ),
             const SizedBox(height: 12),

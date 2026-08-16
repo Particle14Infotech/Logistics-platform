@@ -1,19 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import PlacesAutocompleteInput from '../../shared/components/PlacesAutocompleteInput.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { useAuthStore } from '../../shared/store/authStore.js';
 import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 
-const VEHICLE_OPTIONS = ['bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'];
-const emptyRow = () => ({ pickupAddress: '', dropAddress: '', vehicleType: 'mini_truck', goodsType: '', weightKg: '' });
+const emptyRow = (defaultVehicleType) => ({ pickupAddress: '', dropAddress: '', vehicleType: defaultVehicleType ?? '', goodsType: '', weightKg: '' });
 
 export default function EnterpriseBulkBookingPage() {
   const [rows, setRows] = useState([emptyRow(), emptyRow(), emptyRow()]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - a category the
+  // admin adds/removes shows up here without a portal redeploy.
+  const [categories, setCategories] = useState([]);
   const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    // /booking/vehicle-categories, not /admin/... - this page is reached
+    // with an enterprise_admin/enterprise_user JWT, not an admin one, and
+    // the booking route only requires being logged in (any role), already
+    // filtered to isActive server-side.
+    axiosClient.get('/booking/vehicle-categories').then(({ data }) => {
+      const active = data.data.categories;
+      setCategories(active);
+      // Backfill the default vehicleType on the initial empty rows once the
+      // catalog loads, so the select isn't left on a blank first option.
+      if (active.length > 0) {
+        setRows((prev) => prev.map((r) => (r.vehicleType ? r : { ...r, vehicleType: active[0].vehicleType })));
+      }
+    }).catch((err) => {
+      console.error('[EnterpriseBulkBookingPage] failed to load vehicle categories', err);
+    });
+  }, []);
   // Viewer role can see everything else (tracking/invoices) but not create
   // bulk bookings - only meaningful for enterprise_user, enterprise_admin
   // is never a viewer.
@@ -23,7 +43,7 @@ export default function EnterpriseBulkBookingPage() {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
   };
 
-  const addRow = () => setRows((prev) => [...prev, emptyRow()]);
+  const addRow = () => setRows((prev) => [...prev, emptyRow(categories[0]?.vehicleType)]);
   const removeRow = (index) => setRows((prev) => prev.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
@@ -113,7 +133,7 @@ export default function EnterpriseBulkBookingPage() {
               onChange={(e) => updateRow(i, 'vehicleType', e.target.value)}
               className="bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
             >
-              {VEHICLE_OPTIONS.map((v) => <option key={v} value={v}>{v.replace('_', ' ')}</option>)}
+              {categories.map((c) => <option key={c.vehicleType} value={c.vehicleType}>{c.name}{c.lengthFt ? ` • ${c.lengthFt}ft` : ''}</option>)}
             </select>
             <input
               placeholder="Goods type"

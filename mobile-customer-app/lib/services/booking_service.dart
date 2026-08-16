@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../core/network/dio_client.dart';
 import '../models/location_model.dart';
 import '../models/order_model.dart';
+import '../models/vehicle_category_model.dart';
 
 class FareEstimate {
   final double distanceKm;
@@ -15,13 +16,14 @@ class FareEstimate {
 class BookingService {
   final _dio = DioClient.instance;
 
-  // Admin-editable max load weight per vehicle type (see AdminPricingPage's
-  // "Max weight (kg)" field) - fetched live so a limit change takes effect
-  // without an app update, rather than trusting the static kVehicleTypes copy.
-  Future<Map<String, int>> getVehicleWeightLimits() async {
-    final response = await _dio.get('/booking/vehicle-types');
-    final list = response.data['data']['vehicleTypes'] as List<dynamic>;
-    return {for (final v in list) v['vehicleType'] as String: (v['maxWeightKg'] as num).toInt()};
+  // The full admin-managed vehicle catalog (see AdminVehicleCategoriesPage) -
+  // fetched live so a new category or price/weight-limit change takes
+  // effect without an app update, rather than the static kVehicleTypes list
+  // this app used to ship with.
+  Future<List<VehicleCategoryModel>> getVehicleCategories() async {
+    final response = await _dio.get('/booking/vehicle-categories');
+    final list = response.data['data']['categories'] as List<dynamic>;
+    return list.map((c) => VehicleCategoryModel.fromJson(c as Map<String, dynamic>)).toList();
   }
 
   Future<FareEstimate> getEstimate({

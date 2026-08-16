@@ -11,11 +11,12 @@ const driverSchema = new mongoose.Schema(
     // sees/accepts that same enterprise's own orders, never the public
     // pool, and vice versa - a dedicated private fleet, not a preference.
     enterpriseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enterprise', default: null },
-    vehicleType: {
-      type: String,
-      enum: ['bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'],
-      required: true,
-    },
+    // A category slug from VehicleCategory.vehicleType (e.g. 'flat_bed_20ft')
+    // - the specific truck spec this driver actually owns/drives. No longer
+    // a fixed enum (the catalog is admin-manageable); validated at the
+    // controller layer against active VehicleCategory docs instead of by
+    // Mongoose, since the valid set changes at runtime.
+    vehicleType: { type: String, required: true },
     vehicleNumber: { type: String, required: true },
     licenseNumber: { type: String, required: true },
     currentLocation: {

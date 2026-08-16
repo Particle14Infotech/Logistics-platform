@@ -4,8 +4,6 @@ import DataTable from '../../shared/components/DataTable.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
-const VEHICLE_OPTIONS = ['', 'bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'];
-
 export default function AdminVehiclesPage() {
   const [vehicles, setVehicles] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
@@ -14,6 +12,17 @@ export default function AdminVehiclesPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used both for the
+  // filter dropdown's options and to show a real category name instead of
+  // a raw slug->spaces transform in the table.
+  const [categories, setCategories] = useState([]);
+  const categoryByType = new Map(categories.map((c) => [c.vehicleType, c]));
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminVehiclesPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchVehicles = useCallback(async () => {
     setLoading(true);
@@ -42,7 +51,7 @@ export default function AdminVehiclesPage() {
 
   const columns = [
     { key: 'vehicleNumber', label: 'Vehicle', render: (r) => <span className="font-mono text-xs">{r.vehicleNumber}</span> },
-    { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Type', render: (r) => <span className="capitalize text-xs">{categoryByType.get(r.vehicleType)?.name ?? r.vehicleType.replace('_', ' ')}</span> },
     { key: 'owner', label: 'Owner', render: (r) => r.owner?.name ?? '—' },
     {
       key: 'availability',
@@ -89,8 +98,9 @@ export default function AdminVehiclesPage() {
           onChange={(e) => setVehicleType(e.target.value)}
           className="bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
         >
-          {VEHICLE_OPTIONS.map((v) => (
-            <option key={v} value={v}>{v ? v.replace('_', ' ') : 'All vehicle types'}</option>
+          <option value="">All vehicle types</option>
+          {categories.map((c) => (
+            <option key={c.vehicleType} value={c.vehicleType}>{c.name}{c.lengthFt ? ` • ${c.lengthFt}ft` : ''}</option>
           ))}
         </select>
       </div>

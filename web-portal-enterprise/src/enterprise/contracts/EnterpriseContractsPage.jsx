@@ -3,9 +3,11 @@ import ConsoleShell from '../../shared/layouts/ConsoleShell.jsx';
 import axiosClient from '../../shared/api/axiosClient.js';
 import { ENTERPRISE_NAV } from '../enterpriseNav.js';
 
-const VEHICLE_LABELS = { bike: 'Bike', auto: 'Auto', mini_truck: 'Mini Truck', medium_truck: 'Medium Truck', large_truck: 'Large Truck' };
-
 export default function EnterpriseContractsPage() {
+  // Live catalog (not the old hardcoded 5-value list) - /booking/... since
+  // this page is reached with an enterprise JWT, not an admin one; already
+  // filtered to isActive server-side.
+  const [categories, setCategories] = useState([]);
   const [contractPricing, setContractPricing] = useState({});
   const [drafts, setDrafts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -16,10 +18,14 @@ export default function EnterpriseContractsPage() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axiosClient.get('/enterprise/contract-pricing');
-      setContractPricing(data.data.contractPricing);
+      const [{ data: catData }, { data: contractData }] = await Promise.all([
+        axiosClient.get('/booking/vehicle-categories'),
+        axiosClient.get('/enterprise/contract-pricing'),
+      ]);
+      setCategories(catData.data.categories);
+      setContractPricing(contractData.data.contractPricing);
       const d = {};
-      Object.keys(VEHICLE_LABELS).forEach((v) => { d[v] = data.data.contractPricing[v]?.discountPercent ?? 0; });
+      catData.data.categories.forEach((c) => { d[c.vehicleType] = contractData.data.contractPricing[c.vehicleType]?.discountPercent ?? 0; });
       setDrafts(d);
     } catch (err) {
       console.error('[EnterpriseContractsPage] failed to load contract pricing', err);
@@ -58,12 +64,13 @@ export default function EnterpriseContractsPage() {
         <div className="text-center py-16 text-mist text-sm">Loading contract rates…</div>
       ) : (
         <div className="space-y-3">
-          {Object.keys(VEHICLE_LABELS).map((v) => {
+          {categories.map((c) => {
+            const v = c.vehicleType;
             const applied = contractPricing[v]?.discountPercent ?? 0;
             const dirty = drafts[v] !== applied;
             return (
               <div key={v} className="bg-panel border border-line rounded-lg p-4 flex items-center gap-4">
-                <span className="text-sm font-medium w-32">{VEHICLE_LABELS[v]}</span>
+                <span className="text-sm font-medium w-40">{c.name}{c.lengthFt ? ` • ${c.lengthFt}ft` : ''}</span>
                 <div className="flex items-center gap-2 flex-1">
                   <input
                     type="number"

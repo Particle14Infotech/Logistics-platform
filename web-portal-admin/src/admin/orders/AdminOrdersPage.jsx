@@ -7,7 +7,6 @@ import axiosClient from '../../shared/api/axiosClient.js';
 import { ADMIN_NAV } from '../adminNav.js';
 
 const STATUS_OPTIONS = ['', 'pending', 'accepted', 'picked_up', 'in_transit', 'awaiting_payment', 'delivered', 'cancelled'];
-const VEHICLE_OPTIONS = ['', 'bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'];
 
 export default function AdminOrdersPage() {
   const navigate = useNavigate();
@@ -25,6 +24,15 @@ export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used for the filter
+  // dropdown's options and to show a real category name in the table.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminOrdersPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -81,7 +89,7 @@ export default function AdminOrdersPage() {
         </span>
       ),
     },
-    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="font-mono text-xs capitalize">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="font-mono text-xs capitalize">{categories.find((c) => c.vehicleType === r.vehicleType)?.name ?? r.vehicleType.replace('_', ' ')}</span> },
     {
       key: 'driver',
       label: 'Driver',
@@ -140,10 +148,9 @@ export default function AdminOrdersPage() {
           onChange={(e) => setVehicleType(e.target.value)}
           className="bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
         >
-          {VEHICLE_OPTIONS.map((v) => (
-            <option key={v} value={v}>
-              {v ? v.replace('_', ' ') : 'All vehicles'}
-            </option>
+          <option value="">All vehicles</option>
+          {categories.map((c) => (
+            <option key={c.vehicleType} value={c.vehicleType}>{c.name}{c.lengthFt ? ` • ${c.lengthFt}ft` : ''}</option>
           ))}
         </select>
         {(status || vehicleType || search) && (

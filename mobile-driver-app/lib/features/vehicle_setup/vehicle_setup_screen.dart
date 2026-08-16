@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../core/constants/vehicle_types.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
+import '../../widgets/vehicle_category_field.dart';
 
 enum _SetupStep { vehicleDetails, selfie }
 
@@ -157,10 +157,8 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
           children: [
             const Text('Tell us about your vehicle to get started.'),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _vehicleType,
-              decoration: const InputDecoration(labelText: 'Vehicle type', border: OutlineInputBorder()),
-              items: kVehicleTypes.map((v) => DropdownMenuItem(value: v.value, child: Text(v.label))).toList(),
+            VehicleCategoryField(
+              value: _vehicleType,
               onChanged: (v) => setState(() => _vehicleType = v),
             ),
             const SizedBox(height: 16),

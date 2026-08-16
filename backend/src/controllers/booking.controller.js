@@ -7,13 +7,12 @@ const User = require('../models/user.model');
 const Payment = require('../models/payment.model');
 const Message = require('../models/message.model');
 const Review = require('../models/review.model');
-const PricingConfig = require('../models/pricingConfig.model');
+const VehicleCategory = require('../models/vehicleCategory.model');
 const Dispute = require('../models/dispute.model');
 const { getRoadDistanceKm } = require('../services/maps.service');
 const { sendToUser, notifyEligibleDriversOfNewJob } = require('../services/notification.service');
 const razorpayService = require('../services/razorpay.service');
 const { applyWalletTransaction } = require('../services/wallet.service');
-const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 const { calculateAdvanceAmount } = require('../utils/pricingRules');
 
 async function assertWeightWithinCapacity(vehicleType, weightKg) {
@@ -23,10 +22,10 @@ async function assertWeightWithinCapacity(vehicleType, weightKg) {
   // produce a negative weightCharge in calculateFare, reducing the price.
   if (weightKg < 0) throw new AppError('weightKg cannot be negative', 400);
 
-  const config = await PricingConfig.findOne({ vehicleType }).select('maxWeightKg');
-  const maxWeight = config?.maxWeightKg ?? VEHICLE_MAX_WEIGHT_KG[vehicleType];
-  if (maxWeight != null && weightKg > maxWeight) {
-    throw new AppError(`Weight exceeds the ${maxWeight}kg limit for ${vehicleType}`, 400);
+  const config = await VehicleCategory.findOne({ vehicleType }).select('maxWeightKg');
+  if (!config) throw new AppError(`Unknown vehicle category "${vehicleType}"`, 400);
+  if (weightKg > config.maxWeightKg) {
+    throw new AppError(`Weight exceeds the ${config.maxWeightKg}kg limit for ${vehicleType}`, 400);
   }
 }
 
@@ -84,8 +83,8 @@ async function computeDistanceKm(pickupLocation, dropLocation) {
 }
 
 async function calculateFare({ vehicleType, distanceKm, weightKg }) {
-  const config = await PricingConfig.findOne({ vehicleType });
-  if (!config) throw new AppError(`No pricing configured for vehicle type "${vehicleType}"`, 400);
+  const config = await VehicleCategory.findOne({ vehicleType });
+  if (!config) throw new AppError(`Unknown vehicle category "${vehicleType}"`, 400);
 
   const distanceCharge = distanceKm * config.perKmRate;
   const weightCharge = (weightKg || 0) * (config.perKgRate || 0);
@@ -105,20 +104,17 @@ async function calculateFare({ vehicleType, distanceKm, weightKg }) {
   };
 }
 
-// GET /api/v1/booking/vehicle-types - current max load weight per vehicle
-// type, admin-editable via PUT /admin/pricing. Lets the customer app check
-// cargo weight against the live limit instead of a hardcoded copy that can
-// drift out of sync with what the admin has actually configured.
-exports.vehicleTypes = catchAsync(async (req, res) => {
-  const configs = await PricingConfig.find().select('vehicleType maxWeightKg');
-  const byType = new Map(configs.map((c) => [c.vehicleType, c.maxWeightKg]));
+// GET /api/v1/booking/vehicle-categories - the full active vehicle catalog,
+// admin-managed via /admin/vehicle-categories. Both mobile apps fetch this
+// once and filter/group client-side by bodyType for their category picker -
+// replaces the old vehicle-types endpoint, which only ever returned a
+// maxWeightKg per one of the 5 hardcoded literals.
+exports.vehicleCategories = catchAsync(async (req, res) => {
+  const categories = await VehicleCategory.find({ isActive: true })
+    .select('vehicleType bodyType subType name lengthFt maxWeightKg imageKey sortOrder')
+    .sort({ sortOrder: 1, name: 1 });
 
-  const vehicleTypes = Object.keys(VEHICLE_MAX_WEIGHT_KG).map((vehicleType) => ({
-    vehicleType,
-    maxWeightKg: byType.get(vehicleType) ?? VEHICLE_MAX_WEIGHT_KG[vehicleType],
-  }));
-
-  return success(res, { vehicleTypes });
+  return success(res, { categories });
 });
 
 // POST /api/v1/booking/estimate

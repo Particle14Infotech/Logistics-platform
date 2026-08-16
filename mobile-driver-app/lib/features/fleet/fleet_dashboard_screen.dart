@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/constants/vehicle_types.dart';
+import '../../widgets/vehicle_category_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/fleet_provider.dart';
 import '../../models/fleet_model.dart';
@@ -164,7 +164,7 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
                   ...?_vehicles?.map((v) => Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: Icon(vehicleIcon(v.vehicleType)),
+                          leading: VehicleTypeThumbnail(v.vehicleType),
                           title: Text(v.vehicleNumber),
                           subtitle: Text(
                               '${v.driverName ?? 'Unassigned'} · ${v.totalTrips} trips · ₹${v.totalEarnings} · KYC docs ${v.documentsUploaded}/${v.documentsTotal}'),

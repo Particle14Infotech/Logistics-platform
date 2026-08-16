@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/driver_provider.dart';
 import '../../models/trip_model.dart';
-import '../../core/constants/vehicle_types.dart';
+import '../../widgets/vehicle_category_field.dart';
 import '../../services/local_notification_service.dart';
 
 // Incoming job requests: accept/reject fixed-price jobs (SRS 3.2.4 Job Management).
@@ -170,7 +170,7 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(vehicleIcon(job.vehicleType)),
+                                  VehicleTypeThumbnail(job.vehicleType),
                                   const SizedBox(width: 8),
                                   Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600)),
                                   const Spacer(),
@@ -239,7 +239,7 @@ class _JobDetailScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(vehicleIcon(job.vehicleType)),
+                        VehicleTypeThumbnail(job.vehicleType),
                         const SizedBox(width: 8),
                         Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                         const Spacer(),

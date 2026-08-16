@@ -22,8 +22,10 @@ router.get('/vehicles', ctrl.listVehicles);
 router.get('/fleets', ctrl.listFleets);
 router.get('/fleets/:id', ctrl.getFleetById);
 
-router.get('/pricing', ctrl.getPricing);
-router.put('/pricing', ctrl.updatePricing);
+router.get('/vehicle-categories', ctrl.listVehicleCategories);
+router.post('/vehicle-categories', ctrl.createVehicleCategory);
+router.put('/vehicle-categories/:id', ctrl.updateVehicleCategory);
+router.delete('/vehicle-categories/:id', ctrl.deleteVehicleCategory);
 
 router.get('/payments', ctrl.listPayments);
 router.put('/payments/:id/refund', ctrl.refundPayment);

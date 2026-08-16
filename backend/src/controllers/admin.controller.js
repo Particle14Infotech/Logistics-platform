@@ -7,7 +7,8 @@ const Order = require('../models/order.model');
 const Driver = require('../models/driver.model');
 const User = require('../models/user.model');
 const Payment = require('../models/payment.model');
-const PricingConfig = require('../models/pricingConfig.model');
+const VehicleCategory = require('../models/vehicleCategory.model');
+const { VEHICLE_IMAGE_KEYS } = require('../constants/vehicleImageKeys');
 const Dispute = require('../models/dispute.model');
 const Banner = require('../models/banner.model');
 const Faq = require('../models/faq.model');
@@ -19,7 +20,6 @@ const Invoice = require('../models/invoice.model');
 const { applyWalletTransaction } = require('../services/wallet.service');
 const { sendToUsers, isConfigured } = require('../services/notification.service');
 const razorpayService = require('../services/razorpay.service');
-const { VEHICLE_MAX_WEIGHT_KG } = require('../config/vehicleCapacity');
 const { buildDriverReport, renderDriverReportPdf } = require('../services/driverReport.service');
 
 // GET /api/v1/admin/orders?status=&vehicleType=&search=&dateFrom=&dateTo=&page=&limit=
@@ -289,9 +289,9 @@ exports.analytics = catchAsync(async (req, res) => {
   const sevenDaysAgo = new Date(todayStart);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // 7 days inclusive of today
 
-  // An order with advanceAmount > 0 (whichever vehicle types the admin has
-  // configured that way at the time it was booked - see
-  // pricingConfig.model.js) never had its full price captured in one shot.
+  // An order with advanceAmount > 0 (whichever vehicle categories the admin
+  // has configured that way at the time it was booked - see
+  // vehicleCategory.model.js) never had its full price captured in one shot.
   // Within that: a cod order only ever has its advance actually captured
   // online (the remainder is cash the driver collects directly, never
   // platform revenue in the sense this figure means); an online order has
@@ -621,32 +621,14 @@ exports.getFleetById = catchAsync(async (req, res) => {
   return success(res, { fleet, vehicles });
 });
 
-// GET /api/v1/admin/pricing - current rate card for every vehicle type
-exports.getPricing = catchAsync(async (req, res) => {
-  const configs = await PricingConfig.find().sort({ vehicleType: 1 });
-  // Older docs (predating maxWeightKg) show the hardcoded default here
-  // rather than blank, so the admin always sees a real editable value.
-  const pricing = configs.map((c) => {
-    const doc = c.toObject();
-    if (doc.maxWeightKg == null) doc.maxWeightKg = VEHICLE_MAX_WEIGHT_KG[doc.vehicleType];
-    return doc;
-  });
-  return success(res, { pricing });
-});
-
-// PUT /api/v1/admin/pricing  { vehicleType, baseFare, perKmRate, perKgRate?, surgeMultiplier?, isSurgeActive?, advanceRequired?, advanceMode?, advanceValue?, maxWeightKg? }
-exports.updatePricing = catchAsync(async (req, res) => {
-  const { vehicleType, baseFare, perKmRate, perKgRate, surgeMultiplier, isSurgeActive, advanceRequired, advanceMode, advanceValue, maxWeightKg } = req.body;
-  if (!vehicleType) throw new AppError('vehicleType is required', 400);
-
-  // The admin pricing UI already clamps these client-side, but that's UX,
-  // not enforcement - this is the actual guard. surgeMultiplier is the
-  // sharp edge: calculateFare() (booking.controller.js) multiplies the
-  // whole subtotal by it whenever isSurgeActive is true, so 0 (or an
-  // empty field parsing to 0) zeroes out every fare for that vehicle type
-  // platform-wide, not just this one config value. A negative baseFare/
-  // perKmRate/perKgRate has the same effect in miniature - it subtracts
-  // from the price instead of adding.
+// Shared by createVehicleCategory/updateVehicleCategory - the admin form
+// already clamps these client-side, but that's UX, not enforcement. This is
+// the actual guard: surgeMultiplier is the sharp edge (calculateFare()
+// multiplies the whole subtotal by it whenever isSurgeActive is true, so 0
+// zeroes out every fare for that category platform-wide), and a negative
+// baseFare/perKmRate/perKgRate has the same effect in miniature - it
+// subtracts from the price instead of adding.
+function assertValidCategoryNumbers({ baseFare, perKmRate, perKgRate, surgeMultiplier, maxWeightKg }) {
   const nonNegative = { baseFare, perKmRate, perKgRate };
   for (const [field, value] of Object.entries(nonNegative)) {
     if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
@@ -659,27 +641,89 @@ exports.updatePricing = catchAsync(async (req, res) => {
   if (maxWeightKg !== undefined && (typeof maxWeightKg !== 'number' || !Number.isFinite(maxWeightKg) || maxWeightKg <= 0)) {
     throw new AppError('maxWeightKg must be greater than 0', 400);
   }
+}
 
-  const config = await PricingConfig.findOneAndUpdate(
-    { vehicleType },
-    {
-      $set: {
-        ...(baseFare !== undefined && { baseFare }),
-        ...(perKmRate !== undefined && { perKmRate }),
-        ...(perKgRate !== undefined && { perKgRate }),
-        ...(surgeMultiplier !== undefined && { surgeMultiplier }),
-        ...(isSurgeActive !== undefined && { isSurgeActive }),
-        ...(advanceRequired !== undefined && { advanceRequired }),
-        ...(advanceMode !== undefined && { advanceMode }),
-        ...(advanceValue !== undefined && { advanceValue }),
-        ...(maxWeightKg !== undefined && { maxWeightKg }),
-        updatedBy: req.user.id,
-      },
-    },
-    { new: true, upsert: true }
-  );
+// GET /api/v1/admin/vehicle-categories - every category, active or not (the
+// admin page needs inactive ones too, to let ops re-activate them).
+exports.listVehicleCategories = catchAsync(async (req, res) => {
+  const categories = await VehicleCategory.find().sort({ sortOrder: 1, name: 1 });
+  return success(res, { categories });
+});
 
-  return success(res, { pricing: config }, 'Pricing updated');
+// POST /api/v1/admin/vehicle-categories
+// { vehicleType, bodyType, subType, name, lengthFt?, maxWeightKg, imageKey, baseFare, perKmRate, perKgRate?, ... }
+exports.createVehicleCategory = catchAsync(async (req, res) => {
+  const { vehicleType, bodyType, subType, name, lengthFt, maxWeightKg, imageKey, baseFare, perKmRate } = req.body;
+  if (!vehicleType || !bodyType || !subType || !name) {
+    throw new AppError('vehicleType, bodyType, subType, and name are required', 400);
+  }
+  if (maxWeightKg == null || baseFare == null || perKmRate == null) {
+    throw new AppError('maxWeightKg, baseFare, and perKmRate are required', 400);
+  }
+  if (!VEHICLE_IMAGE_KEYS.includes(imageKey)) {
+    throw new AppError(`imageKey must be one of: ${VEHICLE_IMAGE_KEYS.join(', ')}`, 400);
+  }
+  assertValidCategoryNumbers(req.body);
+
+  const existing = await VehicleCategory.findOne({ vehicleType });
+  if (existing) throw new AppError(`A category with vehicleType "${vehicleType}" already exists`, 409);
+
+  const category = await VehicleCategory.create({
+    ...req.body,
+    lengthFt: lengthFt ?? undefined,
+    updatedBy: req.user.id,
+  });
+
+  return success(res, { category }, 'Vehicle category created', 201);
+});
+
+// PUT /api/v1/admin/vehicle-categories/:id - partial update, same fields as create.
+exports.updateVehicleCategory = catchAsync(async (req, res) => {
+  const category = await VehicleCategory.findById(req.params.id);
+  if (!category) throw new AppError('Vehicle category not found', 404);
+
+  if (req.body.imageKey !== undefined && !VEHICLE_IMAGE_KEYS.includes(req.body.imageKey)) {
+    throw new AppError(`imageKey must be one of: ${VEHICLE_IMAGE_KEYS.join(', ')}`, 400);
+  }
+  assertValidCategoryNumbers(req.body);
+
+  const fields = [
+    'bodyType', 'subType', 'name', 'lengthFt', 'maxWeightKg', 'imageKey',
+    'baseFare', 'perKmRate', 'perKgRate', 'surgeMultiplier', 'isSurgeActive',
+    'advanceRequired', 'advanceMode', 'advanceValue', 'isActive', 'sortOrder',
+  ];
+  for (const field of fields) {
+    if (req.body[field] !== undefined) category[field] = req.body[field];
+  }
+  category.updatedBy = req.user.id;
+  await category.save();
+
+  return success(res, { category }, 'Vehicle category updated');
+});
+
+// DELETE /api/v1/admin/vehicle-categories/:id - only allowed when nothing
+// actually references this category yet; otherwise deleting it would leave
+// existing drivers/orders pointing at a vehicleType slug that no longer
+// resolves to any pricing/capacity. Deactivate (PUT isActive: false)
+// instead once real data exists - that hides it from new bookings/driver
+// registration without breaking anything already using it.
+exports.deleteVehicleCategory = catchAsync(async (req, res) => {
+  const category = await VehicleCategory.findById(req.params.id);
+  if (!category) throw new AppError('Vehicle category not found', 404);
+
+  const [driverCount, orderCount] = await Promise.all([
+    Driver.countDocuments({ vehicleType: category.vehicleType }),
+    Order.countDocuments({ vehicleType: category.vehicleType }),
+  ]);
+  if (driverCount > 0 || orderCount > 0) {
+    throw new AppError(
+      `Cannot delete - ${driverCount} driver(s) and ${orderCount} order(s) still reference this category. Deactivate it instead.`,
+      409
+    );
+  }
+
+  await category.deleteOne();
+  return success(res, null, 'Vehicle category deleted');
 });
 
 // GET /api/v1/admin/payments?status=&search=&page=&limit=

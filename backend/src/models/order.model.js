@@ -33,11 +33,10 @@ const orderSchema = new mongoose.Schema(
     dropLocation: { type: geoPointSchema, required: true },
     waypoints: [geoPointSchema],
 
-    vehicleType: {
-      type: String,
-      enum: ['bike', 'auto', 'mini_truck', 'medium_truck', 'large_truck'],
-      required: true,
-    },
+    // A category slug from VehicleCategory.vehicleType (e.g. 'flat_bed_20ft')
+    // - see driver.model.js's vehicleType comment for why this is no longer
+    // a fixed enum.
+    vehicleType: { type: String, required: true },
     goodsType: String,
     weightKg: Number,
     isFragile: { type: Boolean, default: false },
@@ -57,8 +56,8 @@ const orderSchema = new mongoose.Schema(
     // only ever set on cancellation, see booking.controller.js's cancel().
     cancellationFeeAmount: { type: Number, default: 0 },
 
-    // For whichever vehicle types the admin has configured with
-    // advanceRequired (see pricingConfig.model.js), both 'cod' and 'online'
+    // For whichever vehicle categories the admin has configured with
+    // advanceRequired (see vehicleCategory.model.js), both 'cod' and 'online'
     // only charge this advance online at booking time
     // (pricingRules.calculateAdvanceAmount) - fraud/no-show protection.
     // Ungated types: 'online' pays the full price in one shot, and 'cod'

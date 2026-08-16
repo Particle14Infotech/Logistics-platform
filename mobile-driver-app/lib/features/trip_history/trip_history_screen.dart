@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/driver_provider.dart';
 import '../../models/trip_model.dart';
-import '../../core/constants/vehicle_types.dart';
+import '../../widgets/vehicle_category_field.dart';
 import '../../widgets/status_pill.dart';
 
 const _kActiveStatuses = ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'];
@@ -125,9 +125,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                                                 .withValues(alpha: 0.15),
                                             borderRadius:
                                                 BorderRadius.circular(12)),
-                                        child: Icon(
-                                            vehicleIcon(trip.vehicleType),
-                                            color: const Color(0xFF8A6200)),
+                                        child: VehicleTypeThumbnail(trip.vehicleType, size: 26),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(

@@ -4,7 +4,7 @@ export const ADMIN_NAV = [
   { to: '/drivers', label: 'Drivers', icon: '◑' },
   { to: '/vehicles', label: 'Vehicles', icon: '▭' },
   { to: '/fleets', label: 'Fleets', icon: '⬡' },
-  { to: '/pricing', label: 'Pricing', icon: '₹' },
+  { to: '/vehicle-categories', label: 'Vehicle categories', icon: '₹' },
   { to: '/payments', label: 'Payments', icon: '◈' },
   { to: '/disputes', label: 'Disputes', icon: '!' },
   { to: '/enterprises', label: 'Enterprises', icon: '⬢' },
