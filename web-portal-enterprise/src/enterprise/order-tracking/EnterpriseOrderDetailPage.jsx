@@ -275,7 +275,7 @@ export default function EnterpriseOrderDetailPage() {
               <div className="grid sm:grid-cols-2 gap-1.5">
                 {order.pickupDocuments.map((doc, i) => (
                   <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 border border-line rounded-md text-sm">
-                    <span className="truncate">{doc.originalName || `Document ${i + 1}`}</span>
+                    <span className="truncate" title={doc.originalName || `Document ${i + 1}`}>{doc.originalName || `Document ${i + 1}`}</span>
                     <div className="flex items-center gap-3 shrink-0">
                       <a href={resolveDocUrl(doc.url)} target="_blank" rel="noreferrer" className="text-signal text-xs hover:underline">View</a>
                       <button onClick={() => handleDownloadDoc(doc, i)} className="text-signal text-xs hover:underline">Download</button>
@@ -301,7 +301,7 @@ export default function EnterpriseOrderDetailPage() {
               <div className="grid sm:grid-cols-2 gap-1.5">
                 {order.deliveryDocuments.map((doc, i) => (
                   <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 border border-line rounded-md text-sm">
-                    <span className="truncate">{doc.originalName || `Document ${i + 1}`}</span>
+                    <span className="truncate" title={doc.originalName || `Document ${i + 1}`}>{doc.originalName || `Document ${i + 1}`}</span>
                     <div className="flex items-center gap-3 shrink-0">
                       <a href={resolveDocUrl(doc.url)} target="_blank" rel="noreferrer" className="text-signal text-xs hover:underline">View</a>
                       <button onClick={() => handleDownloadDoc(doc, i)} className="text-signal text-xs hover:underline">Download</button>

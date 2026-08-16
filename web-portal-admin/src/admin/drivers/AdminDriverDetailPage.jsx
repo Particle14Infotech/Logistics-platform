@@ -424,10 +424,17 @@ export default function AdminDriverDetailPage() {
               {documentEntries.map((doc) => (
                 <div
                   key={doc.field}
-                  className="flex items-center justify-between gap-2 px-3 py-2.5 border border-line rounded-md text-sm"
+                  className="px-3 py-2.5 border border-line rounded-md text-sm space-y-1.5"
                 >
-                  <span className="truncate">{doc.label}</span>
-                  <div className="flex items-center gap-3 shrink-0">
+                  {/* title= as a fallback for genuinely long labels on very
+                      narrow viewports - the label used to sit on the same
+                      row as View/Download/Replace, so two similar labels
+                      (e.g. "Driving License (Front)" and "... (Back)")
+                      could truncate to the exact same text and become
+                      visually indistinguishable. Its own row always gets
+                      the card's full width now, so that can't happen. */}
+                  <span className="truncate block" title={doc.label}>{doc.label}</span>
+                  <div className="flex items-center gap-3">
                     <a
                       href={resolveDocUrl(driver.documents[doc.field])}
                       target="_blank"
@@ -459,10 +466,10 @@ export default function AdminDriverDetailPage() {
               {missingDocuments.map((doc) => (
                 <div
                   key={doc.field}
-                  className="flex items-center justify-between gap-2 px-3 py-2.5 border border-dashed border-line rounded-md text-sm"
+                  className="px-3 py-2.5 border border-dashed border-line rounded-md text-sm space-y-1.5"
                 >
-                  <span className="truncate text-mist">{doc.label}</span>
-                  <label className="text-xs text-signal hover:underline cursor-pointer shrink-0">
+                  <span className="truncate block text-mist" title={doc.label}>{doc.label}</span>
+                  <label className="text-xs text-signal hover:underline cursor-pointer">
                     {uploadingDoc === doc.type ? 'Uploading…' : 'Upload'}
                     <input
                       type="file"
