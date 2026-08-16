@@ -10,6 +10,7 @@ const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
 const Invoice = require('../models/invoice.model');
 const VehicleCategory = require('../models/vehicleCategory.model');
+const { getVehicleCategoryName } = require('../services/vehicleCategory.service');
 const { buildDriverReport, renderDriverReportPdf } = require('../services/driverReport.service');
 
 // Resolves the Enterprise doc for the logged-in user, whether they're the
@@ -689,5 +690,6 @@ exports.getDriverReport = catchAsync(async (req, res) => {
 exports.getDriverReportPdf = catchAsync(async (req, res) => {
   const driver = await getOwnDriver(req);
   const report = await buildDriverReport(driver._id);
-  renderDriverReportPdf(res, driver, report);
+  const vehicleCategoryName = await getVehicleCategoryName(driver.vehicleType);
+  renderDriverReportPdf(res, driver, report, vehicleCategoryName);
 });

@@ -9,6 +9,7 @@ const User = require('../models/user.model');
 const Payment = require('../models/payment.model');
 const VehicleCategory = require('../models/vehicleCategory.model');
 const { VEHICLE_IMAGE_KEYS } = require('../constants/vehicleImageKeys');
+const { getVehicleCategoryName, assertValidVehicleType } = require('../services/vehicleCategory.service');
 const Dispute = require('../models/dispute.model');
 const Banner = require('../models/banner.model');
 const Faq = require('../models/faq.model');
@@ -149,9 +150,25 @@ exports.listDrivers = catchAsync(async (req, res) => {
 
 // PUT /api/v1/admin/drivers/:id  { isApproved?, isBlocked? } - approve/suspend a driver
 exports.updateDriverStatus = catchAsync(async (req, res) => {
-  const { isApproved, isBlocked } = req.body;
+  const { isApproved, isBlocked, vehicleType, vehicleNumber } = req.body;
   const driver = await Driver.findById(req.params.id);
   if (!driver) throw new AppError('Driver not found', 404);
+
+  // Lets ops correct a driver's registered vehicle from the portal - e.g.
+  // the driver picked the wrong category at signup, or their real category
+  // was since deleted/renamed by another admin. Unlike the driver's own
+  // self-service PUT /driver/vehicle, this does NOT reset isApproved - an
+  // admin making this edit themselves is the approval authority, not
+  // someone whose change needs a separate re-review.
+  if (vehicleType !== undefined) {
+    await assertValidVehicleType(vehicleType);
+    driver.vehicleType = vehicleType;
+  }
+  if (vehicleNumber !== undefined) {
+    if (!vehicleNumber.trim()) throw new AppError('vehicleNumber cannot be empty', 400);
+    driver.vehicleNumber = vehicleNumber.trim();
+  }
+  if (vehicleType !== undefined || vehicleNumber !== undefined) await driver.save();
 
   if (isApproved !== undefined) {
     // A fleet owner can create a Driver row directly (AddVehicleScreen) with
@@ -278,7 +295,8 @@ exports.getDriverReportPdf = catchAsync(async (req, res) => {
   const driver = await Driver.findById(req.params.id).populate('userId', 'name phone email createdAt');
   if (!driver) throw new AppError('Driver not found', 404);
   const report = await buildDriverReport(driver._id);
-  renderDriverReportPdf(res, driver, report);
+  const vehicleCategoryName = await getVehicleCategoryName(driver.vehicleType);
+  renderDriverReportPdf(res, driver, report, vehicleCategoryName);
 });
 
 // GET /api/v1/admin/analytics - KPI + revenue snapshot for the dashboard
@@ -409,19 +427,23 @@ exports.analytics = catchAsync(async (req, res) => {
     { status: 'cancelled', label: 'Cancelled', count: todayStatusCounts.cancelled },
   ];
 
-  const VEHICLE_TYPE_LABELS = {
-    bike: 'Bike',
-    auto: 'Auto',
-    mini_truck: 'Mini truck',
-    medium_truck: 'Medium truck',
-    large_truck: 'Large truck',
-  };
-  const vehicleCounts = Object.fromEntries(vehicleAgg.map((v) => [v._id, v.count]));
-  const fleetByVehicleType = Object.entries(VEHICLE_TYPE_LABELS).map(([type, label]) => ({
-    type,
-    label,
-    count: vehicleCounts[type] ?? 0,
-  }));
+  // Real category names for whichever vehicleType slugs actually appear
+  // among approved drivers - was a hardcoded 5-key label map (the original
+  // bike/auto/mini/medium/large types), which silently dropped every
+  // driver registered under any of the ~30 newer catalog categories from
+  // this chart entirely (their counts existed in vehicleAgg but had no
+  // label to render under, so Object.entries(VEHICLE_TYPE_LABELS).map(...)
+  // above just never included them).
+  const vehicleTypesInUse = vehicleAgg.map((v) => v._id);
+  const categoriesInUse = await VehicleCategory.find({ vehicleType: { $in: vehicleTypesInUse } }).select('vehicleType name');
+  const categoryNameByType = new Map(categoriesInUse.map((c) => [c.vehicleType, c.name]));
+  const fleetByVehicleType = vehicleAgg
+    .map((v) => ({
+      type: v._id,
+      label: categoryNameByType.get(v._id) ?? v._id.replace(/_/g, ' '),
+      count: v.count,
+    }))
+    .sort((a, b) => b.count - a.count);
 
   // Fill in any day with zero orders so the chart always shows exactly 7
   // evenly-spaced points instead of gaps. Built from local date parts, not

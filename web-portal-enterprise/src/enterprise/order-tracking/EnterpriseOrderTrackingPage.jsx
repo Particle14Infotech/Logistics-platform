@@ -21,6 +21,15 @@ export default function EnterpriseOrderTrackingPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used to show a real
+  // category name instead of a raw slug->spaces transform.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/booking/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[EnterpriseOrderTrackingPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -45,7 +54,7 @@ export default function EnterpriseOrderTrackingPage() {
   const columns = [
     { key: 'id', label: 'Order', render: (r) => <span className="font-mono text-xs">{r._id.slice(-8).toUpperCase()}</span> },
     { key: 'route', label: 'Route', render: (r) => <span className="text-mist">{r.pickupLocation?.address} → {r.dropLocation?.address}</span> },
-    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="capitalize text-xs">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="capitalize text-xs">{categories.find((c) => c.vehicleType === r.vehicleType)?.name ?? r.vehicleType.replace(/_/g, ' ')}</span> },
     { key: 'driver', label: 'Driver', render: (r) => (r.driverId ? r.driverId.userId?.name ?? r.driverId.vehicleNumber : <span className="text-mist text-xs">Unassigned</span>) },
     { key: 'status', label: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     {

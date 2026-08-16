@@ -5,6 +5,7 @@ const { catchAsync, success, AppError } = require('../utils/apiResponse');
 const Driver = require('../models/driver.model');
 const Order = require('../models/order.model');
 const Enterprise = require('../models/enterprise.model');
+const { assertValidVehicleType, getVehicleCategoryName } = require('../services/vehicleCategory.service');
 const WalletTransaction = require('../models/walletTransaction.model');
 const { sendToUser } = require('../services/notification.service');
 const { completeDelivery } = require('../services/delivery.service');
@@ -147,6 +148,7 @@ exports.createProfile = catchAsync(async (req, res) => {
   if (!vehicleType || !vehicleNumber || !licenseNumber) {
     throw new AppError('vehicleType, vehicleNumber, and licenseNumber are required', 400);
   }
+  await assertValidVehicleType(vehicleType);
 
   // Optional - links this driver to an enterprise's private fleet instead
   // of the public marketplace (see Driver.enterpriseId). A code that
@@ -186,6 +188,7 @@ exports.updateVehicle = catchAsync(async (req, res) => {
 
   const { vehicleType, vehicleNumber } = req.body;
   if (!vehicleType || !vehicleNumber) throw new AppError('vehicleType and vehicleNumber are required', 400);
+  await assertValidVehicleType(vehicleType);
 
   driver.vehicleType = vehicleType;
   driver.vehicleNumber = vehicleNumber;
@@ -281,7 +284,7 @@ exports.acceptOrder = catchAsync(async (req, res) => {
   if (io) io.to(`booking:${order._id}`).emit('status_broadcast', { bookingId: order._id, status: 'accepted', timestamp: Date.now() });
   sendToUser(order.customerId, {
     title: 'Driver assigned!',
-    body: `A driver is on the way for your ${driver.vehicleType.replace('_', ' ')} booking.`,
+    body: `A driver is on the way for your ${await getVehicleCategoryName(driver.vehicleType)} booking.`,
     data: { bookingId: String(order._id), status: 'accepted' },
   });
 

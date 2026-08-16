@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/driver_provider.dart';
+import '../../providers/vehicle_config_provider.dart';
 import '../../models/trip_model.dart';
 import '../../widgets/vehicle_category_field.dart';
 import '../../services/local_notification_service.dart';
@@ -172,7 +173,16 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
                                 children: [
                                   VehicleTypeThumbnail(job.vehicleType),
                                   const SizedBox(width: 8),
-                                  Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  Text(
+                                    ref
+                                            .watch(vehicleCategoriesProvider)
+                                            .valueOrNull
+                                            ?.where((c) => c.vehicleType == job.vehicleType)
+                                            .firstOrNull
+                                            ?.displayTitle ??
+                                        job.vehicleType.replaceAll('_', ' '),
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
                                   const Spacer(),
                                   Text('₹${job.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                 ],
@@ -219,12 +229,12 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
 // Read-only expanded view of a job the driver hasn't accepted yet - pops
 // with 'accept'/'reject' so the parent list can run the actual API call
 // and stays the single source of truth for _jobs/_actingOnId state.
-class _JobDetailScreen extends StatelessWidget {
+class _JobDetailScreen extends ConsumerWidget {
   final TripModel job;
   const _JobDetailScreen({required this.job});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Job Details')),
       body: SafeArea(
@@ -241,7 +251,16 @@ class _JobDetailScreen extends StatelessWidget {
                       children: [
                         VehicleTypeThumbnail(job.vehicleType),
                         const SizedBox(width: 8),
-                        Text(job.vehicleType.replaceAll('_', ' '), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                        Text(
+                          ref
+                                  .watch(vehicleCategoriesProvider)
+                                  .valueOrNull
+                                  ?.where((c) => c.vehicleType == job.vehicleType)
+                                  .firstOrNull
+                                  ?.displayTitle ??
+                              job.vehicleType.replaceAll('_', ' '),
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                        ),
                         const Spacer(),
                         Text('₹${job.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                       ],

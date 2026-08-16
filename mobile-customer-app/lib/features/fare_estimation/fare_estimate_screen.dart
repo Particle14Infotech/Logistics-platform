@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
+import '../../providers/vehicle_config_provider.dart';
 
 // Step 4 of booking: fare breakdown + confirm (SRS 3.1.7 Fare Estimation).
 // Matches the reference design's 'Price Summary' screen: order info rows
@@ -93,7 +94,16 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _DetailRow(label: 'Vehicle', value: draft.vehicleType?.replaceAll('_', ' ') ?? '—'),
+                        _DetailRow(
+                            label: 'Vehicle',
+                            value: ref
+                                    .watch(vehicleCategoriesProvider)
+                                    .valueOrNull
+                                    ?.where((c) => c.vehicleType == draft.vehicleType)
+                                    .firstOrNull
+                                    ?.displayTitle ??
+                                draft.vehicleType?.replaceAll('_', ' ') ??
+                                '—'),
                         _DetailRow(label: 'Distance', value: '${estimate.distanceKm} km'),
                         if (draft.goodsType.isNotEmpty) _DetailRow(label: 'Goods Type', value: draft.goodsType),
                         if (draft.weightKg != null) _DetailRow(label: 'Weight', value: '${draft.weightKg} kg'),

@@ -60,7 +60,11 @@ const WALLET_TYPE_LABELS = {
 // Streams a PDF directly to an Express response - same PDFKit pattern as
 // booking.controller.js's downloadInvoicePdf, but a simpler row-based
 // layout (this is a statement/ledger, not a precisely-gridded LR form).
-function renderDriverReportPdf(res, driver, report) {
+// vehicleCategoryName: pre-resolved by the caller (getVehicleCategoryName)
+// rather than looked up in here - this function streams synchronously
+// (doc.pipe(res) / doc.end(), no awaited work), and both callers already
+// have driver.vehicleType in scope inside their own async handler.
+function renderDriverReportPdf(res, driver, report, vehicleCategoryName) {
   res.setHeader('Content-Type', 'application/pdf');
   const safeName = (driver.userId?.name || 'driver').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
   res.setHeader('Content-Disposition', `attachment; filename="${safeName}-report.pdf"`);
@@ -94,7 +98,7 @@ function renderDriverReportPdf(res, driver, report) {
   doc.text(`Name: ${driver.userId?.name || '—'}`);
   doc.text(`Phone: ${driver.userId?.phone || '—'}`);
   doc.text(`Email: ${driver.userId?.email || '—'}`);
-  doc.text(`Vehicle: ${driver.vehicleNumber || '—'} (${(driver.vehicleType || '—').replace('_', ' ')})`);
+  doc.text(`Vehicle: ${driver.vehicleNumber || '—'} (${vehicleCategoryName || driver.vehicleType || '—'})`);
   doc.text(`License no.: ${driver.licenseNumber || '—'}`);
   doc.text(`Status: ${driver.isApproved ? 'Approved' : 'Pending approval'}`);
   doc.moveDown(1);

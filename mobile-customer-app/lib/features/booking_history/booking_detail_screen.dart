@@ -14,6 +14,7 @@ import '../chat/chat_screen.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/vehicle_config_provider.dart';
 import '../../models/order_model.dart';
 import '../../services/socket_service.dart';
 import '../../widgets/status_pill.dart';
@@ -541,7 +542,13 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         children: [
                           _DetailRow(
                               label: 'Vehicle',
-                              value: order.vehicleType.replaceAll('_', ' ')),
+                              value: ref
+                                      .watch(vehicleCategoriesProvider)
+                                      .valueOrNull
+                                      ?.where((c) => c.vehicleType == order.vehicleType)
+                                      .firstOrNull
+                                      ?.displayTitle ??
+                                  order.vehicleType.replaceAll('_', ' ')),
                           if (order.distanceKm != null)
                             _DetailRow(
                                 label: 'Distance',

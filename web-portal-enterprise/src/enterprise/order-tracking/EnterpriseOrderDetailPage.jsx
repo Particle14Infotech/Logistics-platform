@@ -44,6 +44,15 @@ export default function EnterpriseOrderDetailPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used to show a real
+  // category name instead of a raw slug->spaces transform.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/booking/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[EnterpriseOrderDetailPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const [position, setPosition] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -226,7 +235,7 @@ export default function EnterpriseOrderDetailPage() {
               <div className="text-sm space-y-1.5 mt-2">
                 <div className="flex justify-between"><span className="text-mist">Pickup</span><span>{order.pickupLocation?.address ?? '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Drop</span><span>{order.dropLocation?.address ?? '—'}</span></div>
-                <div className="flex justify-between"><span className="text-mist">Vehicle</span><span className="capitalize">{order.vehicleType.replace('_', ' ')}</span></div>
+                <div className="flex justify-between"><span className="text-mist">Vehicle</span><span className="capitalize">{categories.find((c) => c.vehicleType === order.vehicleType)?.name ?? order.vehicleType.replace(/_/g, ' ')}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Goods</span><span>{order.goodsType ?? '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Weight</span><span>{order.weightKg ? `${order.weightKg} kg` : '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Distance</span><span>{order.distanceKm ? `${order.distanceKm} km` : '—'}</span></div>

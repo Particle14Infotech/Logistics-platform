@@ -32,6 +32,15 @@ export default function EnterpriseDriverDetailPage() {
   const [error, setError] = useState('');
   const [reportError, setReportError] = useState('');
   const [downloadingReport, setDownloadingReport] = useState(false);
+  // Live catalog (not the old hardcoded 5-value list) - used to show a real
+  // category name instead of a raw slug->spaces transform.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/booking/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[EnterpriseDriverDetailPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchDriver = useCallback(async () => {
     setLoading(true);
@@ -107,7 +116,7 @@ export default function EnterpriseDriverDetailPage() {
               <span className="eyebrow">Vehicle</span>
               <div className="text-sm space-y-1.5 mt-2">
                 <div className="flex justify-between"><span className="text-mist">Number</span><span className="font-mono">{driver.vehicleNumber}</span></div>
-                <div className="flex justify-between"><span className="text-mist">Type</span><span className="capitalize">{driver.vehicleType.replace('_', ' ')}</span></div>
+                <div className="flex justify-between"><span className="text-mist">Type</span><span className="capitalize">{categories.find((c) => c.vehicleType === driver.vehicleType)?.name ?? driver.vehicleType.replace(/_/g, ' ')}</span></div>
                 <div className="flex justify-between"><span className="text-mist">License no.</span><span className="font-mono">{driver.licenseNumber}</span></div>
               </div>
             </div>

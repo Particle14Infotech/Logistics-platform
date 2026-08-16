@@ -3,6 +3,7 @@ const Fleet = require('../models/fleet.model');
 const Driver = require('../models/driver.model');
 const User = require('../models/user.model');
 const Order = require('../models/order.model');
+const { assertValidVehicleType } = require('../services/vehicleCategory.service');
 
 // GET /api/v1/fleet/profile
 exports.getProfile = catchAsync(async (req, res) => {
@@ -48,6 +49,7 @@ exports.addVehicle = catchAsync(async (req, res) => {
   if (!driverPhone || !vehicleType || !vehicleNumber || !licenseNumber) {
     throw new AppError('driverPhone, vehicleType, vehicleNumber, and licenseNumber are required', 400);
   }
+  await assertValidVehicleType(vehicleType);
 
   let driverUser = await User.findOne({ phone: driverPhone });
   if (!driverUser) {

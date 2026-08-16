@@ -57,6 +57,20 @@ export default function AdminDriverDetailPage() {
   const [downloadingReport, setDownloadingReport] = useState(false);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
+  // Live catalog - used both to show a real category name for the current
+  // vehicleType and to populate the edit picker below.
+  const [categories, setCategories] = useState([]);
+  const [editingVehicle, setEditingVehicle] = useState(false);
+  const [vehicleForm, setVehicleForm] = useState({ vehicleType: '', vehicleNumber: '' });
+  const [savingVehicle, setSavingVehicle] = useState(false);
+  const [vehicleError, setVehicleError] = useState('');
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminDriverDetailPage] failed to load vehicle categories', err);
+    });
+  }, []);
+
   // Keyed by documentType (e.g. 'license') rather than one shared boolean -
   // uploading a replacement for one document shouldn't disable every other
   // document's own upload/replace button while it's in flight.
@@ -144,6 +158,32 @@ export default function AdminDriverDetailPage() {
       setActionError(err.response?.data?.message || 'Could not update driver status.');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Lets ops correct a driver's registered vehicle from the portal - e.g.
+  // the driver picked the wrong category at signup, or their category was
+  // since renamed/deleted by another admin. Same PUT /admin/drivers/:id
+  // endpoint updateStatus above uses, just with different fields - doesn't
+  // reset isApproved (see that endpoint's own comment for why).
+  const startEditVehicle = () => {
+    setVehicleForm({ vehicleType: driver.vehicleType, vehicleNumber: driver.vehicleNumber });
+    setVehicleError('');
+    setEditingVehicle(true);
+  };
+
+  const saveVehicle = async () => {
+    setSavingVehicle(true);
+    setVehicleError('');
+    try {
+      await axiosClient.put(`/admin/drivers/${id}`, vehicleForm);
+      setEditingVehicle(false);
+      await fetchDriver();
+    } catch (err) {
+      console.error('[AdminDriverDetailPage] vehicle update failed', err);
+      setVehicleError(err.response?.data?.message || 'Could not update this vehicle.');
+    } finally {
+      setSavingVehicle(false);
     }
   };
 
@@ -254,12 +294,72 @@ export default function AdminDriverDetailPage() {
 
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-panel border border-line rounded-lg p-4">
-              <span className="eyebrow">Vehicle</span>
-              <div className="text-sm space-y-1.5 mt-2">
-                <div className="flex justify-between"><span className="text-mist">Number</span><span className="font-mono">{driver.vehicleNumber}</span></div>
-                <div className="flex justify-between"><span className="text-mist">Type</span><span className="capitalize">{driver.vehicleType.replace('_', ' ')}</span></div>
-                <div className="flex justify-between"><span className="text-mist">License no.</span><span className="font-mono">{driver.licenseNumber}</span></div>
+              <div className="flex items-center justify-between">
+                <span className="eyebrow">Vehicle</span>
+                {!editingVehicle && (
+                  <button onClick={startEditVehicle} className="text-signal text-xs hover:underline">Edit</button>
+                )}
               </div>
+              {editingVehicle ? (
+                <div className="space-y-2 mt-2">
+                  <div>
+                    <span className="eyebrow block mb-1">Number</span>
+                    <input
+                      type="text"
+                      value={vehicleForm.vehicleNumber}
+                      onChange={(e) => setVehicleForm((f) => ({ ...f, vehicleNumber: e.target.value }))}
+                      className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm font-mono focus:border-signal focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <span className="eyebrow block mb-1">Category</span>
+                    <select
+                      value={vehicleForm.vehicleType}
+                      onChange={(e) => setVehicleForm((f) => ({ ...f, vehicleType: e.target.value }))}
+                      className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
+                    >
+                      {!categories.some((c) => c.vehicleType === driver.vehicleType) && (
+                        <option value={driver.vehicleType}>{driver.vehicleType} (current - not in active catalog)</option>
+                      )}
+                      {Object.entries(
+                        categories.reduce((groups, c) => {
+                          (groups[c.bodyType] ??= []).push(c);
+                          return groups;
+                        }, {})
+                      ).map(([bodyType, group]) => (
+                        <optgroup key={bodyType} label={bodyType} className="capitalize">
+                          {group.map((c) => (
+                            <option key={c.vehicleType} value={c.vehicleType}>{c.name}{c.lengthFt ? ` • ${c.lengthFt}ft` : ''}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                  {vehicleError && <p className="text-xs text-stop">{vehicleError}</p>}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={saveVehicle}
+                      disabled={savingVehicle}
+                      className="bg-signal text-white text-xs font-medium rounded-md px-3 py-1.5 hover:brightness-110 disabled:opacity-40 transition-all"
+                    >
+                      {savingVehicle ? 'Saving…' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => setEditingVehicle(false)}
+                      disabled={savingVehicle}
+                      className="border border-line text-xs rounded-md px-3 py-1.5 hover:border-signal transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm space-y-1.5 mt-2">
+                  <div className="flex justify-between"><span className="text-mist">Number</span><span className="font-mono">{driver.vehicleNumber}</span></div>
+                  <div className="flex justify-between"><span className="text-mist">Type</span><span className="capitalize">{categories.find((c) => c.vehicleType === driver.vehicleType)?.name ?? driver.vehicleType.replace(/_/g, ' ')}</span></div>
+                  <div className="flex justify-between"><span className="text-mist">License no.</span><span className="font-mono">{driver.licenseNumber}</span></div>
+                </div>
+              )}
             </div>
 
             <div className="bg-panel border border-line rounded-lg p-4">

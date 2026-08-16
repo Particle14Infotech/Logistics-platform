@@ -144,6 +144,15 @@ export default function AdminDashboardPage() {
   const [fleetVehicles, setFleetVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used to show a real
+  // category name in the recent-orders widget instead of a raw slug.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminDashboardPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,7 +198,7 @@ export default function AdminDashboardPage() {
       label: 'Route',
       render: (r) => <span className="text-mist">{r.pickupLocation?.address ?? '—'} → {r.dropLocation?.address ?? '—'}</span>,
     },
-    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="text-xs capitalize">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="text-xs capitalize">{categories.find((c) => c.vehicleType === r.vehicleType)?.name ?? r.vehicleType.replace(/_/g, ' ')}</span> },
     { key: 'status', label: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     { key: 'price', label: 'Amount', render: (r) => <span className="font-mono">₹{r.price.toLocaleString('en-IN')}</span> },
   ];

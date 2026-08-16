@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../widgets/vehicle_category_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
+import '../../providers/vehicle_config_provider.dart';
 import '../../services/auth_service.dart';
 
 // Driver profile - view/edit name, vehicle info, documents, sign out.
@@ -241,7 +242,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(profile.vehicleNumber),
-                                      Text(profile.vehicleType.replaceAll('_', ' '), style: TextStyle(color: Colors.grey.shade600)),
+                                      Text(
+                                        ref
+                                                .watch(vehicleCategoriesProvider)
+                                                .valueOrNull
+                                                ?.where((c) => c.vehicleType == profile.vehicleType)
+                                                .firstOrNull
+                                                ?.displayTitle ??
+                                            profile.vehicleType.replaceAll('_', ' '),
+                                        style: TextStyle(color: Colors.grey.shade600),
+                                      ),
                                     ],
                                   ),
                                 ),

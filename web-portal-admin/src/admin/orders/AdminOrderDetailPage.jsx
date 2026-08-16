@@ -49,6 +49,16 @@ export default function AdminOrderDetailPage() {
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState('');
   const [assignError, setAssignError] = useState('');
+  // Live catalog (not the old hardcoded 5-value list) - used to show a real
+  // category name instead of a raw slug->spaces transform.
+  const [categories, setCategories] = useState([]);
+  const vehicleCategoryName = order && (categories.find((c) => c.vehicleType === order.vehicleType)?.name ?? order.vehicleType.replace(/_/g, ' '));
+
+  useEffect(() => {
+    axiosClient.get('/admin/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[AdminOrderDetailPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const [position, setPosition] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -239,7 +249,7 @@ export default function AdminOrderDetailPage() {
               <div className="text-sm space-y-1.5 mt-2">
                 <div className="flex justify-between"><span className="text-mist">Pickup</span><span>{order.pickupLocation?.address ?? '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Drop</span><span>{order.dropLocation?.address ?? '—'}</span></div>
-                <div className="flex justify-between"><span className="text-mist">Vehicle</span><span className="capitalize">{order.vehicleType.replace('_', ' ')}</span></div>
+                <div className="flex justify-between"><span className="text-mist">Vehicle</span><span className="capitalize">{vehicleCategoryName}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Goods</span><span>{order.goodsType ?? '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Weight</span><span>{order.weightKg ? `${order.weightKg} kg` : '—'}</span></div>
                 <div className="flex justify-between"><span className="text-mist">Distance</span><span>{order.distanceKm ? `${order.distanceKm} km` : '—'}</span></div>
@@ -278,7 +288,7 @@ export default function AdminOrderDetailPage() {
                         onChange={(e) => setSelectedDriverId(e.target.value)}
                         className="w-full bg-ink border border-line rounded-md px-3 py-2 text-sm focus:border-signal focus:outline-none transition-colors"
                       >
-                        <option value="">Select an available {order.vehicleType.replace('_', ' ')} driver…</option>
+                        <option value="">Select an available {vehicleCategoryName} driver…</option>
                         {availableDrivers.map((d) => (
                           <option key={d._id} value={d._id}>
                             {d.userId?.name ?? 'Unnamed'} — {d.vehicleNumber} {d.isAvailable ? '(online)' : '(offline)'}
@@ -286,7 +296,7 @@ export default function AdminOrderDetailPage() {
                         ))}
                       </select>
                       {availableDrivers.length === 0 && (
-                        <p className="text-xs text-mist">No approved {order.vehicleType.replace('_', ' ')} drivers found.</p>
+                        <p className="text-xs text-mist">No approved {vehicleCategoryName} drivers found.</p>
                       )}
                       {assignError && <p className="text-xs text-stop">{assignError}</p>}
                       <button

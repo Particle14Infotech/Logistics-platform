@@ -18,6 +18,15 @@ export default function EnterpriseDriversPage() {
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  // Live catalog (not the old hardcoded 5-value list) - /booking/... since
+  // this page is reached with an enterprise JWT, not an admin one.
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axiosClient.get('/booking/vehicle-categories').then(({ data }) => setCategories(data.data.categories)).catch((err) => {
+      console.error('[EnterpriseDriversPage] failed to load vehicle categories', err);
+    });
+  }, []);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -63,7 +72,7 @@ export default function EnterpriseDriversPage() {
   const driverColumns = [
     { key: 'name', label: 'Driver', render: (r) => r.userId?.name ?? '—' },
     { key: 'phone', label: 'Phone', render: (r) => r.userId?.phone ?? '—' },
-    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="capitalize">{r.vehicleType.replace('_', ' ')}</span> },
+    { key: 'vehicleType', label: 'Vehicle', render: (r) => <span className="capitalize">{categories.find((c) => c.vehicleType === r.vehicleType)?.name ?? r.vehicleType.replace(/_/g, ' ')}</span> },
     { key: 'vehicleNumber', label: 'Plate', render: (r) => <span className="font-mono text-xs">{r.vehicleNumber}</span> },
     {
       key: 'status',
