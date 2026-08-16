@@ -55,7 +55,15 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
   Future<void> _loadPricesFor(List<VehicleCategoryModel> categories) async {
     final draft = _draft;
     if (draft?.pickup == null || draft?.drop == null) return;
-    final toFetch = categories.where((c) => !_priceByType.containsKey(c.vehicleType) && !_loadingTypes.contains(c.vehicleType));
+    // Materialized to a fixed List, not left as a lazy Iterable.where(...) -
+    // the setState below mutates _loadingTypes, and a lazy where() re-runs
+    // its predicate against that *current* state on every later iteration.
+    // Left lazy, Future.wait(toFetch.map(...)) would re-filter after
+    // _loadingTypes had just been populated with these same types, so the
+    // predicate excludes everything the second time around - zero requests
+    // actually fire, nothing ever clears _loadingTypes, and every card
+    // spins forever despite looking like it "started" loading.
+    final toFetch = categories.where((c) => !_priceByType.containsKey(c.vehicleType) && !_loadingTypes.contains(c.vehicleType)).toList();
     if (toFetch.isEmpty) return;
 
     setState(() => _loadingTypes.addAll(toFetch.map((c) => c.vehicleType)));
