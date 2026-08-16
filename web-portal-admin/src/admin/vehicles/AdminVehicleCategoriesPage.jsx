@@ -15,7 +15,7 @@ const IMAGE_KEYS = ['bike', 'auto', 'tata_ace', 'open', 'multi_axle_open', 'cont
 // labels stay consistent instead of drifting into near-duplicate spellings
 // ("Open" vs "open" vs "Open Body"). Typing anything else still works.
 const SUGGESTED_BODY_TYPES = ['bike', 'auto', 'open', 'container', 'trailer'];
-const SUGGESTED_SUB_TYPES = ['bike', 'auto', 'tata_ace', 'open', 'multi_axle_open', 'container', 'flat_bed', 'low_bed', 'semi_bed'];
+const SUGGESTED_SUB_TYPES = ['bike', 'auto', 'tata_ace', 'open', 'multi_axle_open', 'half_daala', 'container', 'flat_bed', 'low_bed', 'semi_bed'];
 
 const emptyForm = {
   vehicleType: '',
