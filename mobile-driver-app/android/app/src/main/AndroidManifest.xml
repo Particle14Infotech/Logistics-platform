@@ -6,10 +6,25 @@
     <!-- GPS location - broadcasting driver position during an active trip -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <!-- Keeps GPS broadcast running if the driver backgrounds the app or the
-         OS tries to reclaim it mid-trip - see active_trip_screen.dart's
-         foreground-service-backed location broadcast (flutter_foreground_task). -->
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <!-- DELIBERATELY no ACCESS_BACKGROUND_LOCATION - removed 2026-08-16 after
+         a real Play Console rejection ("Permissions and APIs that Access
+         Sensitive Information policy: Issues with submitted video"). It was
+         declared here but never actually requested by any code (no
+         Geolocator/permission_handler call anywhere asks for "Allow all the
+         time") and isn't needed for what this app does: a foreground service
+         with foregroundServiceType="location" (below) can read location
+         continuously as long as it's running and the app holds plain
+         "while in use" access - Android's own documented exception, and
+         exactly how ride-hailing/delivery driver apps do live tracking
+         without the background tier. Declaring the permission with no real
+         use for it just puts the app in Play Console's mandatory Background
+         Location declaration+video review queue for nothing. If a genuine
+         need for true background access (reading location with no
+         foreground service running at all) ever comes up, re-add this AND
+         build a proper in-app prominent-disclosure screen first - Google
+         requires that disclosure to exist and be shown before the OS
+         permission dialog, or review will reject again regardless of the
+         video's production quality. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
