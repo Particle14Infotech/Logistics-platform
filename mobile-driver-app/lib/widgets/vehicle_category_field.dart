@@ -59,7 +59,10 @@ class VehicleCategoryField extends ConsumerWidget {
                 ? const Text('Select vehicle type', style: TextStyle(color: Colors.grey))
                 : Row(
                     children: [
-                      Image.asset(vehicleImageAsset(selected.imageKey), width: 28, height: 28, fit: BoxFit.contain),
+                      // cacheWidth/Height - the source PNGs are 480x320, decoded at
+                      // that full size by default even though they only ever render
+                      // this small; caps actual decode size close to real display size.
+                      Image.asset(vehicleImageAsset(selected.imageKey), width: 28, height: 28, fit: BoxFit.contain, cacheWidth: 84, cacheHeight: 84),
                       const SizedBox(width: 10),
                       Text('${selected.displayTitle} · ${selected.weightLabel}'),
                     ],
@@ -89,7 +92,18 @@ class VehicleTypeThumbnail extends ConsumerWidget {
     final categories = ref.watch(vehicleCategoriesProvider).valueOrNull;
     final match = categories?.where((c) => c.vehicleType == vehicleType).firstOrNull;
     if (match == null) return Icon(Icons.local_shipping_outlined, size: size);
-    return Image.asset(vehicleImageAsset(match.imageKey), width: size * 1.6, height: size, fit: BoxFit.contain);
+    // cacheWidth/Height - see the picker field's own comment on the same
+    // pattern above (caps decode size to roughly what's actually shown,
+    // scaled with this widget's own variable `size` rather than a fixed
+    // constant since callers pass different sizes).
+    return Image.asset(
+      vehicleImageAsset(match.imageKey),
+      width: size * 1.6,
+      height: size,
+      fit: BoxFit.contain,
+      cacheWidth: (size * 1.6 * 3).round(),
+      cacheHeight: (size * 3).round(),
+    );
   }
 }
 
@@ -165,7 +179,8 @@ class _CategoryPickerSheetState extends State<_CategoryPickerSheet> {
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppTheme.borderColor)),
                       child: ListTile(
-                        leading: Image.asset(vehicleImageAsset(c.imageKey), width: 44, height: 44, fit: BoxFit.contain),
+                        // cacheWidth/Height - see the picker field's own comment above.
+                        leading: Image.asset(vehicleImageAsset(c.imageKey), width: 44, height: 44, fit: BoxFit.contain, cacheWidth: 132, cacheHeight: 132),
                         title: Text(c.displayTitle, style: const TextStyle(fontWeight: FontWeight.w600)),
                         subtitle: Text(c.weightLabel),
                         onTap: () => Navigator.of(context).pop(c.vehicleType),

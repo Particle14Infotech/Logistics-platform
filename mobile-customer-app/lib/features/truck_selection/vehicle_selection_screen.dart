@@ -212,7 +212,11 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
                                         width: 64,
                                         height: 48,
                                         decoration: BoxDecoration(color: AppTheme.primarySurface, borderRadius: BorderRadius.circular(12)),
-                                        child: Image.asset(vehicleImageAsset(vt.imageKey), fit: BoxFit.contain),
+                                        // cacheWidth/Height - the source PNGs are 480x320,
+                                        // decoded at that full size by default even though
+                                        // they only ever render this small; this caps actual
+                                        // decode size close to the real display size instead.
+                                        child: Image.asset(vehicleImageAsset(vt.imageKey), fit: BoxFit.contain, cacheWidth: 192, cacheHeight: 144),
                                       ),
                                       const SizedBox(width: 14),
                                       Expanded(

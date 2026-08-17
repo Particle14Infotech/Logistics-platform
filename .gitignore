@@ -18,3 +18,7 @@ coverage/
 
 # OS
 Thumbs.db
+
+# JVM heap dumps - a crashed/OOM'd Gradle daemon can drop one of these
+# (multi-GB) anywhere under a Flutter app's android/ dir.
+*.hprof

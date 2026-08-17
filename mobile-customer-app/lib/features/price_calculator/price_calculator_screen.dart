@@ -140,7 +140,9 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
                       value: v.vehicleType,
                       groupValue: _vehicleType,
                       onChanged: (value) => setState(() => _vehicleType = value),
-                      secondary: Image.asset(vehicleImageAsset(v.imageKey), width: 40, height: 40, fit: BoxFit.contain),
+                      // cacheWidth/Height - see vehicle_selection_screen.dart's comment
+                      // on the same pattern (caps decode size to what's actually shown).
+                      secondary: Image.asset(vehicleImageAsset(v.imageKey), width: 40, height: 40, fit: BoxFit.contain, cacheWidth: 120, cacheHeight: 120),
                       title: Text(v.displayTitle),
                       subtitle: Text(v.weightLabel),
                     ),
