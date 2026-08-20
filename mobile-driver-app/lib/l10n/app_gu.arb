@@ -375,5 +375,13 @@
   "scanPackageBarcode": "પેકેજ બારકોડ સ્કેન કરો",
   "alignBarcodeInFrame": "બારકોડને ફ્રેમની અંદર ગોઠવો",
   "uploadingEllipsis": "અપલોડ થઈ રહ્યું છે…",
-  "addDocuments": "દસ્તાવેજો ઉમેરો"
+  "addDocuments": "દસ્તાવેજો ઉમેરો",
+
+  "textSize": "ટેક્સ્ટ કદ",
+  "textSizeScreenHint": "સમગ્ર એપમાં ટેક્સ્ટ કેટલો મોટો દેખાય તે પસંદ કરો.",
+  "textSizeSmall": "નાનું",
+  "textSizeStandard": "ડિફોલ્ટ",
+  "textSizeLarge": "મોટું",
+  "textSizeExtraLarge": "વધુ મોટું",
+  "textSizeSampleText": "આ એક નમૂના ટેક્સ્ટ છે"
 }

@@ -1173,4 +1173,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addDocuments => 'Add documents';
+
+  @override
+  String get textSize => 'Text Size';
+
+  @override
+  String get textSizeScreenHint =>
+      'Choose how large text appears throughout the app.';
+
+  @override
+  String get textSizeSmall => 'Small';
+
+  @override
+  String get textSizeStandard => 'Default';
+
+  @override
+  String get textSizeLarge => 'Large';
+
+  @override
+  String get textSizeExtraLarge => 'Extra Large';
+
+  @override
+  String get textSizeSampleText => 'The quick brown fox';
 }

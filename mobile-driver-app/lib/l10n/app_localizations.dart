@@ -2218,6 +2218,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add documents'**
   String get addDocuments;
+
+  /// No description provided for @textSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text Size'**
+  String get textSize;
+
+  /// No description provided for @textSizeScreenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how large text appears throughout the app.'**
+  String get textSizeScreenHint;
+
+  /// No description provided for @textSizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get textSizeSmall;
+
+  /// No description provided for @textSizeStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get textSizeStandard;
+
+  /// No description provided for @textSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get textSizeLarge;
+
+  /// No description provided for @textSizeExtraLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Large'**
+  String get textSizeExtraLarge;
+
+  /// No description provided for @textSizeSampleText.
+  ///
+  /// In en, this message translates to:
+  /// **'The quick brown fox'**
+  String get textSizeSampleText;
 }
 
 class _AppLocalizationsDelegate

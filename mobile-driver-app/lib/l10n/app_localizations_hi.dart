@@ -1178,4 +1178,26 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get addDocuments => 'दस्तावेज़ जोड़ें';
+
+  @override
+  String get textSize => 'टेक्स्ट का आकार';
+
+  @override
+  String get textSizeScreenHint =>
+      'चुनें कि पूरे ऐप में टेक्स्ट कितना बड़ा दिखाई दे।';
+
+  @override
+  String get textSizeSmall => 'छोटा';
+
+  @override
+  String get textSizeStandard => 'डिफ़ॉल्ट';
+
+  @override
+  String get textSizeLarge => 'बड़ा';
+
+  @override
+  String get textSizeExtraLarge => 'अतिरिक्त बड़ा';
+
+  @override
+  String get textSizeSampleText => 'यह एक नमूना पाठ है';
 }

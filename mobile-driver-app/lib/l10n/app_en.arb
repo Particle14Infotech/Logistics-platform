@@ -400,5 +400,13 @@
   "scanPackageBarcode": "Scan package barcode",
   "alignBarcodeInFrame": "Align the barcode within the frame",
   "uploadingEllipsis": "Uploading…",
-  "addDocuments": "Add documents"
+  "addDocuments": "Add documents",
+
+  "textSize": "Text Size",
+  "textSizeScreenHint": "Choose how large text appears throughout the app.",
+  "textSizeSmall": "Small",
+  "textSizeStandard": "Default",
+  "textSizeLarge": "Large",
+  "textSizeExtraLarge": "Extra Large",
+  "textSizeSampleText": "The quick brown fox"
 }

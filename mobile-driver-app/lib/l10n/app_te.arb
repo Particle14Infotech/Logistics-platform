@@ -375,5 +375,13 @@
   "scanPackageBarcode": "ప్యాకేజీ బార్‌కోడ్‌ను స్కాన్ చేయండి",
   "alignBarcodeInFrame": "బార్‌కోడ్‌ను ఫ్రేమ్‌లో సర్దుబాటు చేయండి",
   "uploadingEllipsis": "అప్‌లోడ్ అవుతోంది…",
-  "addDocuments": "పత్రాలను జోడించండి"
+  "addDocuments": "పత్రాలను జోడించండి",
+
+  "textSize": "టెక్స్ట్ పరిమాణం",
+  "textSizeScreenHint": "యాప్ మొత్తంలో టెక్స్ట్ ఎంత పెద్దదిగా కనిపించాలో ఎంచుకోండి.",
+  "textSizeSmall": "చిన్నది",
+  "textSizeStandard": "డిఫాల్ట్",
+  "textSizeLarge": "పెద్దది",
+  "textSizeExtraLarge": "మరింత పెద్దది",
+  "textSizeSampleText": "ఇది ఒక నమూనా వచనం"
 }

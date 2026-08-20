@@ -13,6 +13,7 @@ import '../features/profile/bank_details_screen.dart';
 import '../features/profile/help_support_screen.dart';
 import '../features/profile/about_screen.dart';
 import '../features/profile/language_selection_screen.dart';
+import '../features/profile/text_size_selection_screen.dart';
 import '../features/vehicle_setup/vehicle_setup_screen.dart';
 import '../features/fleet/fleet_setup_screen.dart';
 import '../features/fleet/fleet_dashboard_screen.dart';
@@ -149,6 +150,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/help-support', builder: (context, state) => const HelpSupportScreen()),
       GoRoute(path: '/profile/about', builder: (context, state) => const AboutScreen()),
       GoRoute(path: '/profile/language', builder: (context, state) => const LanguageSelectionScreen()),
+      GoRoute(path: '/profile/text-size', builder: (context, state) => const TextSizeSelectionScreen()),
     ],
   );
 });

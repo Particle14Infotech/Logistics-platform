@@ -375,5 +375,13 @@
   "scanPackageBarcode": "पैकेज बारकोड स्कैन करें",
   "alignBarcodeInFrame": "बारकोड को फ्रेम के भीतर संरेखित करें",
   "uploadingEllipsis": "अपलोड हो रहा है…",
-  "addDocuments": "दस्तावेज़ जोड़ें"
+  "addDocuments": "दस्तावेज़ जोड़ें",
+
+  "textSize": "टेक्स्ट का आकार",
+  "textSizeScreenHint": "चुनें कि पूरे ऐप में टेक्स्ट कितना बड़ा दिखाई दे।",
+  "textSizeSmall": "छोटा",
+  "textSizeStandard": "डिफ़ॉल्ट",
+  "textSizeLarge": "बड़ा",
+  "textSizeExtraLarge": "अतिरिक्त बड़ा",
+  "textSizeSampleText": "यह एक नमूना पाठ है"
 }

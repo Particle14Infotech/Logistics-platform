@@ -375,5 +375,13 @@
   "scanPackageBarcode": "பேக்கேஜ் பார்கோடை ஸ்கேன் செய்யவும்",
   "alignBarcodeInFrame": "பார்கோடை சட்டகத்திற்குள் சீரமைக்கவும்",
   "uploadingEllipsis": "பதிவேற்றுகிறது…",
-  "addDocuments": "ஆவணங்களைச் சேர்க்கவும்"
+  "addDocuments": "ஆவணங்களைச் சேர்க்கவும்",
+
+  "textSize": "எழுத்து அளவு",
+  "textSizeScreenHint": "ஆப் முழுவதும் எழுத்து எவ்வளவு பெரியதாகத் தெரிய வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்.",
+  "textSizeSmall": "சிறியது",
+  "textSizeStandard": "இயல்புநிலை",
+  "textSizeLarge": "பெரியது",
+  "textSizeExtraLarge": "மிகப் பெரியது",
+  "textSizeSampleText": "இது ஒரு மாதிரி உரை"
 }
