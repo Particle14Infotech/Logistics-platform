@@ -1077,6 +1077,229 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer'**
   String get customerLabel;
+
+  /// No description provided for @enterYourCompanyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your company name.'**
+  String get enterYourCompanyName;
+
+  /// No description provided for @couldNotCreateFleetAccountTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create your fleet account. Try again.'**
+  String get couldNotCreateFleetAccountTryAgain;
+
+  /// No description provided for @setUpYourFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your fleet'**
+  String get setUpYourFleet;
+
+  /// No description provided for @whatsYourCompanyCalled.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your company called?'**
+  String get whatsYourCompanyCalled;
+
+  /// No description provided for @companyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get companyName;
+
+  /// No description provided for @couldNotLoadFleetData.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load fleet data.'**
+  String get couldNotLoadFleetData;
+
+  /// No description provided for @removeVehicleQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove vehicle?'**
+  String get removeVehicleQuestion;
+
+  /// No description provided for @removeVehicleConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{vehicleNumber} will be removed from your fleet. {driverName} keeps their account as an independent driver - this does not delete anything, just detaches it from your fleet.'**
+  String removeVehicleConfirm(String vehicleNumber, String driverName);
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @theDriverFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'The driver'**
+  String get theDriverFallback;
+
+  /// No description provided for @couldNotRemoveThatVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove that vehicle.'**
+  String get couldNotRemoveThatVehicle;
+
+  /// No description provided for @fleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet'**
+  String get fleet;
+
+  /// No description provided for @notificationSettingsMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings'**
+  String get notificationSettingsMenuItem;
+
+  /// No description provided for @changePasswordMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePasswordMenuItem;
+
+  /// No description provided for @addVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add vehicle'**
+  String get addVehicle;
+
+  /// No description provided for @vehiclesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles'**
+  String get vehiclesLabel;
+
+  /// No description provided for @approvedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} approved'**
+  String approvedCount(int count);
+
+  /// No description provided for @activeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Active now'**
+  String get activeNow;
+
+  /// No description provided for @liveOrdersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} live orders'**
+  String liveOrdersCount(int count);
+
+  /// No description provided for @totalEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Total earnings'**
+  String get totalEarnings;
+
+  /// No description provided for @yourVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vehicles'**
+  String get yourVehicles;
+
+  /// No description provided for @noVehiclesYetTapAddVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles yet - tap \"Add vehicle\" to register your first one.'**
+  String get noVehiclesYetTapAddVehicle;
+
+  /// No description provided for @unassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get unassigned;
+
+  /// No description provided for @vehicleSummaryLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{driverName} · {trips} trips · ₹{earnings} · KYC docs {docsUploaded}/{docsTotal}'**
+  String vehicleSummaryLine(String driverName, String trips, String earnings,
+      String docsUploaded, String docsTotal);
+
+  /// No description provided for @online.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get online;
+
+  /// No description provided for @offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get offline;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
+
+  /// No description provided for @removeFromFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from fleet'**
+  String get removeFromFleet;
+
+  /// No description provided for @fillAllFieldsValidPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in all fields with a valid 10-digit phone number.'**
+  String get fillAllFieldsValidPhone;
+
+  /// No description provided for @vehicleAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle added'**
+  String get vehicleAdded;
+
+  /// No description provided for @driverStillNeedsSelfie.
+  ///
+  /// In en, this message translates to:
+  /// **'{driverName} still needs to sign in on their own phone and complete their KYC selfie before this vehicle can be approved - that step can\'t be done from here.'**
+  String driverStillNeedsSelfie(String driverName);
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @couldNotAddVehiclePhoneMayExist.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add this vehicle. The phone number may already be registered under a different role.'**
+  String get couldNotAddVehiclePhoneMayExist;
+
+  /// No description provided for @driverDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver details'**
+  String get driverDetails;
+
+  /// No description provided for @driversName.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver\'s name'**
+  String get driversName;
+
+  /// No description provided for @driversPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver\'s phone number'**
+  String get driversPhoneNumber;
+
+  /// No description provided for @driversLicenseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver\'s license number'**
+  String get driversLicenseNumber;
 }
 
 class _AppLocalizationsDelegate

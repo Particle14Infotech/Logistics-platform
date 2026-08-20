@@ -534,4 +534,130 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get customerLabel => 'ग्राहक';
+
+  @override
+  String get enterYourCompanyName => 'अपनी कंपनी का नाम दर्ज करें।';
+
+  @override
+  String get couldNotCreateFleetAccountTryAgain =>
+      'आपका फ्लीट खाता नहीं बनाया जा सका। फिर से कोशिश करें।';
+
+  @override
+  String get setUpYourFleet => 'अपना फ्लीट सेट करें';
+
+  @override
+  String get whatsYourCompanyCalled => 'आपकी कंपनी का नाम क्या है?';
+
+  @override
+  String get companyName => 'कंपनी का नाम';
+
+  @override
+  String get couldNotLoadFleetData => 'फ्लीट डेटा लोड नहीं हो सका।';
+
+  @override
+  String get removeVehicleQuestion => 'वाहन हटाएं?';
+
+  @override
+  String removeVehicleConfirm(String vehicleNumber, String driverName) {
+    return '$vehicleNumber आपके फ्लीट से हटा दिया जाएगा। $driverName एक स्वतंत्र ड्राइवर के रूप में अपना खाता रखता है - इससे कुछ भी नहीं हटता, सिर्फ आपके फ्लीट से अलग होता है।';
+  }
+
+  @override
+  String get remove => 'हटाएं';
+
+  @override
+  String get theDriverFallback => 'ड्राइवर';
+
+  @override
+  String get couldNotRemoveThatVehicle => 'वह वाहन हटाया नहीं जा सका।';
+
+  @override
+  String get fleet => 'फ्लीट';
+
+  @override
+  String get notificationSettingsMenuItem => 'सूचना सेटिंग्स';
+
+  @override
+  String get changePasswordMenuItem => 'पासवर्ड बदलें';
+
+  @override
+  String get addVehicle => 'वाहन जोड़ें';
+
+  @override
+  String get vehiclesLabel => 'वाहन';
+
+  @override
+  String approvedCount(int count) {
+    return '$count अनुमोदित';
+  }
+
+  @override
+  String get activeNow => 'अभी सक्रिय';
+
+  @override
+  String liveOrdersCount(int count) {
+    return '$count लाइव ऑर्डर';
+  }
+
+  @override
+  String get totalEarnings => 'कुल कमाई';
+
+  @override
+  String get yourVehicles => 'आपके वाहन';
+
+  @override
+  String get noVehiclesYetTapAddVehicle =>
+      'अभी तक कोई वाहन नहीं - अपना पहला वाहन पंजीकृत करने के लिए \"वाहन जोड़ें\" टैप करें।';
+
+  @override
+  String get unassigned => 'असाइन नहीं किया गया';
+
+  @override
+  String vehicleSummaryLine(String driverName, String trips, String earnings,
+      String docsUploaded, String docsTotal) {
+    return '$driverName · $trips ट्रिप · ₹$earnings · KYC दस्तावेज़ $docsUploaded/$docsTotal';
+  }
+
+  @override
+  String get online => 'ऑनलाइन';
+
+  @override
+  String get offline => 'ऑफलाइन';
+
+  @override
+  String get pending => 'लंबित';
+
+  @override
+  String get removeFromFleet => 'फ्लीट से हटाएं';
+
+  @override
+  String get fillAllFieldsValidPhone =>
+      'सभी फ़ील्ड मान्य 10-अंकीय फ़ोन नंबर के साथ भरें।';
+
+  @override
+  String get vehicleAdded => 'वाहन जोड़ा गया';
+
+  @override
+  String driverStillNeedsSelfie(String driverName) {
+    return '$driverName को अभी भी अपने फ़ोन पर साइन इन करना होगा और इस वाहन को मंज़ूरी मिलने से पहले अपनी KYC सेल्फी पूरी करनी होगी - यह चरण यहां से नहीं किया जा सकता।';
+  }
+
+  @override
+  String get gotIt => 'समझ गया';
+
+  @override
+  String get couldNotAddVehiclePhoneMayExist =>
+      'यह वाहन जोड़ा नहीं जा सका। हो सकता है फ़ोन नंबर पहले से ही किसी अन्य भूमिका के तहत पंजीकृत हो।';
+
+  @override
+  String get driverDetails => 'ड्राइवर विवरण';
+
+  @override
+  String get driversName => 'ड्राइवर का नाम';
+
+  @override
+  String get driversPhoneNumber => 'ड्राइवर का फ़ोन नंबर';
+
+  @override
+  String get driversLicenseNumber => 'ड्राइवर की लाइसेंस संख्या';
 }

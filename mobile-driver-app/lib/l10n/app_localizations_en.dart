@@ -534,4 +534,130 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerLabel => 'Customer';
+
+  @override
+  String get enterYourCompanyName => 'Enter your company name.';
+
+  @override
+  String get couldNotCreateFleetAccountTryAgain =>
+      'Could not create your fleet account. Try again.';
+
+  @override
+  String get setUpYourFleet => 'Set up your fleet';
+
+  @override
+  String get whatsYourCompanyCalled => 'What\'s your company called?';
+
+  @override
+  String get companyName => 'Company name';
+
+  @override
+  String get couldNotLoadFleetData => 'Could not load fleet data.';
+
+  @override
+  String get removeVehicleQuestion => 'Remove vehicle?';
+
+  @override
+  String removeVehicleConfirm(String vehicleNumber, String driverName) {
+    return '$vehicleNumber will be removed from your fleet. $driverName keeps their account as an independent driver - this does not delete anything, just detaches it from your fleet.';
+  }
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get theDriverFallback => 'The driver';
+
+  @override
+  String get couldNotRemoveThatVehicle => 'Could not remove that vehicle.';
+
+  @override
+  String get fleet => 'Fleet';
+
+  @override
+  String get notificationSettingsMenuItem => 'Notification settings';
+
+  @override
+  String get changePasswordMenuItem => 'Change password';
+
+  @override
+  String get addVehicle => 'Add vehicle';
+
+  @override
+  String get vehiclesLabel => 'Vehicles';
+
+  @override
+  String approvedCount(int count) {
+    return '$count approved';
+  }
+
+  @override
+  String get activeNow => 'Active now';
+
+  @override
+  String liveOrdersCount(int count) {
+    return '$count live orders';
+  }
+
+  @override
+  String get totalEarnings => 'Total earnings';
+
+  @override
+  String get yourVehicles => 'Your vehicles';
+
+  @override
+  String get noVehiclesYetTapAddVehicle =>
+      'No vehicles yet - tap \"Add vehicle\" to register your first one.';
+
+  @override
+  String get unassigned => 'Unassigned';
+
+  @override
+  String vehicleSummaryLine(String driverName, String trips, String earnings,
+      String docsUploaded, String docsTotal) {
+    return '$driverName · $trips trips · ₹$earnings · KYC docs $docsUploaded/$docsTotal';
+  }
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get removeFromFleet => 'Remove from fleet';
+
+  @override
+  String get fillAllFieldsValidPhone =>
+      'Fill in all fields with a valid 10-digit phone number.';
+
+  @override
+  String get vehicleAdded => 'Vehicle added';
+
+  @override
+  String driverStillNeedsSelfie(String driverName) {
+    return '$driverName still needs to sign in on their own phone and complete their KYC selfie before this vehicle can be approved - that step can\'t be done from here.';
+  }
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String get couldNotAddVehiclePhoneMayExist =>
+      'Could not add this vehicle. The phone number may already be registered under a different role.';
+
+  @override
+  String get driverDetails => 'Driver details';
+
+  @override
+  String get driversName => 'Driver\'s name';
+
+  @override
+  String get driversPhoneNumber => 'Driver\'s phone number';
+
+  @override
+  String get driversLicenseNumber => 'Driver\'s license number';
 }

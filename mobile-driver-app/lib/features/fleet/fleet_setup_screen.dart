@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/fleet_provider.dart';
 
 // First-time fleet registration - just a company name, unlike vehicle
@@ -25,9 +26,10 @@ class _FleetSetupScreenState extends ConsumerState<FleetSetupScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _companyNameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Enter your company name.');
+      setState(() => _error = l10n.enterYourCompanyName);
       return;
     }
     setState(() {
@@ -40,7 +42,7 @@ class _FleetSetupScreenState extends ConsumerState<FleetSetupScreen> {
       if (mounted) context.go('/splash');
     } catch (e) {
       setState(() {
-        _error = 'Could not create your fleet account. Try again.';
+        _error = l10n.couldNotCreateFleetAccountTryAgain;
         _submitting = false;
       });
     }
@@ -48,20 +50,21 @@ class _FleetSetupScreenState extends ConsumerState<FleetSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Set up your fleet')),
+      appBar: AppBar(title: Text(l10n.setUpYourFleet)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text("What's your company called?"),
+              Text(l10n.whatsYourCompanyCalled),
               const SizedBox(height: 16),
               TextField(
                 controller: _companyNameController,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Company name', border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: l10n.companyName, border: const OutlineInputBorder()),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -72,7 +75,7 @@ class _FleetSetupScreenState extends ConsumerState<FleetSetupScreen> {
                 onPressed: _submitting ? null : _submit,
                 child: _submitting
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
-                    : const Text('Continue'),
+                    : Text(l10n.continueLabel),
               ),
             ],
           ),

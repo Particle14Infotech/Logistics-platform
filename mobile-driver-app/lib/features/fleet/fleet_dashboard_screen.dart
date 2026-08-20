@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/vehicle_category_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/fleet_provider.dart';
@@ -36,7 +37,9 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
         _vehicles = results[1] as List<FleetVehicle>;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load fleet data.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadFleetData);
+      }
     }
   }
 
@@ -50,15 +53,15 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
   // them via "Add vehicle" (see fleet.controller.js's removeVehicle for why
   // this is deliberately two steps, not one "transfer" action).
   Future<void> _removeVehicle(FleetVehicle vehicle) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove vehicle?'),
-        content: Text(
-            '${vehicle.vehicleNumber} will be removed from your fleet. ${vehicle.driverName ?? 'The driver'} keeps their account as an independent driver - this does not delete anything, just detaches it from your fleet.'),
+        title: Text(l10n.removeVehicleQuestion),
+        content: Text(l10n.removeVehicleConfirm(vehicle.vehicleNumber, vehicle.driverName ?? l10n.theDriverFallback)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Remove')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.remove)),
         ],
       ),
     );
@@ -68,19 +71,20 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
       await ref.read(fleetServiceProvider).removeVehicle(vehicle.id);
       _load();
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not remove that vehicle.');
+      if (mounted) setState(() => _error = l10n.couldNotRemoveThatVehicle);
     }
   }
 
   Future<void> _confirmSignOut() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text("You'll need to log in again to continue."),
+        title: Text(l10n.signOutQuestion),
+        content: Text(l10n.signOutBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.signOut)),
         ],
       ),
     );
@@ -91,9 +95,10 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_stats?.companyName ?? 'Fleet'),
+        title: Text(_stats?.companyName ?? l10n.fleet),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -116,13 +121,13 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
                   break;
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'notifications', child: Text('Notifications')),
-              PopupMenuItem(value: 'notification-settings', child: Text('Notification settings')),
-              PopupMenuItem(value: 'change-password', child: Text('Change password')),
-              PopupMenuItem(value: 'help-support', child: Text('Help & Support')),
-              PopupMenuDivider(),
-              PopupMenuItem(value: 'sign-out', child: Text('Sign out', style: TextStyle(color: Colors.red))),
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'notifications', child: Text(l10n.notifications)),
+              PopupMenuItem(value: 'notification-settings', child: Text(l10n.notificationSettingsMenuItem)),
+              PopupMenuItem(value: 'change-password', child: Text(l10n.changePasswordMenuItem)),
+              PopupMenuItem(value: 'help-support', child: Text(l10n.helpAndSupport)),
+              const PopupMenuDivider(),
+              PopupMenuItem(value: 'sign-out', child: Text(l10n.signOut, style: const TextStyle(color: Colors.red))),
             ],
           ),
         ],
@@ -130,7 +135,7 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addVehicle,
         icon: const Icon(Icons.add),
-        label: const Text('Add vehicle'),
+        label: Text(l10n.addVehicle),
         backgroundColor: AppTheme.amber,
         foregroundColor: Colors.black87,
       ),
@@ -143,45 +148,45 @@ class _FleetDashboardScreenState extends ConsumerState<FleetDashboardScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: _StatCard(label: 'Vehicles', value: '${_stats!.totalVehicles}', subtitle: '${_stats!.approvedVehicles} approved')),
+                      Expanded(child: _StatCard(label: l10n.vehiclesLabel, value: '${_stats!.totalVehicles}', subtitle: l10n.approvedCount(_stats!.approvedVehicles))),
                       const SizedBox(width: 12),
-                      Expanded(child: _StatCard(label: 'Active now', value: '${_stats!.activeVehicles}', subtitle: '${_stats!.activeOrders} live orders')),
+                      Expanded(child: _StatCard(label: l10n.activeNow, value: '${_stats!.activeVehicles}', subtitle: l10n.liveOrdersCount(_stats!.activeOrders))),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _StatCard(label: 'Total earnings', value: '₹${_stats!.totalEarnings}', subtitle: '${_stats!.totalTrips} trips')),
+                      Expanded(child: _StatCard(label: l10n.totalEarnings, value: '₹${_stats!.totalEarnings}', subtitle: l10n.tripsCount(_stats!.totalTrips))),
                       const SizedBox(width: 12),
                       const Expanded(child: SizedBox()),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Text('Your vehicles', style: Theme.of(context).textTheme.titleMedium),
+                  Text(l10n.yourVehicles, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   if (_vehicles != null && _vehicles!.isEmpty)
-                    const Padding(padding: EdgeInsets.all(16), child: Text('No vehicles yet - tap "Add vehicle" to register your first one.')),
+                    Padding(padding: const EdgeInsets.all(16), child: Text(l10n.noVehiclesYetTapAddVehicle)),
                   ...?_vehicles?.map((v) => Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
                           leading: VehicleTypeThumbnail(v.vehicleType),
                           title: Text(v.vehicleNumber),
-                          subtitle: Text(
-                              '${v.driverName ?? 'Unassigned'} · ${v.totalTrips} trips · ₹${v.totalEarnings} · KYC docs ${v.documentsUploaded}/${v.documentsTotal}'),
+                          subtitle: Text(l10n.vehicleSummaryLine(
+                              v.driverName ?? l10n.unassigned, '${v.totalTrips}', '${v.totalEarnings}', '${v.documentsUploaded}', '${v.documentsTotal}')),
                           isThreeLine: false,
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Chip(
-                                label: Text(v.isApproved ? (v.isAvailable ? 'Online' : 'Offline') : 'Pending', style: const TextStyle(fontSize: 11)),
+                                label: Text(v.isApproved ? (v.isAvailable ? l10n.online : l10n.offline) : l10n.pending, style: const TextStyle(fontSize: 11)),
                                 backgroundColor: v.isApproved ? (v.isAvailable ? Colors.green.shade100 : Colors.grey.shade200) : Colors.amber.shade100,
                               ),
                               PopupMenuButton<String>(
                                 onSelected: (value) {
                                   if (value == 'remove') _removeVehicle(v);
                                 },
-                                itemBuilder: (context) => const [
-                                  PopupMenuItem(value: 'remove', child: Text('Remove from fleet')),
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(value: 'remove', child: Text(l10n.removeFromFleet)),
                                 ],
                               ),
                             ],

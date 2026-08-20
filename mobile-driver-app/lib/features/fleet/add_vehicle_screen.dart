@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/fleet_provider.dart';
 import '../../widgets/vehicle_category_field.dart';
 
@@ -35,12 +36,13 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_driverNameController.text.trim().isEmpty ||
         _driverPhoneController.text.trim().length < 10 ||
         _vehicleType == null ||
         _vehicleNumberController.text.trim().isEmpty ||
         _licenseController.text.trim().isEmpty) {
-      setState(() => _error = 'Fill in all fields with a valid 10-digit phone number.');
+      setState(() => _error = l10n.fillAllFieldsValidPhone);
       return;
     }
     setState(() {
@@ -64,18 +66,17 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
         await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Vehicle added'),
-            content: Text(
-                "${_driverNameController.text.trim()} still needs to sign in on their own phone and complete their KYC selfie before this vehicle can be approved - that step can't be done from here."),
+            title: Text(l10n.vehicleAdded),
+            content: Text(l10n.driverStillNeedsSelfie(_driverNameController.text.trim())),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Got it')),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.gotIt)),
             ],
           ),
         );
         if (mounted) Navigator.of(context).pop(true); // signal caller to refresh the vehicle list
       }
     } catch (e) {
-      setState(() => _error = 'Could not add this vehicle. The phone number may already be registered under a different role.');
+      setState(() => _error = l10n.couldNotAddVehiclePhoneMayExist);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -83,28 +84,29 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Add vehicle')),
+      appBar: AppBar(title: Text(l10n.addVehicle)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text('Driver details', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(l10n.driverDetails, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             TextField(
               controller: _driverNameController,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: "Driver's name", border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.driversName, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _driverPhoneController,
               keyboardType: TextInputType.phone,
               maxLength: 10,
-              decoration: const InputDecoration(labelText: "Driver's phone number", prefixText: '+91 ', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.driversPhoneNumber, prefixText: '+91 ', border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 20),
-            const Text('Vehicle details', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(l10n.vehicleDetails, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             VehicleCategoryField(
               value: _vehicleType,
@@ -114,12 +116,12 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
             TextField(
               controller: _vehicleNumberController,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(labelText: 'Vehicle registration number', hintText: 'e.g. DL 01 AB 1234', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.vehicleRegistrationNumber, hintText: l10n.vehicleRegistrationNumberHint, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _licenseController,
-              decoration: const InputDecoration(labelText: "Driver's license number", border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.driversLicenseNumber, border: const OutlineInputBorder()),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -130,7 +132,7 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
               onPressed: _submitting ? null : _submit,
               child: _submitting
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
-                  : const Text('Add vehicle'),
+                  : Text(l10n.addVehicle),
             ),
           ],
         ),

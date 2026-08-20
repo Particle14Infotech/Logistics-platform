@@ -536,4 +536,130 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get customerLabel => 'வாடிக்கையாளர்';
+
+  @override
+  String get enterYourCompanyName => 'உங்கள் நிறுவனத்தின் பெயரை உள்ளிடவும்.';
+
+  @override
+  String get couldNotCreateFleetAccountTryAgain =>
+      'உங்கள் பிளீட் கணக்கை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get setUpYourFleet => 'உங்கள் பிளீட்டை அமைக்கவும்';
+
+  @override
+  String get whatsYourCompanyCalled => 'உங்கள் நிறுவனத்தின் பெயர் என்ன?';
+
+  @override
+  String get companyName => 'நிறுவனத்தின் பெயர்';
+
+  @override
+  String get couldNotLoadFleetData => 'பிளீட் தரவை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get removeVehicleQuestion => 'வாகனத்தை அகற்றவா?';
+
+  @override
+  String removeVehicleConfirm(String vehicleNumber, String driverName) {
+    return '$vehicleNumber உங்கள் பிளீட்டிலிருந்து அகற்றப்படும். $driverName ஒரு சுயாதீன டிரைவராக தங்கள் கணக்கை வைத்திருப்பார் - இது எதையும் நீக்காது, உங்கள் பிளீட்டிலிருந்து மட்டும் பிரிக்கும்.';
+  }
+
+  @override
+  String get remove => 'அகற்று';
+
+  @override
+  String get theDriverFallback => 'டிரைவர்';
+
+  @override
+  String get couldNotRemoveThatVehicle => 'அந்த வாகனத்தை அகற்ற முடியவில்லை.';
+
+  @override
+  String get fleet => 'பிளீட்';
+
+  @override
+  String get notificationSettingsMenuItem => 'அறிவிப்பு அமைப்புகள்';
+
+  @override
+  String get changePasswordMenuItem => 'கடவுச்சொல்லை மாற்று';
+
+  @override
+  String get addVehicle => 'வாகனத்தைச் சேர்க்கவும்';
+
+  @override
+  String get vehiclesLabel => 'வாகனங்கள்';
+
+  @override
+  String approvedCount(int count) {
+    return '$count ஒப்புதல் அளிக்கப்பட்டது';
+  }
+
+  @override
+  String get activeNow => 'இப்போது செயலில்';
+
+  @override
+  String liveOrdersCount(int count) {
+    return '$count நேரலை ஆர்டர்கள்';
+  }
+
+  @override
+  String get totalEarnings => 'மொத்த வருமானம்';
+
+  @override
+  String get yourVehicles => 'உங்கள் வாகனங்கள்';
+
+  @override
+  String get noVehiclesYetTapAddVehicle =>
+      'இதுவரை வாகனங்கள் இல்லை - உங்கள் முதல் வாகனத்தை பதிவு செய்ய \"வாகனத்தைச் சேர்க்கவும்\" தட்டவும்.';
+
+  @override
+  String get unassigned => 'ஒதுக்கப்படவில்லை';
+
+  @override
+  String vehicleSummaryLine(String driverName, String trips, String earnings,
+      String docsUploaded, String docsTotal) {
+    return '$driverName · $trips பயணங்கள் · ₹$earnings · KYC ஆவணங்கள் $docsUploaded/$docsTotal';
+  }
+
+  @override
+  String get online => 'ஆன்லைன்';
+
+  @override
+  String get offline => 'ஆஃப்லைன்';
+
+  @override
+  String get pending => 'நிலுவையில்';
+
+  @override
+  String get removeFromFleet => 'பிளீட்டிலிருந்து அகற்று';
+
+  @override
+  String get fillAllFieldsValidPhone =>
+      'சரியான 10-இலக்க தொலைபேசி எண்ணுடன் அனைத்து புலங்களையும் நிரப்பவும்.';
+
+  @override
+  String get vehicleAdded => 'வாகனம் சேர்க்கப்பட்டது';
+
+  @override
+  String driverStillNeedsSelfie(String driverName) {
+    return '$driverName இந்த வாகனம் ஒப்புதல் அளிக்கப்படுவதற்கு முன் அவரது சொந்த தொலைபேசியில் உள்நுழைந்து அவரது KYC செல்ஃபியை முடிக்க வேண்டும் - அந்த படியை இங்கிருந்து செய்ய முடியாது.';
+  }
+
+  @override
+  String get gotIt => 'புரிந்தது';
+
+  @override
+  String get couldNotAddVehiclePhoneMayExist =>
+      'இந்த வாகனத்தை சேர்க்க முடியவில்லை. தொலைபேசி எண் ஏற்கனவே வேறு பாத்திரத்தில் பதிவு செய்யப்பட்டிருக்கலாம்.';
+
+  @override
+  String get driverDetails => 'டிரைவர் விவரங்கள்';
+
+  @override
+  String get driversName => 'டிரைவரின் பெயர்';
+
+  @override
+  String get driversPhoneNumber => 'டிரைவரின் தொலைபேசி எண்';
+
+  @override
+  String get driversLicenseNumber => 'டிரைவரின் உரிம எண்';
 }
