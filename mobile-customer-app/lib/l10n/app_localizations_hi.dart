@@ -853,4 +853,219 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get thisIsOnlyEstimateNotBooking =>
       'यह केवल एक अनुमान है - बुकिंग नहीं।';
+
+  @override
+  String get filterAll => 'सभी';
+
+  @override
+  String get filterActive => 'सक्रिय';
+
+  @override
+  String get couldNotLoadYourOrders => 'आपके ऑर्डर लोड नहीं हो सके।';
+
+  @override
+  String get noOrdersHereYet => 'यहां अभी तक कोई ऑर्डर नहीं है।';
+
+  @override
+  String get tapStarToRate =>
+      'अपने ड्राइवर को रेट करने के लिए एक स्टार टैप करें।';
+
+  @override
+  String get couldNotSubmitReviewTryAgain =>
+      'आपकी समीक्षा सबमिट नहीं हो सकी। फिर से कोशिश करें।';
+
+  @override
+  String get couldNotLoadThisBooking => 'यह बुकिंग लोड नहीं हो सकी।';
+
+  @override
+  String get reportAnIssue => 'समस्या की रिपोर्ट करें';
+
+  @override
+  String get disputeCategoryLabel => 'श्रेणी';
+
+  @override
+  String get disputeCategoryPayment => 'भुगतान';
+
+  @override
+  String get disputeCategoryDamage => 'क्षतिग्रस्त सामान';
+
+  @override
+  String get disputeCategoryDelay => 'देरी';
+
+  @override
+  String get disputeCategoryBehavior => 'ड्राइवर का व्यवहार';
+
+  @override
+  String get disputeCategoryPricing => 'मूल्य निर्धारण';
+
+  @override
+  String get disputeCategoryOther => 'अन्य';
+
+  @override
+  String get whatHappenedLabel => 'क्या हुआ?';
+
+  @override
+  String get describeWhatHappened => 'बताएं कि क्या हुआ।';
+
+  @override
+  String get reportedTeamWillLookIntoIt =>
+      'रिपोर्ट की गई - हमारी टीम इसे देखेगी।';
+
+  @override
+  String get couldNotSubmitThisTryAgain =>
+      'यह सबमिट नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
+  String get submittingEllipsis => 'सबमिट हो रहा है…';
+
+  @override
+  String get submit => 'सबमिट करें';
+
+  @override
+  String get cancelBookingQuestion => 'बुकिंग रद्द करें?';
+
+  @override
+  String cancellationFeeWarning(String fee) {
+    return 'एक ड्राइवर पहले ही इस काम को स्वीकार कर चुका है। ड्राइवर मुआवज़े के रूप में आपके रिफंड से ₹$fee रद्दीकरण शुल्क काटा जाएगा।';
+  }
+
+  @override
+  String get cannotBeUndone => 'इसे पूर्ववत नहीं किया जा सकता।';
+
+  @override
+  String get keepBooking => 'बुकिंग रखें';
+
+  @override
+  String get cancelBooking => 'बुकिंग रद्द करें';
+
+  @override
+  String get couldNotCancelThisBooking => 'यह बुकिंग रद्द नहीं हो सकी।';
+
+  @override
+  String get orderDetails => 'ऑर्डर विवरण';
+
+  @override
+  String get paymentPendingTitle => 'भुगतान लंबित';
+
+  @override
+  String get payAdvanceToConfirmTrackingAvailable =>
+      'इस बुकिंग की पुष्टि के लिए एडवांस भुगतान करें - इसके तुरंत बाद ट्रैकिंग उपलब्ध होगी।';
+
+  @override
+  String get findingADriver => 'ड्राइवर ढूंढा जा रहा है…';
+
+  @override
+  String get pickupSuccessfulDriverAtLocation =>
+      'पिकअप सफल! आपका ड्राइवर पिकअप स्थान पर है।';
+
+  @override
+  String get shipmentDeliveredExclaim => 'आपकी शिपमेंट डिलीवर हो गई है!';
+
+  @override
+  String payToCompleteOrder(String amount) {
+    return 'इस ऑर्डर को पूरा करने के लिए ₹$amount भुगतान करें।';
+  }
+
+  @override
+  String get giveCodeToStartTrip =>
+      'यात्रा शुरू करने के लिए यह कोड अपने ड्राइवर को दें';
+
+  @override
+  String get giveCodeAtDropOff => 'ड्रॉप-ऑफ पर यह कोड अपने ड्राइवर को दें';
+
+  @override
+  String get onlineValue => 'ऑनलाइन';
+
+  @override
+  String get advancePaid => 'एडवांस भुगतान किया गया';
+
+  @override
+  String get advanceDueNow => 'एडवांस अभी देय';
+
+  @override
+  String get dueInCashAtDelivery => 'डिलीवरी पर नकद देय';
+
+  @override
+  String get remainderPaid => 'शेष भुगतान किया गया';
+
+  @override
+  String get remainderDueOnline => 'शेष ऑनलाइन देय';
+
+  @override
+  String get preparingEllipsis => 'तैयार हो रहा है…';
+
+  @override
+  String get downloadInvoice => 'इनवॉइस डाउनलोड करें';
+
+  @override
+  String get couldNotDownloadInvoice => 'इनवॉइस डाउनलोड नहीं हो सका।';
+
+  @override
+  String get yourRating => 'आपकी रेटिंग';
+
+  @override
+  String get rateYourDriver => 'अपने ड्राइवर को रेट करें';
+
+  @override
+  String get addCommentOptional => 'एक टिप्पणी जोड़ें (वैकल्पिक)';
+
+  @override
+  String get submitReview => 'समीक्षा सबमिट करें';
+
+  @override
+  String get showThisToDriverAtPickup => 'पिकअप पर यह अपने ड्राइवर को दिखाएं';
+
+  @override
+  String get waitingForDriverGpsSignal =>
+      'आपके ड्राइवर के GPS सिग्नल की प्रतीक्षा है…';
+
+  @override
+  String get cancellingEllipsis => 'रद्द किया जा रहा है…';
+
+  @override
+  String get couldNotLoadNotifications => 'सूचनाएं लोड नहीं हो सकीं।';
+
+  @override
+  String get markAllRead => 'सभी को पढ़ा हुआ चिह्नित करें';
+
+  @override
+  String get allCaughtUpNothingHereYet =>
+      'आप पूरी तरह अप टू डेट हैं - यहां अभी कुछ नहीं है।';
+
+  @override
+  String get couldNotLoadMessages => 'संदेश लोड नहीं हो सके।';
+
+  @override
+  String get chatWithDriver => 'ड्राइवर से चैट करें';
+
+  @override
+  String get sayHelloToYourDriver => 'अपने ड्राइवर को नमस्ते कहें।';
+
+  @override
+  String get typeAMessageHint => 'एक संदेश टाइप करें…';
+
+  @override
+  String get shipmentPaymentDescription => 'शिपमेंट भुगतान';
+
+  @override
+  String get paymentWasNotCompleted => 'भुगतान पूरा नहीं हुआ।';
+
+  @override
+  String get couldNotCompletePaymentTryAgain =>
+      'भुगतान पूरा नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
+  String get openingPaymentEllipsis => 'भुगतान खोला जा रहा है…';
+
+  @override
+  String get payRemainingAmount => 'शेष राशि का भुगतान करें';
+
+  @override
+  String get payAdvance => 'एडवांस भुगतान करें';
+
+  @override
+  String get payNow => 'अभी भुगतान करें';
+
+  @override
+  String get useMyCurrentLocation => 'मेरा वर्तमान स्थान उपयोग करें';
 }

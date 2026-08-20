@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../chat/chat_screen.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_config_provider.dart';
@@ -74,8 +75,9 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   }
 
   Future<void> _submitReview() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_reviewRating == 0) {
-      setState(() => _reviewError = 'Tap a star to rate your driver.');
+      setState(() => _reviewError = l10n.tapStarToRate);
       return;
     }
     setState(() {
@@ -90,7 +92,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
           );
       await _load();
     } catch (e) {
-      setState(() => _reviewError = 'Could not submit your review. Try again.');
+      setState(() => _reviewError = l10n.couldNotSubmitReviewTryAgain);
     } finally {
       if (mounted) setState(() => _submittingReview = false);
     }
@@ -125,7 +127,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
         _connectLiveTracking();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load this booking.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.couldNotLoadThisBooking);
     }
   }
 
@@ -172,7 +174,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
       await file.writeAsBytes(bytes);
       if (mounted) await Share.shareXFiles([XFile(file.path)], text: 'Your delivery receipt');
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not download the invoice.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.couldNotDownloadInvoice);
     } finally {
       if (mounted) setState(() => _downloadingInvoice = false);
     }
@@ -182,6 +184,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   // API since it was built, but nothing anywhere ever created a Dispute -
   // this is that missing write side, reachable from any booking.
   Future<void> _showDisputeDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     String category = 'other';
     final descriptionController = TextEditingController();
     String? error;
@@ -191,21 +194,21 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Report an issue'),
+          title: Text(l10n.reportAnIssue),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: category,
-                decoration: const InputDecoration(labelText: 'Category'),
-                items: const [
-                  DropdownMenuItem(value: 'payment', child: Text('Payment')),
-                  DropdownMenuItem(value: 'damage', child: Text('Damaged goods')),
-                  DropdownMenuItem(value: 'delay', child: Text('Delay')),
-                  DropdownMenuItem(value: 'behavior', child: Text('Driver behavior')),
-                  DropdownMenuItem(value: 'pricing', child: Text('Pricing')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                decoration: InputDecoration(labelText: l10n.disputeCategoryLabel),
+                items: [
+                  DropdownMenuItem(value: 'payment', child: Text(l10n.disputeCategoryPayment)),
+                  DropdownMenuItem(value: 'damage', child: Text(l10n.disputeCategoryDamage)),
+                  DropdownMenuItem(value: 'delay', child: Text(l10n.disputeCategoryDelay)),
+                  DropdownMenuItem(value: 'behavior', child: Text(l10n.disputeCategoryBehavior)),
+                  DropdownMenuItem(value: 'pricing', child: Text(l10n.disputeCategoryPricing)),
+                  DropdownMenuItem(value: 'other', child: Text(l10n.disputeCategoryOther)),
                 ],
                 onChanged: (v) => setDialogState(() => category = v ?? 'other'),
               ),
@@ -213,9 +216,9 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
               TextField(
                 controller: descriptionController,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'What happened?',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.whatHappenedLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               if (error != null) ...[
@@ -225,13 +228,13 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
             FilledButton(
               onPressed: submitting
                   ? null
                   : () async {
                       if (descriptionController.text.trim().isEmpty) {
-                        setDialogState(() => error = 'Describe what happened.');
+                        setDialogState(() => error = l10n.describeWhatHappened);
                         return;
                       }
                       setDialogState(() {
@@ -247,17 +250,17 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Reported - our team will look into it.")),
+                            SnackBar(content: Text(l10n.reportedTeamWillLookIntoIt)),
                           );
                         }
                       } catch (e) {
                         setDialogState(() {
-                          error = 'Could not submit this. Try again.';
+                          error = l10n.couldNotSubmitThisTryAgain;
                           submitting = false;
                         });
                       }
                     },
-              child: submitting ? const Text('Submitting…') : const Text('Submit'),
+              child: submitting ? Text(l10n.submittingEllipsis) : Text(l10n.submit),
             ),
           ],
         ),
@@ -266,6 +269,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
   }
 
   Future<void> _cancel() async {
+    final l10n = AppLocalizations.of(context)!;
     final order = _order!;
     final driverAssigned = ['accepted', 'picked_up', 'in_transit'].contains(order.status);
     final fee = driverAssigned
@@ -275,17 +279,17 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel booking?'),
+        title: Text(l10n.cancelBookingQuestion),
         content: Text(fee > 0
-            ? 'A driver has already accepted this job. A ₹$fee cancellation fee will be deducted from your refund as driver compensation.'
-            : 'This cannot be undone.'),
+            ? l10n.cancellationFeeWarning('$fee')
+            : l10n.cannotBeUndone),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Keep booking')),
+              child: Text(l10n.keepBooking)),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Cancel booking')),
+              child: Text(l10n.cancelBooking)),
         ],
       ),
     );
@@ -296,7 +300,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
       await ref.read(bookingServiceProvider).cancelBooking(widget.orderId);
       await _load();
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not cancel this booking.');
+      if (mounted) setState(() => _error = l10n.couldNotCancelThisBooking);
     } finally {
       if (mounted) setState(() => _cancelling = false);
     }
@@ -304,12 +308,13 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final order = _order;
     final showLiveMap = order != null && _kLiveStatuses.contains(order.status);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Order Details')),
+      appBar: AppBar(title: Text(l10n.orderDetails)),
       body: SafeArea(
         child: order == null
             ? Center(
@@ -332,14 +337,14 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           Icon(Icons.hourglass_empty,
                               size: 48, color: Colors.grey.shade400),
                           const SizedBox(height: 16),
-                          Text('Payment pending',
+                          Text(l10n.paymentPendingTitle,
                               style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: AppTheme.textDark)),
                           const SizedBox(height: 8),
                           Text(
-                            'Pay the advance to confirm this booking - tracking will be available right after.',
+                            l10n.payAdvanceToConfirmTrackingAvailable,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                                 fontSize: 13, color: Colors.grey.shade500),
@@ -457,7 +462,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           children: [
                             const CircleAvatar(child: Icon(Icons.search)),
                             const SizedBox(width: 12),
-                            Text('Finding a driver…',
+                            Text(l10n.findingADriver,
                                 style: GoogleFonts.poppins(fontSize: 14)),
                           ],
                         ),
@@ -471,7 +476,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       _InfoCard(
                         color: const Color(0xFFE8F5E9),
                         child: Text(
-                          'Pickup successful! Your driver is at the pickup location.',
+                          l10n.pickupSuccessfulDriverAtLocation,
                           style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14, color: const Color(0xFF1B7A34)),
                           textAlign: TextAlign.center,
                         ),
@@ -484,13 +489,13 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         child: Column(
                           children: [
                             Text(
-                              'Your shipment has been delivered!',
+                              l10n.shipmentDeliveredExclaim,
                               style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Pay ₹${order.price - order.advanceAmount} to complete this order.',
+                              l10n.payToCompleteOrder('${order.price - order.advanceAmount}'),
                               style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700),
                               textAlign: TextAlign.center,
                             ),
@@ -504,7 +509,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         color: const Color(0xFFFFF8E1),
                         child: Column(
                           children: [
-                            Text('Give this code to your driver to start the trip',
+                            Text(l10n.giveCodeToStartTrip,
                                 style: GoogleFonts.poppins(fontSize: 13),
                                 textAlign: TextAlign.center),
                             const SizedBox(height: 8),
@@ -523,7 +528,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         color: const Color(0xFFFFF8E1),
                         child: Column(
                           children: [
-                            Text('Give this code to your driver at drop-off',
+                            Text(l10n.giveCodeAtDropOff,
                                 style: GoogleFonts.poppins(fontSize: 13),
                                 textAlign: TextAlign.center),
                             const SizedBox(height: 8),
@@ -541,7 +546,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       child: Column(
                         children: [
                           _DetailRow(
-                              label: 'Vehicle',
+                              label: l10n.vehicleLabel,
                               value: ref
                                       .watch(vehicleCategoriesProvider)
                                       .valueOrNull
@@ -551,44 +556,44 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                                   order.vehicleType.replaceAll('_', ' ')),
                           if (order.distanceKm != null)
                             _DetailRow(
-                                label: 'Distance',
+                                label: l10n.distanceLabel,
                                 value: '${order.distanceKm} km'),
                           if (order.goodsType != null)
                             _DetailRow(
-                                label: 'Goods Type', value: order.goodsType!),
+                                label: l10n.goodsType, value: order.goodsType!),
                           if (order.weightKg != null)
                             _DetailRow(
-                                label: 'Weight', value: '${order.weightKg} kg'),
+                                label: l10n.weightLabel, value: '${order.weightKg} kg'),
                           if (order.paymentMethod == 'cod') ...[
                             _DetailRow(
-                                label: 'Payment Method',
-                                value: 'Cash on Delivery'),
+                                label: l10n.paymentMethod,
+                                value: l10n.cashOnDelivery),
                             if (order.advanceAmount > 0) ...[
                               _DetailRow(
                                   label: order.paymentStatus == 'paid'
-                                      ? 'Advance Paid'
-                                      : 'Advance Due Now',
+                                      ? l10n.advancePaid
+                                      : l10n.advanceDueNow,
                                   value: '₹${order.advanceAmount}'),
                               _DetailRow(
-                                  label: 'Due in Cash at Delivery',
+                                  label: l10n.dueInCashAtDelivery,
                                   value:
                                       '₹${order.price - order.advanceAmount}'),
                             ] else
                               _DetailRow(
-                                  label: 'Due in Cash at Delivery',
+                                  label: l10n.dueInCashAtDelivery,
                                   value: '₹${order.price}'),
                           ] else if (order.advanceAmount > 0) ...[
                             _DetailRow(
-                                label: 'Payment Method', value: 'Online'),
+                                label: l10n.paymentMethod, value: l10n.onlineValue),
                             _DetailRow(
                                 label: order.paymentStatus == 'paid'
-                                    ? 'Advance Paid'
-                                    : 'Advance Due Now',
+                                    ? l10n.advancePaid
+                                    : l10n.advanceDueNow,
                                 value: '₹${order.advanceAmount}'),
                             _DetailRow(
                                 label: order.remainderPaid
-                                    ? 'Remainder Paid'
-                                    : 'Remainder Due Online',
+                                    ? l10n.remainderPaid
+                                    : l10n.remainderDueOnline,
                                 value:
                                     '₹${order.price - order.advanceAmount}'),
                           ],
@@ -596,7 +601,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total Amount',
+                              Text(l10n.totalAmount,
                                   style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 15)),
@@ -636,7 +641,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                       OutlinedButton.icon(
                         onPressed: _downloadingInvoice ? null : _downloadInvoice,
                         icon: const Icon(Icons.receipt_long_outlined),
-                        label: Text(_downloadingInvoice ? 'Preparing…' : 'Download invoice'),
+                        label: Text(_downloadingInvoice ? l10n.preparingEllipsis : l10n.downloadInvoice),
                       ),
                     ],
                     if (order.status == 'delivered') ...[
@@ -655,7 +660,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                     OutlinedButton.icon(
                       onPressed: _showDisputeDialog,
                       icon: const Icon(Icons.flag_outlined),
-                      label: const Text('Report an issue'),
+                      label: Text(l10n.reportAnIssue),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
@@ -669,8 +674,8 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                         style: OutlinedButton.styleFrom(
                             foregroundColor: AppTheme.error),
                         child: _cancelling
-                            ? const Text('Cancelling…')
-                            : const Text('Cancel booking'),
+                            ? Text(l10n.cancellingEllipsis)
+                            : Text(l10n.cancelBooking),
                       ),
                     ],
                   ],
@@ -702,13 +707,14 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final existing = order.review;
     if (existing != null) {
       return _InfoCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Your rating',
+            Text(l10n.yourRating,
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14)),
             const SizedBox(height: 8),
             Row(
@@ -734,7 +740,7 @@ class _ReviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Rate your driver',
+          Text(l10n.rateYourDriver,
               style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 14)),
           const SizedBox(height: 10),
           Row(
@@ -756,9 +762,9 @@ class _ReviewCard extends StatelessWidget {
           TextField(
             controller: commentController,
             maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: 'Add a comment (optional)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: l10n.addCommentOptional,
+              border: const OutlineInputBorder(),
             ),
           ),
           if (error != null) ...[
@@ -770,7 +776,7 @@ class _ReviewCard extends StatelessWidget {
             width: double.infinity,
             child: FilledButton(
               onPressed: submitting ? null : onSubmit,
-              child: Text(submitting ? 'Submitting…' : 'Submit review'),
+              child: Text(submitting ? l10n.submittingEllipsis : l10n.submitReview),
             ),
           ),
         ],
@@ -852,10 +858,11 @@ class _PickupQrCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return _InfoCard(
       child: Column(
         children: [
-          Text('Show this to your driver at pickup',
+          Text(l10n.showThisToDriverAtPickup,
               style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           QrImageView(data: orderId, size: 160),
@@ -873,6 +880,7 @@ class _LiveMapCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (driverPosition == null) {
       return Card(
         elevation: 0,
@@ -888,7 +896,7 @@ class _LiveMapCard extends StatelessWidget {
               const SizedBox(
                   height: 8, width: 200, child: LinearProgressIndicator()),
               const SizedBox(height: 12),
-              Text("Waiting for your driver's GPS signal…",
+              Text(l10n.waitingForDriverGpsSignal,
                   style: GoogleFonts.poppins(fontSize: 13)),
             ],
           ),

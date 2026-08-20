@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../services/places_service.dart';
 
 // Debounced Places autocomplete field. Calls our backend's /places/*
@@ -142,7 +143,7 @@ class _PlacesAutocompleteFieldState extends State<PlacesAutocompleteField> {
     }
     return IconButton(
       icon: const Icon(Icons.my_location),
-      tooltip: 'Use my current location',
+      tooltip: AppLocalizations.of(context)!.useMyCurrentLocation,
       onPressed: widget.onUseCurrentLocation,
     );
   }

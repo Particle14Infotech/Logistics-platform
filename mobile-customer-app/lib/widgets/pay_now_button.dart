@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import '../services/payment_service.dart';
 import '../services/razorpay_checkout_helper.dart';
@@ -27,6 +28,7 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
   String? _error;
 
   Future<void> _payNow() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _paying = true;
       _error = null;
@@ -43,7 +45,7 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
         amountPaise: orderDetails.amount,
         currency: orderDetails.currency,
         name: 'RaahMitr',
-        description: 'Shipment payment',
+        description: l10n.shipmentPaymentDescription,
         contact: user?.phone,
         email: user?.email,
         customerId: orderDetails.customerId,
@@ -57,10 +59,10 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
         );
         widget.onPaid();
       } else {
-        setState(() => _error = result.errorMessage ?? 'Payment was not completed.');
+        setState(() => _error = result.errorMessage ?? l10n.paymentWasNotCompleted);
       }
     } catch (e) {
-      setState(() => _error = 'Could not complete the payment. Try again.');
+      setState(() => _error = l10n.couldNotCompletePaymentTryAgain);
     } finally {
       helper.dispose();
       if (mounted) setState(() => _paying = false);
@@ -69,6 +71,7 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -77,7 +80,9 @@ class _PayNowButtonState extends ConsumerState<PayNowButton> {
           icon: _paying
               ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.payment),
-          label: Text(_paying ? 'Opening payment…' : (widget.isRemainder ? 'Pay Remaining Amount' : (widget.isAdvance ? 'Pay Advance' : 'Pay Now'))),
+          label: Text(_paying
+              ? l10n.openingPaymentEllipsis
+              : (widget.isRemainder ? l10n.payRemainingAmount : (widget.isAdvance ? l10n.payAdvance : l10n.payNow))),
         ),
         if (_error != null) ...[
           const SizedBox(height: 8),

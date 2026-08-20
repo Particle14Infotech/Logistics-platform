@@ -1630,6 +1630,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is only an estimate - not a booking.'**
   String get thisIsOnlyEstimateNotBooking;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get filterActive;
+
+  /// No description provided for @couldNotLoadYourOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your orders.'**
+  String get couldNotLoadYourOrders;
+
+  /// No description provided for @noOrdersHereYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders here yet.'**
+  String get noOrdersHereYet;
+
+  /// No description provided for @tapStarToRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a star to rate your driver.'**
+  String get tapStarToRate;
+
+  /// No description provided for @couldNotSubmitReviewTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit your review. Try again.'**
+  String get couldNotSubmitReviewTryAgain;
+
+  /// No description provided for @couldNotLoadThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this booking.'**
+  String get couldNotLoadThisBooking;
+
+  /// No description provided for @reportAnIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Report an issue'**
+  String get reportAnIssue;
+
+  /// No description provided for @disputeCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get disputeCategoryLabel;
+
+  /// No description provided for @disputeCategoryPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get disputeCategoryPayment;
+
+  /// No description provided for @disputeCategoryDamage.
+  ///
+  /// In en, this message translates to:
+  /// **'Damaged goods'**
+  String get disputeCategoryDamage;
+
+  /// No description provided for @disputeCategoryDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delay'**
+  String get disputeCategoryDelay;
+
+  /// No description provided for @disputeCategoryBehavior.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver behavior'**
+  String get disputeCategoryBehavior;
+
+  /// No description provided for @disputeCategoryPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing'**
+  String get disputeCategoryPricing;
+
+  /// No description provided for @disputeCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get disputeCategoryOther;
+
+  /// No description provided for @whatHappenedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get whatHappenedLabel;
+
+  /// No description provided for @describeWhatHappened.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what happened.'**
+  String get describeWhatHappened;
+
+  /// No description provided for @reportedTeamWillLookIntoIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported - our team will look into it.'**
+  String get reportedTeamWillLookIntoIt;
+
+  /// No description provided for @couldNotSubmitThisTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit this. Try again.'**
+  String get couldNotSubmitThisTryAgain;
+
+  /// No description provided for @submittingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting…'**
+  String get submittingEllipsis;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// No description provided for @cancelBookingQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel booking?'**
+  String get cancelBookingQuestion;
+
+  /// No description provided for @cancellationFeeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'A driver has already accepted this job. A ₹{fee} cancellation fee will be deducted from your refund as driver compensation.'**
+  String cancellationFeeWarning(String fee);
+
+  /// No description provided for @cannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get cannotBeUndone;
+
+  /// No description provided for @keepBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep booking'**
+  String get keepBooking;
+
+  /// No description provided for @cancelBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel booking'**
+  String get cancelBooking;
+
+  /// No description provided for @couldNotCancelThisBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not cancel this booking.'**
+  String get couldNotCancelThisBooking;
+
+  /// No description provided for @orderDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Details'**
+  String get orderDetails;
+
+  /// No description provided for @paymentPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment pending'**
+  String get paymentPendingTitle;
+
+  /// No description provided for @payAdvanceToConfirmTrackingAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the advance to confirm this booking - tracking will be available right after.'**
+  String get payAdvanceToConfirmTrackingAvailable;
+
+  /// No description provided for @findingADriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding a driver…'**
+  String get findingADriver;
+
+  /// No description provided for @pickupSuccessfulDriverAtLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup successful! Your driver is at the pickup location.'**
+  String get pickupSuccessfulDriverAtLocation;
+
+  /// No description provided for @shipmentDeliveredExclaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shipment has been delivered!'**
+  String get shipmentDeliveredExclaim;
+
+  /// No description provided for @payToCompleteOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay ₹{amount} to complete this order.'**
+  String payToCompleteOrder(String amount);
+
+  /// No description provided for @giveCodeToStartTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Give this code to your driver to start the trip'**
+  String get giveCodeToStartTrip;
+
+  /// No description provided for @giveCodeAtDropOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Give this code to your driver at drop-off'**
+  String get giveCodeAtDropOff;
+
+  /// No description provided for @onlineValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get onlineValue;
+
+  /// No description provided for @advancePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance Paid'**
+  String get advancePaid;
+
+  /// No description provided for @advanceDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance Due Now'**
+  String get advanceDueNow;
+
+  /// No description provided for @dueInCashAtDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Due in Cash at Delivery'**
+  String get dueInCashAtDelivery;
+
+  /// No description provided for @remainderPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Remainder Paid'**
+  String get remainderPaid;
+
+  /// No description provided for @remainderDueOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Remainder Due Online'**
+  String get remainderDueOnline;
+
+  /// No description provided for @preparingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get preparingEllipsis;
+
+  /// No description provided for @downloadInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Download invoice'**
+  String get downloadInvoice;
+
+  /// No description provided for @couldNotDownloadInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download the invoice.'**
+  String get couldNotDownloadInvoice;
+
+  /// No description provided for @yourRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating'**
+  String get yourRating;
+
+  /// No description provided for @rateYourDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your driver'**
+  String get rateYourDriver;
+
+  /// No description provided for @addCommentOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment (optional)'**
+  String get addCommentOptional;
+
+  /// No description provided for @submitReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit review'**
+  String get submitReview;
+
+  /// No description provided for @showThisToDriverAtPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this to your driver at pickup'**
+  String get showThisToDriverAtPickup;
+
+  /// No description provided for @waitingForDriverGpsSignal.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your driver\'s GPS signal…'**
+  String get waitingForDriverGpsSignal;
+
+  /// No description provided for @cancellingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling…'**
+  String get cancellingEllipsis;
+
+  /// No description provided for @couldNotLoadNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications.'**
+  String get couldNotLoadNotifications;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
+
+  /// No description provided for @allCaughtUpNothingHereYet.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up - nothing here yet.'**
+  String get allCaughtUpNothingHereYet;
+
+  /// No description provided for @couldNotLoadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load messages.'**
+  String get couldNotLoadMessages;
+
+  /// No description provided for @chatWithDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with driver'**
+  String get chatWithDriver;
+
+  /// No description provided for @sayHelloToYourDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello to your driver.'**
+  String get sayHelloToYourDriver;
+
+  /// No description provided for @typeAMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message…'**
+  String get typeAMessageHint;
+
+  /// No description provided for @shipmentPaymentDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipment payment'**
+  String get shipmentPaymentDescription;
+
+  /// No description provided for @paymentWasNotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment was not completed.'**
+  String get paymentWasNotCompleted;
+
+  /// No description provided for @couldNotCompletePaymentTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete the payment. Try again.'**
+  String get couldNotCompletePaymentTryAgain;
+
+  /// No description provided for @openingPaymentEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening payment…'**
+  String get openingPaymentEllipsis;
+
+  /// No description provided for @payRemainingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Remaining Amount'**
+  String get payRemainingAmount;
+
+  /// No description provided for @payAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Advance'**
+  String get payAdvance;
+
+  /// No description provided for @payNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Now'**
+  String get payNow;
+
+  /// No description provided for @useMyCurrentLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my current location'**
+  String get useMyCurrentLocation;
 }
 
 class _AppLocalizationsDelegate

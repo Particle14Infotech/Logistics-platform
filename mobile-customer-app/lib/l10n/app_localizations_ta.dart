@@ -866,4 +866,225 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get thisIsOnlyEstimateNotBooking =>
       'இது ஒரு மதிப்பீடு மட்டுமே - முன்பதிவு அல்ல.';
+
+  @override
+  String get filterAll => 'அனைத்தும்';
+
+  @override
+  String get filterActive => 'செயலில்';
+
+  @override
+  String get couldNotLoadYourOrders => 'உங்கள் ஆர்டர்களை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get noOrdersHereYet => 'இங்கே இதுவரை ஆர்டர்கள் இல்லை.';
+
+  @override
+  String get tapStarToRate =>
+      'உங்கள் டிரைவரை மதிப்பிட ஒரு நட்சத்திரத்தைத் தட்டவும்.';
+
+  @override
+  String get couldNotSubmitReviewTryAgain =>
+      'உங்கள் விமர்சனத்தை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get couldNotLoadThisBooking => 'இந்த முன்பதிவை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get reportAnIssue => 'சிக்கலைப் புகாரளிக்கவும்';
+
+  @override
+  String get disputeCategoryLabel => 'வகை';
+
+  @override
+  String get disputeCategoryPayment => 'கட்டணம்';
+
+  @override
+  String get disputeCategoryDamage => 'சேதமடைந்த பொருட்கள்';
+
+  @override
+  String get disputeCategoryDelay => 'தாமதம்';
+
+  @override
+  String get disputeCategoryBehavior => 'டிரைவர் நடத்தை';
+
+  @override
+  String get disputeCategoryPricing => 'விலை நிர்ணயம்';
+
+  @override
+  String get disputeCategoryOther => 'மற்றவை';
+
+  @override
+  String get whatHappenedLabel => 'என்ன நடந்தது?';
+
+  @override
+  String get describeWhatHappened => 'என்ன நடந்தது என்பதை விவரிக்கவும்.';
+
+  @override
+  String get reportedTeamWillLookIntoIt =>
+      'புகாரளிக்கப்பட்டது - எங்கள் குழு அதை பரிசீலிக்கும்.';
+
+  @override
+  String get couldNotSubmitThisTryAgain =>
+      'இதை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get submittingEllipsis => 'சமர்ப்பிக்கப்படுகிறது…';
+
+  @override
+  String get submit => 'சமர்ப்பிக்கவும்';
+
+  @override
+  String get cancelBookingQuestion => 'முன்பதிவை ரத்து செய்யவா?';
+
+  @override
+  String cancellationFeeWarning(String fee) {
+    return 'ஒரு டிரைவர் ஏற்கனவே இந்த வேலையை ஏற்றுக்கொண்டுவிட்டார். டிரைவர் இழப்பீடாக உங்கள் பணத்திரும்பப்பெறுதலிலிருந்து ₹$fee ரத்து கட்டணம் கழிக்கப்படும்.';
+  }
+
+  @override
+  String get cannotBeUndone => 'இதை மாற்ற முடியாது.';
+
+  @override
+  String get keepBooking => 'முன்பதிவை வைத்திருங்கள்';
+
+  @override
+  String get cancelBooking => 'முன்பதிவை ரத்து செய்யவும்';
+
+  @override
+  String get couldNotCancelThisBooking =>
+      'இந்த முன்பதிவை ரத்து செய்ய முடியவில்லை.';
+
+  @override
+  String get orderDetails => 'ஆர்டர் விவரங்கள்';
+
+  @override
+  String get paymentPendingTitle => 'பணம் நிலுவையில்';
+
+  @override
+  String get payAdvanceToConfirmTrackingAvailable =>
+      'இந்த முன்பதிவை உறுதிப்படுத்த முன்பணம் செலுத்தவும் - அதற்குப் பிறகு உடனடியாக கண்காணிப்பு கிடைக்கும்.';
+
+  @override
+  String get findingADriver => 'டிரைவரைத் தேடுகிறது…';
+
+  @override
+  String get pickupSuccessfulDriverAtLocation =>
+      'பிக்அப் வெற்றிகரமானது! உங்கள் டிரைவர் பிக்அப் இடத்தில் உள்ளார்.';
+
+  @override
+  String get shipmentDeliveredExclaim =>
+      'உங்கள் ஷிப்மென்ட் டெலிவரி செய்யப்பட்டது!';
+
+  @override
+  String payToCompleteOrder(String amount) {
+    return 'இந்த ஆர்டரை முடிக்க ₹$amount செலுத்தவும்.';
+  }
+
+  @override
+  String get giveCodeToStartTrip =>
+      'பயணத்தைத் தொடங்க இந்த குறியீட்டை உங்கள் டிரைவரிடம் கொடுங்கள்';
+
+  @override
+  String get giveCodeAtDropOff =>
+      'டிராப்-ஆஃப்பில் இந்த குறியீட்டை உங்கள் டிரைவரிடம் கொடுங்கள்';
+
+  @override
+  String get onlineValue => 'ஆன்லைன்';
+
+  @override
+  String get advancePaid => 'முன்பணம் செலுத்தப்பட்டது';
+
+  @override
+  String get advanceDueNow => 'முன்பணம் இப்போது செலுத்த வேண்டும்';
+
+  @override
+  String get dueInCashAtDelivery => 'டெலிவரியில் ரொக்கமாக செலுத்த வேண்டும்';
+
+  @override
+  String get remainderPaid => 'மீதி செலுத்தப்பட்டது';
+
+  @override
+  String get remainderDueOnline => 'மீதி ஆன்லைனில் செலுத்த வேண்டும்';
+
+  @override
+  String get preparingEllipsis => 'தயார் செய்யப்படுகிறது…';
+
+  @override
+  String get downloadInvoice => 'விலைப்பட்டியலைப் பதிவிறக்கவும்';
+
+  @override
+  String get couldNotDownloadInvoice =>
+      'விலைப்பட்டியலைப் பதிவிறக்க முடியவில்லை.';
+
+  @override
+  String get yourRating => 'உங்கள் மதிப்பீடு';
+
+  @override
+  String get rateYourDriver => 'உங்கள் டிரைவரை மதிப்பிடுங்கள்';
+
+  @override
+  String get addCommentOptional => 'கருத்தைச் சேர்க்கவும் (விருப்பத்தேர்வு)';
+
+  @override
+  String get submitReview => 'விமர்சனத்தை சமர்ப்பிக்கவும்';
+
+  @override
+  String get showThisToDriverAtPickup =>
+      'பிக்அப்பில் இதை உங்கள் டிரைவரிடம் காட்டுங்கள்';
+
+  @override
+  String get waitingForDriverGpsSignal =>
+      'உங்கள் டிரைவரின் GPS சிக்னலுக்காக காத்திருக்கிறது…';
+
+  @override
+  String get cancellingEllipsis => 'ரத்து செய்யப்படுகிறது…';
+
+  @override
+  String get couldNotLoadNotifications => 'அறிவிப்புகளை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get markAllRead => 'அனைத்தையும் படித்ததாகக் குறிக்கவும்';
+
+  @override
+  String get allCaughtUpNothingHereYet =>
+      'நீங்கள் முழுமையாக புதுப்பித்துவிட்டீர்கள் - இங்கே இன்னும் எதுவும் இல்லை.';
+
+  @override
+  String get couldNotLoadMessages => 'செய்திகளை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get chatWithDriver => 'டிரைவருடன் அரட்டை அடிக்கவும்';
+
+  @override
+  String get sayHelloToYourDriver => 'உங்கள் டிரைவரிடம் வணக்கம் சொல்லுங்கள்.';
+
+  @override
+  String get typeAMessageHint => 'செய்தியை தட்டச்சு செய்யவும்…';
+
+  @override
+  String get shipmentPaymentDescription => 'ஷிப்மென்ட் கட்டணம்';
+
+  @override
+  String get paymentWasNotCompleted => 'கட்டணம் முடிக்கப்படவில்லை.';
+
+  @override
+  String get couldNotCompletePaymentTryAgain =>
+      'கட்டணத்தை முடிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get openingPaymentEllipsis => 'கட்டணத்தைத் திறக்கிறது…';
+
+  @override
+  String get payRemainingAmount => 'மீதமுள்ள தொகையைச் செலுத்தவும்';
+
+  @override
+  String get payAdvance => 'முன்பணம் செலுத்தவும்';
+
+  @override
+  String get payNow => 'இப்போது செலுத்தவும்';
+
+  @override
+  String get useMyCurrentLocation =>
+      'எனது தற்போதைய இருப்பிடத்தைப் பயன்படுத்தவும்';
 }

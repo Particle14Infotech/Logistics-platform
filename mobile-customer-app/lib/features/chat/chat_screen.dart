@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/message_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/chat_service.dart';
@@ -53,7 +54,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _scrollToBottom();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load messages.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.couldNotLoadMessages);
     }
   }
 
@@ -86,9 +87,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: Text(widget.driverName ?? 'Chat with driver')),
+      appBar: AppBar(title: Text(widget.driverName ?? l10n.chatWithDriver)),
       body: SafeArea(
         child: Column(
           children: [
@@ -97,7 +99,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ? Center(child: _error != null ? Text(_error!) : const CircularProgressIndicator())
                   : _messages!.isEmpty
                       ? Center(
-                          child: Text('Say hello to your driver.',
+                          child: Text(l10n.sayHelloToYourDriver,
                               style: GoogleFonts.poppins(color: Colors.grey.shade500)))
                       : ListView.builder(
                           controller: _scrollController,
@@ -117,7 +119,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         controller: _textController,
                         onSubmitted: (_) => _send(),
                         decoration: InputDecoration(
-                          hintText: 'Type a message…',
+                          hintText: l10n.typeAMessageHint,
                           filled: true,
                           fillColor: Colors.grey.shade100,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),

@@ -848,4 +848,217 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get thisIsOnlyEstimateNotBooking =>
       'This is only an estimate - not a booking.';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterActive => 'Active';
+
+  @override
+  String get couldNotLoadYourOrders => 'Could not load your orders.';
+
+  @override
+  String get noOrdersHereYet => 'No orders here yet.';
+
+  @override
+  String get tapStarToRate => 'Tap a star to rate your driver.';
+
+  @override
+  String get couldNotSubmitReviewTryAgain =>
+      'Could not submit your review. Try again.';
+
+  @override
+  String get couldNotLoadThisBooking => 'Could not load this booking.';
+
+  @override
+  String get reportAnIssue => 'Report an issue';
+
+  @override
+  String get disputeCategoryLabel => 'Category';
+
+  @override
+  String get disputeCategoryPayment => 'Payment';
+
+  @override
+  String get disputeCategoryDamage => 'Damaged goods';
+
+  @override
+  String get disputeCategoryDelay => 'Delay';
+
+  @override
+  String get disputeCategoryBehavior => 'Driver behavior';
+
+  @override
+  String get disputeCategoryPricing => 'Pricing';
+
+  @override
+  String get disputeCategoryOther => 'Other';
+
+  @override
+  String get whatHappenedLabel => 'What happened?';
+
+  @override
+  String get describeWhatHappened => 'Describe what happened.';
+
+  @override
+  String get reportedTeamWillLookIntoIt =>
+      'Reported - our team will look into it.';
+
+  @override
+  String get couldNotSubmitThisTryAgain => 'Could not submit this. Try again.';
+
+  @override
+  String get submittingEllipsis => 'Submitting…';
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get cancelBookingQuestion => 'Cancel booking?';
+
+  @override
+  String cancellationFeeWarning(String fee) {
+    return 'A driver has already accepted this job. A ₹$fee cancellation fee will be deducted from your refund as driver compensation.';
+  }
+
+  @override
+  String get cannotBeUndone => 'This cannot be undone.';
+
+  @override
+  String get keepBooking => 'Keep booking';
+
+  @override
+  String get cancelBooking => 'Cancel booking';
+
+  @override
+  String get couldNotCancelThisBooking => 'Could not cancel this booking.';
+
+  @override
+  String get orderDetails => 'Order Details';
+
+  @override
+  String get paymentPendingTitle => 'Payment pending';
+
+  @override
+  String get payAdvanceToConfirmTrackingAvailable =>
+      'Pay the advance to confirm this booking - tracking will be available right after.';
+
+  @override
+  String get findingADriver => 'Finding a driver…';
+
+  @override
+  String get pickupSuccessfulDriverAtLocation =>
+      'Pickup successful! Your driver is at the pickup location.';
+
+  @override
+  String get shipmentDeliveredExclaim => 'Your shipment has been delivered!';
+
+  @override
+  String payToCompleteOrder(String amount) {
+    return 'Pay ₹$amount to complete this order.';
+  }
+
+  @override
+  String get giveCodeToStartTrip =>
+      'Give this code to your driver to start the trip';
+
+  @override
+  String get giveCodeAtDropOff => 'Give this code to your driver at drop-off';
+
+  @override
+  String get onlineValue => 'Online';
+
+  @override
+  String get advancePaid => 'Advance Paid';
+
+  @override
+  String get advanceDueNow => 'Advance Due Now';
+
+  @override
+  String get dueInCashAtDelivery => 'Due in Cash at Delivery';
+
+  @override
+  String get remainderPaid => 'Remainder Paid';
+
+  @override
+  String get remainderDueOnline => 'Remainder Due Online';
+
+  @override
+  String get preparingEllipsis => 'Preparing…';
+
+  @override
+  String get downloadInvoice => 'Download invoice';
+
+  @override
+  String get couldNotDownloadInvoice => 'Could not download the invoice.';
+
+  @override
+  String get yourRating => 'Your rating';
+
+  @override
+  String get rateYourDriver => 'Rate your driver';
+
+  @override
+  String get addCommentOptional => 'Add a comment (optional)';
+
+  @override
+  String get submitReview => 'Submit review';
+
+  @override
+  String get showThisToDriverAtPickup => 'Show this to your driver at pickup';
+
+  @override
+  String get waitingForDriverGpsSignal =>
+      'Waiting for your driver\'s GPS signal…';
+
+  @override
+  String get cancellingEllipsis => 'Cancelling…';
+
+  @override
+  String get couldNotLoadNotifications => 'Could not load notifications.';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get allCaughtUpNothingHereYet =>
+      'You\'re all caught up - nothing here yet.';
+
+  @override
+  String get couldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get chatWithDriver => 'Chat with driver';
+
+  @override
+  String get sayHelloToYourDriver => 'Say hello to your driver.';
+
+  @override
+  String get typeAMessageHint => 'Type a message…';
+
+  @override
+  String get shipmentPaymentDescription => 'Shipment payment';
+
+  @override
+  String get paymentWasNotCompleted => 'Payment was not completed.';
+
+  @override
+  String get couldNotCompletePaymentTryAgain =>
+      'Could not complete the payment. Try again.';
+
+  @override
+  String get openingPaymentEllipsis => 'Opening payment…';
+
+  @override
+  String get payRemainingAmount => 'Pay Remaining Amount';
+
+  @override
+  String get payAdvance => 'Pay Advance';
+
+  @override
+  String get payNow => 'Pay Now';
+
+  @override
+  String get useMyCurrentLocation => 'Use my current location';
 }
