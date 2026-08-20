@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 
 // Two independent layers of control, both surfaced here:
@@ -43,7 +44,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         _notificationsEnabled = user.notificationsEnabled;
       });
     } catch (e) {
-      setState(() => _error = 'Could not load notification settings.');
+      setState(() => _error = AppLocalizations.of(context)!.couldNotLoadNotificationSettings);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -68,7 +69,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       if (mounted) {
         setState(() => _notificationsEnabled = previous); // revert on failure
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not update notification preference. Try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.couldNotUpdateNotificationPrefTryAgain)),
         );
       }
     }
@@ -76,9 +77,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(l10n.notifications)),
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -89,16 +91,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     Text(_error!, style: GoogleFonts.poppins(color: AppTheme.error, fontSize: 13)),
                     const SizedBox(height: 16),
                   ],
-                  _buildOsPermissionCard(),
+                  _buildOsPermissionCard(l10n),
                   const SizedBox(height: 16),
-                  _buildAppToggleCard(),
+                  _buildAppToggleCard(l10n),
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildOsPermissionCard() {
+  Widget _buildOsPermissionCard(AppLocalizations l10n) {
     final granted = _osStatus == AuthorizationStatus.authorized || _osStatus == AuthorizationStatus.provisional;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -116,15 +118,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   color: granted ? AppTheme.success : Colors.grey.shade500),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('Device permission', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                child: Text(l10n.devicePermission, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            granted
-                ? 'Notifications are allowed on this device.'
-                : 'Notifications are not allowed - booking and delivery updates won\'t reach you until you enable them.',
+            granted ? l10n.notificationsAllowedOnDevice : l10n.notificationsNotAllowedWarning,
             style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
           ),
           if (!granted) ...[
@@ -135,13 +135,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 onPressed: _requesting ? null : _requestOsPermission,
                 child: _requesting
                     ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Enable notifications'),
+                    : Text(l10n.enableNotifications),
               ),
             ),
             if (_osStatus == AuthorizationStatus.denied) ...[
               const SizedBox(height: 8),
               Text(
-                "If nothing happens when you tap that, your phone has already blocked this app - enable it manually in your phone's Settings > Apps > Notifications.",
+                l10n.notificationsBlockedManualEnableHint,
                 style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
@@ -151,7 +151,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  Widget _buildAppToggleCard() {
+  Widget _buildAppToggleCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -165,9 +165,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Push notifications', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                Text(l10n.pushNotifications, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
                 const SizedBox(height: 4),
-                Text('Booking updates, driver assignment, and delivery confirmations.', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600)),
+                Text(l10n.pushNotificationsDescription, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600)),
               ],
             ),
           ),

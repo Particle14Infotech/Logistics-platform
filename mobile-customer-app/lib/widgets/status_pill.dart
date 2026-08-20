@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class StatusPill extends StatelessWidget {
   final String status;
   const StatusPill({super.key, required this.status});
 
-  (Color bg, Color fg, String label) get _style {
+  (Color bg, Color fg, String label) _style(AppLocalizations l10n) {
     switch (status) {
       // Synthetic, client-only status (see home_screen.dart's _BookingCard) -
       // an order with an unpaid advance is still 'pending' server-side, but
@@ -16,40 +17,40 @@ class StatusPill extends StatelessWidget {
         return (
           Colors.orange.shade50,
           Colors.orange.shade800,
-          'Payment Pending'
+          l10n.statusPaymentPending
         );
       case 'pending':
-        return (Colors.blueGrey.shade50, Colors.blueGrey.shade700, 'Pending');
+        return (Colors.blueGrey.shade50, Colors.blueGrey.shade700, l10n.statusPending);
       case 'accepted':
         return (
           AppTheme.primary.withValues(alpha: 0.12),
           AppTheme.primary,
-          'Accepted'
+          l10n.statusAccepted
         );
       case 'picked_up':
       case 'in_transit':
         return (
           AppTheme.primary.withValues(alpha: 0.12),
           AppTheme.primary,
-          'In Transit'
+          l10n.statusInTransit
         );
       case 'awaiting_payment':
         return (
           AppTheme.primary.withValues(alpha: 0.12),
           AppTheme.primary,
-          'Awaiting Payment'
+          l10n.statusAwaitingPayment
         );
       case 'delivered':
         return (
           AppTheme.success.withValues(alpha: 0.12),
           const Color(0xFF1B7A34),
-          'Delivered'
+          l10n.statusDelivered
         );
       case 'cancelled':
         return (
           AppTheme.error.withValues(alpha: 0.10),
           const Color(0xFFB3261E),
-          'Cancelled'
+          l10n.statusCancelled
         );
       default:
         return (Colors.grey.shade200, Colors.grey.shade700, status);
@@ -58,7 +59,7 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, label) = _style;
+    final (bg, fg, label) = _style(AppLocalizations.of(context)!);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration:

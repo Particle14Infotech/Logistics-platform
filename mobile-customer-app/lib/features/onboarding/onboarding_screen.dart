@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 // 3-step onboarding (SRS 3.1.1). Layout matches the reference RaahMitr
 // customer app's onboarding: full-bleed rounded-bottom hero area on top,
@@ -20,27 +21,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _slides = [
-    (
-      icon: Icons.local_shipping,
-      title: 'Easy Shipping,\nSmarter Business',
-      body:
-          'Smart shipping saves time, cuts costs\nand grows businesses faster.'
-    ),
-    (
-      icon: Icons.map,
-      title: 'Track Live,\nDoor to Door',
-      body: 'Watch your driver approach on the map\nwith real-time ETA updates.'
-    ),
-    (
-      icon: Icons.payments,
-      title: 'Pay Your Way,\nEvery Time',
-      body: 'UPI, cards, net banking, or wallet -\nyour choice, every booking.'
-    ),
-  ];
+  List<({IconData icon, String title, String body})> _slides(AppLocalizations l10n) => [
+        (icon: Icons.local_shipping, title: l10n.onboardingTitle1, body: l10n.onboardingBody1),
+        (icon: Icons.map, title: l10n.onboardingTitle2, body: l10n.onboardingBody2),
+        (icon: Icons.payments, title: l10n.onboardingTitle3, body: l10n.onboardingBody3),
+      ];
 
-  void _next() {
-    if (_page == _slides.length - 1) {
+  void _next(int slideCount) {
+    if (_page == slideCount - 1) {
       context.go('/login');
     } else {
       _controller.nextPage(
@@ -50,6 +38,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final slides = _slides(l10n);
     return Scaffold(
       backgroundColor: AppTheme.primary,
       body: Column(
@@ -57,9 +47,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Expanded(
             child: PageView.builder(
               controller: _controller,
-              itemCount: _slides.length,
+              itemCount: slides.length,
               onPageChanged: (i) => setState(() => _page = i),
-              itemBuilder: (context, i) => _HeroSection(icon: _slides[i].icon),
+              itemBuilder: (context, i) => _HeroSection(icon: slides[i].icon),
             ),
           ),
           Container(
@@ -75,7 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Row(
                     children: List.generate(
-                      _slides.length,
+                      slides.length,
                       (i) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.only(right: 6),
@@ -92,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    _slides[_page].title,
+                    slides[_page].title,
                     style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -101,7 +91,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _slides[_page].body,
+                    slides[_page].body,
                     style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.85),
@@ -109,7 +99,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 28),
                   _GetStartedButton(
-                      isLast: _page == _slides.length - 1, onTap: _next),
+                      isLast: _page == slides.length - 1,
+                      onTap: () => _next(slides.length)),
                 ],
               ),
             ),
@@ -152,6 +143,7 @@ class _GetStartedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -171,7 +163,7 @@ class _GetStartedButton extends StatelessWidget {
                   color: Colors.white, size: 20),
             ),
             const SizedBox(width: 14),
-            Text(isLast ? 'Get Started' : 'Next',
+            Text(isLast ? l10n.getStarted : l10n.next,
                 style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

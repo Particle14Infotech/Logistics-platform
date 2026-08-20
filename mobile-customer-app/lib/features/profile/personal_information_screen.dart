@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_textfield.dart';
@@ -49,6 +50,7 @@ class _PersonalInformationScreenState
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _saving = true;
       _error = null;
@@ -67,10 +69,10 @@ class _PersonalInformationScreenState
             refreshToken: current.refreshToken!,
             user: updated,
           );
-      if (mounted) setState(() => _success = 'Saved.');
+      if (mounted) setState(() => _success = l10n.saved);
     } catch (e) {
       if (mounted) {
-        setState(() => _error = 'Could not save changes. Try again.');
+        setState(() => _error = l10n.couldNotSaveChangesTryAgain);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -79,38 +81,39 @@ class _PersonalInformationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Personal Information')),
+      appBar: AppBar(title: Text(l10n.personalInformation)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
             CustomTextField(
                 controller: _nameController,
-                hintText: 'Full name',
+                hintText: l10n.fullName,
                 prefixIcon: Icons.person_outline),
             const SizedBox(height: 14),
             CustomTextField(
                 controller: _emailController,
-                hintText: 'Email',
+                hintText: l10n.email,
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 14),
             CustomTextField(
                 controller: _phoneController,
-                hintText: 'Phone',
+                hintText: l10n.phone,
                 prefixIcon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone),
             const SizedBox(height: 14),
             CustomTextField(
                 controller: _gstinController,
-                hintText: 'Business GSTIN (optional)',
+                hintText: l10n.businessGstinOptional,
                 prefixIcon: Icons.receipt_long_outlined),
             Padding(
               padding: const EdgeInsets.only(top: 4, left: 4),
               child: Text(
-                'Used on your booking invoices, if you have one.',
+                l10n.usedOnInvoicesIfAny,
                 style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
               ),
             ),
@@ -135,7 +138,7 @@ class _PersonalInformationScreenState
                       width: 18,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
-                  : const Text('Save changes'),
+                  : Text(l10n.saveChanges),
             ),
           ],
         ),

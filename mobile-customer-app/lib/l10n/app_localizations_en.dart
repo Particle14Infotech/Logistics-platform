@@ -1,0 +1,545 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'RaahMitr';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get fullName => 'Full name';
+
+  @override
+  String get noNameSet => 'No name set';
+
+  @override
+  String get nameCannotBeEmpty => 'Name cannot be empty.';
+
+  @override
+  String get couldNotSaveChangesTryAgain =>
+      'Could not save changes. Try again.';
+
+  @override
+  String get signOutQuestion => 'Sign out?';
+
+  @override
+  String get signOutBody => 'You\'ll need to log in again to continue.';
+
+  @override
+  String get personalInformation => 'Personal Information';
+
+  @override
+  String get addresses => 'Addresses';
+
+  @override
+  String get paymentMethods => 'Payment Methods';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get notificationSettings => 'Notification Settings';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get helpAndSupport => 'Help & Support';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get enterValidEmail => 'Enter a valid email address.';
+
+  @override
+  String get enterYourPassword => 'Enter your password.';
+
+  @override
+  String get couldNotLogInTryAgain => 'Could not log in. Try again.';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 6 characters.';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match.';
+
+  @override
+  String get couldNotCreateAccountTryAgain =>
+      'Could not create your account. Try again.';
+
+  @override
+  String get notVerifiedYetTapLink =>
+      'Not verified yet - tap the link in the email we sent you.';
+
+  @override
+  String get couldNotCheckVerificationTryAgain =>
+      'Could not check verification status. Try again.';
+
+  @override
+  String get couldNotResendEmailTryAgain =>
+      'Could not resend the email. Try again.';
+
+  @override
+  String get couldNotSendCodeTryAgain => 'Could not send the code. Try again.';
+
+  @override
+  String get enterSixDigitCode => 'Enter the 6-digit code.';
+
+  @override
+  String get incorrectOrExpiredCode => 'Incorrect or expired code.';
+
+  @override
+  String get couldNotVerifyCodeTryAgain =>
+      'Could not verify that code. Try again.';
+
+  @override
+  String get enterEmailFirstThenForgot =>
+      'Enter your email above first, then tap \"Forgot password?\".';
+
+  @override
+  String passwordResetLinkSentTo(String email) {
+    return 'Password reset link sent to $email';
+  }
+
+  @override
+  String get enterValidMobileNumber => 'Enter a valid 10-digit mobile number.';
+
+  @override
+  String get accountExistsForEmailTryLogin =>
+      'An account already exists for that email. Try logging in instead.';
+
+  @override
+  String get emailLooksInvalid => 'That email address looks invalid.';
+
+  @override
+  String get chooseStrongerPassword => 'Choose a stronger password.';
+
+  @override
+  String get incorrectEmailOrPassword => 'Incorrect email or password.';
+
+  @override
+  String get tooManyAttemptsTryAgain =>
+      'Too many attempts. Try again in a moment.';
+
+  @override
+  String get phoneNumberLooksInvalid => 'That phone number looks invalid.';
+
+  @override
+  String get codeExpiredRequestNew => 'That code expired - request a new one.';
+
+  @override
+  String get somethingWentWrongTryAgain => 'Something went wrong. Try again.';
+
+  @override
+  String get verifyYourNumber => 'Verify Your Number';
+
+  @override
+  String get welcomeExclaim => 'Welcome!';
+
+  @override
+  String weveSentCodeToPhone(String phone) {
+    return 'We\'ve sent a 6-digit code to\n+91 $phone';
+  }
+
+  @override
+  String get logInOrSignUpWithMobile =>
+      'Log in or sign up with your mobile number';
+
+  @override
+  String get welcomeBack => 'Welcome Back!';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get verifyYourEmail => 'Verify Your Email';
+
+  @override
+  String get logInWithEmailToContinue => 'Log in with your email to continue';
+
+  @override
+  String get signUpWithEmailToGetStarted =>
+      'Sign up with your email to get started';
+
+  @override
+  String weveSentVerificationLinkTo(String email) {
+    return 'We\'ve sent a verification link to\n$email';
+  }
+
+  @override
+  String get emailAddress => 'Email address';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get logIn => 'Log In';
+
+  @override
+  String get dontHaveAccountSignUp => 'Don\'t have an account? Sign up';
+
+  @override
+  String get emailMethod => 'Email';
+
+  @override
+  String get phoneMethod => 'Phone';
+
+  @override
+  String get sixDigitCode => '6-digit code';
+
+  @override
+  String get verifyAndContinue => 'Verify & Continue';
+
+  @override
+  String resendCodeInSeconds(int seconds) {
+    return 'Resend code in ${seconds}s';
+  }
+
+  @override
+  String get resendCode => 'Resend code';
+
+  @override
+  String get tenDigitMobileNumber => '10-digit mobile number';
+
+  @override
+  String get sendOtp => 'Send OTP';
+
+  @override
+  String get passwordMinCharsHint => 'Password (min 6 characters)';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get alreadyHaveAccountLogIn => 'Already have an account? Log in';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String get verifyCode => 'Verify code';
+
+  @override
+  String get useLinkInstead => 'Use the link instead';
+
+  @override
+  String get iveVerifiedMyEmail => 'I\'ve verified my email';
+
+  @override
+  String get verificationEmailSentAgain => 'Verification email sent again';
+
+  @override
+  String get resendVerificationEmail => 'Resend verification email';
+
+  @override
+  String get enterCodeInstead => 'Enter code instead';
+
+  @override
+  String get onboardingTitle1 => 'Easy Shipping,\nSmarter Business';
+
+  @override
+  String get onboardingBody1 =>
+      'Smart shipping saves time, cuts costs\nand grows businesses faster.';
+
+  @override
+  String get onboardingTitle2 => 'Track Live,\nDoor to Door';
+
+  @override
+  String get onboardingBody2 =>
+      'Watch your driver approach on the map\nwith real-time ETA updates.';
+
+  @override
+  String get onboardingTitle3 => 'Pay Your Way,\nEvery Time';
+
+  @override
+  String get onboardingBody3 =>
+      'UPI, cards, net banking, or wallet -\nyour choice, every booking.';
+
+  @override
+  String get getStarted => 'Get Started';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get pressBackAgainToExit => 'Press back again to exit';
+
+  @override
+  String get view => 'View';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get orders => 'Orders';
+
+  @override
+  String get couldNotLoadYourBookings => 'Could not load your bookings.';
+
+  @override
+  String heyNameWave(String name) {
+    return 'Hey $name 👋';
+  }
+
+  @override
+  String get thereFallbackName => 'there';
+
+  @override
+  String get whereAreWeShippingToday => 'Where are we shipping today?';
+
+  @override
+  String get searchShipmentsHint => 'Search shipments by waybill or address';
+
+  @override
+  String get bookNewShipment => 'Book a New Shipment';
+
+  @override
+  String get getInstantPriceBookDelivery =>
+      'Get instant price and book your delivery';
+
+  @override
+  String get priceCalculator => 'Price Calculator';
+
+  @override
+  String get myOrders => 'My Orders';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get searchResults => 'Search results';
+
+  @override
+  String get recentOrders => 'Recent Orders';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String noShipmentsMatch(String query) {
+    return 'No shipments match \"$query\".';
+  }
+
+  @override
+  String get noBookingsYetTapAway =>
+      'No bookings yet - your first one is just a tap away.';
+
+  @override
+  String get statusPaymentPending => 'Payment Pending';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusAccepted => 'Accepted';
+
+  @override
+  String get statusInTransit => 'In Transit';
+
+  @override
+  String get statusAwaitingPayment => 'Awaiting Payment';
+
+  @override
+  String get statusDelivered => 'Delivered';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get raahmitrCustomerAppLine => 'RaahMitr Customer App';
+
+  @override
+  String versionNumber(String number) {
+    return 'Version $number';
+  }
+
+  @override
+  String get couldNotLoadNotificationSettings =>
+      'Could not load notification settings.';
+
+  @override
+  String get couldNotUpdateNotificationPrefTryAgain =>
+      'Could not update notification preference. Try again.';
+
+  @override
+  String get devicePermission => 'Device permission';
+
+  @override
+  String get notificationsAllowedOnDevice =>
+      'Notifications are allowed on this device.';
+
+  @override
+  String get notificationsNotAllowedWarning =>
+      'Notifications are not allowed - booking and delivery updates won\'t reach you until you enable them.';
+
+  @override
+  String get enableNotifications => 'Enable notifications';
+
+  @override
+  String get notificationsBlockedManualEnableHint =>
+      'If nothing happens when you tap that, your phone has already blocked this app - enable it manually in your phone\'s Settings > Apps > Notifications.';
+
+  @override
+  String get pushNotifications => 'Push notifications';
+
+  @override
+  String get pushNotificationsDescription =>
+      'Booking updates, driver assignment, and delivery confirmations.';
+
+  @override
+  String get saved => 'Saved.';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get businessGstinOptional => 'Business GSTIN (optional)';
+
+  @override
+  String get usedOnInvoicesIfAny =>
+      'Used on your booking invoices, if you have one.';
+
+  @override
+  String get saveChanges => 'Save changes';
+
+  @override
+  String get couldNotLoadYourAddresses => 'Could not load your addresses.';
+
+  @override
+  String get addAddress => 'Add address';
+
+  @override
+  String get editAddress => 'Edit address';
+
+  @override
+  String get labelHint => 'Label (e.g. Home, Office)';
+
+  @override
+  String get fullAddress => 'Full address';
+
+  @override
+  String get couldNotSaveThisAddress => 'Could not save this address.';
+
+  @override
+  String get couldNotRemoveThisAddress => 'Could not remove this address.';
+
+  @override
+  String get noSavedAddressesYet =>
+      'No saved addresses yet - tap + to add one.';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get couldNotLoadPaymentHistory => 'Could not load payment history.';
+
+  @override
+  String get removeCardQuestion => 'Remove card?';
+
+  @override
+  String removeCardConfirm(String network, String last4) {
+    return 'Remove the $network card ending in $last4?';
+  }
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get couldNotRemoveThatCard => 'Could not remove that card.';
+
+  @override
+  String get savedCards => 'Saved cards';
+
+  @override
+  String get noSavedCardsYet =>
+      'No saved cards yet - check \"Save this card\" during your next payment.';
+
+  @override
+  String get transactionHistory => 'Transaction history';
+
+  @override
+  String get noPaymentsYet => 'No payments yet.';
+
+  @override
+  String get enterCurrentPassword => 'Enter your current password.';
+
+  @override
+  String get newPasswordMinLength =>
+      'New password must be at least 6 characters.';
+
+  @override
+  String get newPasswordsDoNotMatch => 'New passwords do not match.';
+
+  @override
+  String get passwordUpdated => 'Password updated';
+
+  @override
+  String get currentPasswordIncorrect => 'Current password is incorrect.';
+
+  @override
+  String get couldNotUpdatePassword => 'Could not update password.';
+
+  @override
+  String get couldNotUpdatePasswordTryAgain =>
+      'Could not update password. Try again.';
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmNewPassword => 'Confirm new password';
+
+  @override
+  String get updatePassword => 'Update Password';
+
+  @override
+  String get couldNotLoadHelpContent => 'Could not load help content.';
+
+  @override
+  String get needMoreHelp => 'Need more help?';
+
+  @override
+  String get emailSupportAddress => 'Email support@raahmitr.com';
+
+  @override
+  String get frequentlyAskedQuestions => 'Frequently asked questions';
+
+  @override
+  String get noFaqsAvailable => 'No FAQs available right now.';
+}

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_textfield.dart';
 
@@ -31,16 +32,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_currentController.text.isEmpty) {
-      setState(() => _error = 'Enter your current password.');
+      setState(() => _error = l10n.enterCurrentPassword);
       return;
     }
     if (_newController.text.length < 6) {
-      setState(() => _error = 'New password must be at least 6 characters.');
+      setState(() => _error = l10n.newPasswordMinLength);
       return;
     }
     if (_newController.text != _confirmController.text) {
-      setState(() => _error = 'New passwords do not match.');
+      setState(() => _error = l10n.newPasswordsDoNotMatch);
       return;
     }
     setState(() {
@@ -54,16 +56,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password updated')),
+          SnackBar(content: Text(l10n.passwordUpdated)),
         );
         Navigator.of(context).pop();
       }
     } on fb.FirebaseAuthException catch (e) {
       setState(() => _error = e.code == 'wrong-password' || e.code == 'invalid-credential'
-          ? 'Current password is incorrect.'
-          : e.message ?? 'Could not update password.');
+          ? l10n.currentPasswordIncorrect
+          : e.message ?? l10n.couldNotUpdatePassword);
     } catch (e) {
-      setState(() => _error = 'Could not update password. Try again.');
+      setState(() => _error = l10n.couldNotUpdatePasswordTryAgain);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -71,9 +73,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Change Password')),
+      appBar: AppBar(title: Text(l10n.changePassword)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -82,21 +85,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             children: [
               CustomTextField(
                 controller: _currentController,
-                hintText: 'Current password',
+                hintText: l10n.currentPassword,
                 prefixIcon: Icons.lock_outline,
                 obscureText: true,
               ),
               const SizedBox(height: 14),
               CustomTextField(
                 controller: _newController,
-                hintText: 'New password',
+                hintText: l10n.newPassword,
                 prefixIcon: Icons.lock_reset_outlined,
                 obscureText: true,
               ),
               const SizedBox(height: 14),
               CustomTextField(
                 controller: _confirmController,
-                hintText: 'Confirm new password',
+                hintText: l10n.confirmNewPassword,
                 prefixIcon: Icons.lock_reset_outlined,
                 obscureText: true,
               ),
@@ -115,7 +118,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                   child: _saving
                       ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text('Update Password', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                      : Text(l10n.updatePassword, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
                 ),
               ),
             ],

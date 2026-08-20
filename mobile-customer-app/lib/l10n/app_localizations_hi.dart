@@ -1,0 +1,550 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Hindi (`hi`).
+class AppLocalizationsHi extends AppLocalizations {
+  AppLocalizationsHi([String locale = 'hi']) : super(locale);
+
+  @override
+  String get appTitle => 'राहमित्र';
+
+  @override
+  String get cancel => 'रद्द करें';
+
+  @override
+  String get save => 'सहेजें';
+
+  @override
+  String get signOut => 'साइन आउट करें';
+
+  @override
+  String get profile => 'प्रोफ़ाइल';
+
+  @override
+  String get fullName => 'पूरा नाम';
+
+  @override
+  String get noNameSet => 'कोई नाम सेट नहीं है';
+
+  @override
+  String get nameCannotBeEmpty => 'नाम खाली नहीं हो सकता।';
+
+  @override
+  String get couldNotSaveChangesTryAgain =>
+      'बदलाव सहेजे नहीं जा सके। फिर से कोशिश करें।';
+
+  @override
+  String get signOutQuestion => 'साइन आउट करें?';
+
+  @override
+  String get signOutBody => 'जारी रखने के लिए आपको फिर से लॉग इन करना होगा।';
+
+  @override
+  String get personalInformation => 'व्यक्तिगत जानकारी';
+
+  @override
+  String get addresses => 'पते';
+
+  @override
+  String get paymentMethods => 'भुगतान के तरीके';
+
+  @override
+  String get notifications => 'सूचनाएं';
+
+  @override
+  String get notificationSettings => 'सूचना सेटिंग्स';
+
+  @override
+  String get language => 'भाषा';
+
+  @override
+  String get changePassword => 'पासवर्ड बदलें';
+
+  @override
+  String get helpAndSupport => 'सहायता और समर्थन';
+
+  @override
+  String get about => 'ऐप के बारे में';
+
+  @override
+  String get enterValidEmail => 'एक मान्य ईमेल पता दर्ज करें।';
+
+  @override
+  String get enterYourPassword => 'अपना पासवर्ड दर्ज करें।';
+
+  @override
+  String get couldNotLogInTryAgain => 'लॉग इन नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
+  String get passwordMinLength => 'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।';
+
+  @override
+  String get passwordsDoNotMatch => 'पासवर्ड मेल नहीं खाते।';
+
+  @override
+  String get couldNotCreateAccountTryAgain =>
+      'आपका खाता नहीं बनाया जा सका। फिर से कोशिश करें।';
+
+  @override
+  String get notVerifiedYetTapLink =>
+      'अभी सत्यापित नहीं हुआ - हमने भेजे गए ईमेल में लिंक पर टैप करें।';
+
+  @override
+  String get couldNotCheckVerificationTryAgain =>
+      'सत्यापन स्थिति जांची नहीं जा सकी। फिर से कोशिश करें।';
+
+  @override
+  String get couldNotResendEmailTryAgain =>
+      'ईमेल दोबारा नहीं भेजा जा सका। फिर से कोशिश करें।';
+
+  @override
+  String get couldNotSendCodeTryAgain =>
+      'कोड नहीं भेजा जा सका। फिर से कोशिश करें।';
+
+  @override
+  String get enterSixDigitCode => '6 अंकों का कोड दर्ज करें।';
+
+  @override
+  String get incorrectOrExpiredCode => 'गलत या समय-सीमा समाप्त कोड।';
+
+  @override
+  String get couldNotVerifyCodeTryAgain =>
+      'वह कोड सत्यापित नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
+  String get enterEmailFirstThenForgot =>
+      'पहले ऊपर अपना ईमेल दर्ज करें, फिर \"पासवर्ड भूल गए?\" पर टैप करें।';
+
+  @override
+  String passwordResetLinkSentTo(String email) {
+    return 'पासवर्ड रीसेट लिंक $email पर भेजा गया';
+  }
+
+  @override
+  String get enterValidMobileNumber =>
+      'एक मान्य 10-अंकीय मोबाइल नंबर दर्ज करें।';
+
+  @override
+  String get accountExistsForEmailTryLogin =>
+      'उस ईमेल के लिए पहले से ही एक खाता मौजूद है। इसके बजाय लॉग इन करने का प्रयास करें।';
+
+  @override
+  String get emailLooksInvalid => 'वह ईमेल पता अमान्य लगता है।';
+
+  @override
+  String get chooseStrongerPassword => 'एक मज़बूत पासवर्ड चुनें।';
+
+  @override
+  String get incorrectEmailOrPassword => 'गलत ईमेल या पासवर्ड।';
+
+  @override
+  String get tooManyAttemptsTryAgain =>
+      'बहुत अधिक प्रयास। कुछ देर बाद फिर से कोशिश करें।';
+
+  @override
+  String get phoneNumberLooksInvalid => 'वह फ़ोन नंबर अमान्य लगता है।';
+
+  @override
+  String get codeExpiredRequestNew =>
+      'वह कोड समाप्त हो गया - एक नया अनुरोध करें।';
+
+  @override
+  String get somethingWentWrongTryAgain =>
+      'कुछ गड़बड़ हो गई। फिर से कोशिश करें।';
+
+  @override
+  String get verifyYourNumber => 'अपना नंबर सत्यापित करें';
+
+  @override
+  String get welcomeExclaim => 'स्वागत है!';
+
+  @override
+  String weveSentCodeToPhone(String phone) {
+    return 'हमने +91 $phone पर 6 अंकों का कोड भेजा है';
+  }
+
+  @override
+  String get logInOrSignUpWithMobile =>
+      'अपने मोबाइल नंबर से लॉग इन या साइन अप करें';
+
+  @override
+  String get welcomeBack => 'वापसी पर स्वागत है!';
+
+  @override
+  String get createAccount => 'खाता बनाएं';
+
+  @override
+  String get verifyYourEmail => 'अपना ईमेल सत्यापित करें';
+
+  @override
+  String get logInWithEmailToContinue =>
+      'जारी रखने के लिए अपने ईमेल से लॉग इन करें';
+
+  @override
+  String get signUpWithEmailToGetStarted =>
+      'शुरू करने के लिए अपने ईमेल से साइन अप करें';
+
+  @override
+  String weveSentVerificationLinkTo(String email) {
+    return 'हमने $email पर एक सत्यापन लिंक भेजा है';
+  }
+
+  @override
+  String get emailAddress => 'ईमेल पता';
+
+  @override
+  String get password => 'पासवर्ड';
+
+  @override
+  String get forgotPassword => 'पासवर्ड भूल गए?';
+
+  @override
+  String get logIn => 'लॉग इन करें';
+
+  @override
+  String get dontHaveAccountSignUp => 'खाता नहीं है? साइन अप करें';
+
+  @override
+  String get emailMethod => 'ईमेल';
+
+  @override
+  String get phoneMethod => 'फ़ोन';
+
+  @override
+  String get sixDigitCode => '6 अंकों का कोड';
+
+  @override
+  String get verifyAndContinue => 'सत्यापित करें और जारी रखें';
+
+  @override
+  String resendCodeInSeconds(int seconds) {
+    return '$seconds सेकंड में कोड फिर से भेजें';
+  }
+
+  @override
+  String get resendCode => 'कोड फिर से भेजें';
+
+  @override
+  String get tenDigitMobileNumber => '10-अंकीय मोबाइल नंबर';
+
+  @override
+  String get sendOtp => 'OTP भेजें';
+
+  @override
+  String get passwordMinCharsHint => 'पासवर्ड (न्यूनतम 6 अक्षर)';
+
+  @override
+  String get confirmPassword => 'पासवर्ड की पुष्टि करें';
+
+  @override
+  String get signUp => 'साइन अप करें';
+
+  @override
+  String get alreadyHaveAccountLogIn => 'पहले से खाता है? लॉग इन करें';
+
+  @override
+  String get sendCode => 'कोड भेजें';
+
+  @override
+  String get verifyCode => 'कोड सत्यापित करें';
+
+  @override
+  String get useLinkInstead => 'इसके बजाय लिंक का उपयोग करें';
+
+  @override
+  String get iveVerifiedMyEmail => 'मैंने अपना ईमेल सत्यापित कर लिया है';
+
+  @override
+  String get verificationEmailSentAgain => 'सत्यापन ईमेल फिर से भेजा गया';
+
+  @override
+  String get resendVerificationEmail => 'सत्यापन ईमेल फिर से भेजें';
+
+  @override
+  String get enterCodeInstead => 'इसके बजाय कोड दर्ज करें';
+
+  @override
+  String get onboardingTitle1 => 'आसान शिपिंग,\nस्मार्ट बिज़नेस';
+
+  @override
+  String get onboardingBody1 =>
+      'स्मार्ट शिपिंग समय बचाती है, लागत घटाती है\nऔर व्यवसाय को तेज़ी से बढ़ाती है।';
+
+  @override
+  String get onboardingTitle2 => 'लाइव ट्रैक करें,\nदरवाज़े तक';
+
+  @override
+  String get onboardingBody2 =>
+      'मैप पर अपने ड्राइवर को आते हुए देखें\nरियल-टाइम ETA अपडेट के साथ।';
+
+  @override
+  String get onboardingTitle3 => 'अपने तरीके से भुगतान करें,\nहर बार';
+
+  @override
+  String get onboardingBody3 =>
+      'UPI, कार्ड, नेट बैंकिंग या वॉलेट -\nआपकी पसंद, हर बुकिंग में।';
+
+  @override
+  String get getStarted => 'शुरू करें';
+
+  @override
+  String get next => 'आगे';
+
+  @override
+  String get pressBackAgainToExit => 'बाहर निकलने के लिए फिर से बैक दबाएं';
+
+  @override
+  String get view => 'देखें';
+
+  @override
+  String get home => 'होम';
+
+  @override
+  String get orders => 'ऑर्डर';
+
+  @override
+  String get couldNotLoadYourBookings => 'आपकी बुकिंग लोड नहीं हो सकीं।';
+
+  @override
+  String heyNameWave(String name) {
+    return 'नमस्ते $name 👋';
+  }
+
+  @override
+  String get thereFallbackName => 'जी';
+
+  @override
+  String get whereAreWeShippingToday => 'आज हम कहां शिप कर रहे हैं?';
+
+  @override
+  String get searchShipmentsHint => 'वेबिल या पते से शिपमेंट खोजें';
+
+  @override
+  String get bookNewShipment => 'नई शिपमेंट बुक करें';
+
+  @override
+  String get getInstantPriceBookDelivery =>
+      'तुरंत कीमत पाएं और अपनी डिलीवरी बुक करें';
+
+  @override
+  String get priceCalculator => 'मूल्य कैलकुलेटर';
+
+  @override
+  String get myOrders => 'मेरे ऑर्डर';
+
+  @override
+  String get support => 'सहायता';
+
+  @override
+  String get searchResults => 'खोज परिणाम';
+
+  @override
+  String get recentOrders => 'हाल के ऑर्डर';
+
+  @override
+  String get viewAll => 'सभी देखें';
+
+  @override
+  String noShipmentsMatch(String query) {
+    return '\"$query\" से मेल खाने वाला कोई शिपमेंट नहीं।';
+  }
+
+  @override
+  String get noBookingsYetTapAway =>
+      'अभी तक कोई बुकिंग नहीं - आपकी पहली बुकिंग बस एक टैप दूर है।';
+
+  @override
+  String get statusPaymentPending => 'भुगतान लंबित';
+
+  @override
+  String get statusPending => 'लंबित';
+
+  @override
+  String get statusAccepted => 'स्वीकृत';
+
+  @override
+  String get statusInTransit => 'ट्रांज़िट में';
+
+  @override
+  String get statusAwaitingPayment => 'भुगतान की प्रतीक्षा में';
+
+  @override
+  String get statusDelivered => 'डिलीवर हो गया';
+
+  @override
+  String get statusCancelled => 'रद्द किया गया';
+
+  @override
+  String get raahmitrCustomerAppLine => 'राहमित्र कस्टमर ऐप';
+
+  @override
+  String versionNumber(String number) {
+    return 'वर्शन $number';
+  }
+
+  @override
+  String get couldNotLoadNotificationSettings =>
+      'सूचना सेटिंग्स लोड नहीं हो सकीं।';
+
+  @override
+  String get couldNotUpdateNotificationPrefTryAgain =>
+      'सूचना प्राथमिकता अपडेट नहीं हो सकी। फिर से कोशिश करें।';
+
+  @override
+  String get devicePermission => 'डिवाइस अनुमति';
+
+  @override
+  String get notificationsAllowedOnDevice =>
+      'इस डिवाइस पर सूचनाओं की अनुमति है।';
+
+  @override
+  String get notificationsNotAllowedWarning =>
+      'सूचनाओं की अनुमति नहीं है - जब तक आप इन्हें सक्षम नहीं करते, बुकिंग और डिलीवरी अपडेट आप तक नहीं पहुंचेंगे।';
+
+  @override
+  String get enableNotifications => 'सूचनाएं सक्षम करें';
+
+  @override
+  String get notificationsBlockedManualEnableHint =>
+      'अगर उस पर टैप करने पर कुछ नहीं होता, तो आपके फ़ोन ने पहले ही इस ऐप को ब्लॉक कर दिया है - इसे अपने फ़ोन की Settings > Apps > Notifications में मैन्युअल रूप से सक्षम करें।';
+
+  @override
+  String get pushNotifications => 'पुश सूचनाएं';
+
+  @override
+  String get pushNotificationsDescription =>
+      'बुकिंग अपडेट, ड्राइवर असाइनमेंट और डिलीवरी पुष्टि।';
+
+  @override
+  String get saved => 'सहेजा गया।';
+
+  @override
+  String get email => 'ईमेल';
+
+  @override
+  String get phone => 'फ़ोन';
+
+  @override
+  String get businessGstinOptional => 'बिज़नेस GSTIN (वैकल्पिक)';
+
+  @override
+  String get usedOnInvoicesIfAny =>
+      'यदि आपके पास एक है, तो यह आपके बुकिंग इनवॉइस पर उपयोग होता है।';
+
+  @override
+  String get saveChanges => 'बदलाव सहेजें';
+
+  @override
+  String get couldNotLoadYourAddresses => 'आपके पते लोड नहीं हो सके।';
+
+  @override
+  String get addAddress => 'पता जोड़ें';
+
+  @override
+  String get editAddress => 'पता संपादित करें';
+
+  @override
+  String get labelHint => 'लेबल (जैसे घर, कार्यालय)';
+
+  @override
+  String get fullAddress => 'पूरा पता';
+
+  @override
+  String get couldNotSaveThisAddress => 'यह पता सहेजा नहीं जा सका।';
+
+  @override
+  String get couldNotRemoveThisAddress => 'यह पता हटाया नहीं जा सका।';
+
+  @override
+  String get noSavedAddressesYet =>
+      'अभी तक कोई सहेजा गया पता नहीं - एक जोड़ने के लिए + टैप करें।';
+
+  @override
+  String get edit => 'संपादित करें';
+
+  @override
+  String get delete => 'हटाएं';
+
+  @override
+  String get couldNotLoadPaymentHistory => 'भुगतान इतिहास लोड नहीं हो सका।';
+
+  @override
+  String get removeCardQuestion => 'कार्ड हटाएं?';
+
+  @override
+  String removeCardConfirm(String network, String last4) {
+    return '$last4 पर समाप्त होने वाला $network कार्ड हटाएं?';
+  }
+
+  @override
+  String get remove => 'हटाएं';
+
+  @override
+  String get couldNotRemoveThatCard => 'वह कार्ड हटाया नहीं जा सका।';
+
+  @override
+  String get savedCards => 'सहेजे गए कार्ड';
+
+  @override
+  String get noSavedCardsYet =>
+      'अभी तक कोई सहेजा गया कार्ड नहीं - अपने अगले भुगतान के दौरान \"इस कार्ड को सहेजें\" चेक करें।';
+
+  @override
+  String get transactionHistory => 'लेनदेन इतिहास';
+
+  @override
+  String get noPaymentsYet => 'अभी तक कोई भुगतान नहीं।';
+
+  @override
+  String get enterCurrentPassword => 'अपना वर्तमान पासवर्ड दर्ज करें।';
+
+  @override
+  String get newPasswordMinLength =>
+      'नया पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।';
+
+  @override
+  String get newPasswordsDoNotMatch => 'नए पासवर्ड मेल नहीं खाते।';
+
+  @override
+  String get passwordUpdated => 'पासवर्ड अपडेट किया गया';
+
+  @override
+  String get currentPasswordIncorrect => 'वर्तमान पासवर्ड गलत है।';
+
+  @override
+  String get couldNotUpdatePassword => 'पासवर्ड अपडेट नहीं हो सका।';
+
+  @override
+  String get couldNotUpdatePasswordTryAgain =>
+      'पासवर्ड अपडेट नहीं हो सका। फिर से कोशिश करें।';
+
+  @override
+  String get currentPassword => 'वर्तमान पासवर्ड';
+
+  @override
+  String get newPassword => 'नया पासवर्ड';
+
+  @override
+  String get confirmNewPassword => 'नए पासवर्ड की पुष्टि करें';
+
+  @override
+  String get updatePassword => 'पासवर्ड अपडेट करें';
+
+  @override
+  String get couldNotLoadHelpContent => 'सहायता सामग्री लोड नहीं हो सकी।';
+
+  @override
+  String get needMoreHelp => 'अधिक सहायता चाहिए?';
+
+  @override
+  String get emailSupportAddress => 'ईमेल support@raahmitr.com';
+
+  @override
+  String get frequentlyAskedQuestions => 'अक्सर पूछे जाने वाले सवाल';
+
+  @override
+  String get noFaqsAvailable => 'अभी कोई FAQ उपलब्ध नहीं है।';
+}

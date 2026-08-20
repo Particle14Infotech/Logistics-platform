@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/saved_address_model.dart';
 import '../../services/saved_address_service.dart';
 import '../../widgets/custom_textfield.dart';
@@ -28,11 +29,14 @@ class _AddressesScreenState extends State<AddressesScreen> {
       final addresses = await _service.list();
       if (mounted) setState(() => _addresses = addresses);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load your addresses.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadYourAddresses);
+      }
     }
   }
 
   Future<void> _openEditor({SavedAddressModel? existing}) async {
+    final l10n = AppLocalizations.of(context)!;
     final labelController = TextEditingController(text: existing?.label ?? '');
     final addressController = TextEditingController(text: existing?.address ?? '');
 
@@ -50,11 +54,11 @@ class _AddressesScreenState extends State<AddressesScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(existing == null ? 'Add address' : 'Edit address', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
+            Text(existing == null ? l10n.addAddress : l10n.editAddress, style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
-            CustomTextField(controller: labelController, hintText: 'Label (e.g. Home, Office)', prefixIcon: Icons.label_outline),
+            CustomTextField(controller: labelController, hintText: l10n.labelHint, prefixIcon: Icons.label_outline),
             const SizedBox(height: 12),
-            CustomTextField(controller: addressController, hintText: 'Full address', prefixIcon: Icons.location_on_outlined),
+            CustomTextField(controller: addressController, hintText: l10n.fullAddress, prefixIcon: Icons.location_on_outlined),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () async {
@@ -70,11 +74,11 @@ class _AddressesScreenState extends State<AddressesScreen> {
                   if (context.mounted) Navigator.pop(context, true);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not save this address.')));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.couldNotSaveThisAddress)));
                   }
                 }
               },
-              child: const Text('Save'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -89,15 +93,19 @@ class _AddressesScreenState extends State<AddressesScreen> {
       await _service.remove(address.id);
       _load();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not remove this address.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.couldNotRemoveThisAddress)));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Addresses')),
+      appBar: AppBar(title: Text(l10n.addresses)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openEditor(),
         child: const Icon(Icons.add),
@@ -109,7 +117,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('No saved addresses yet - tap + to add one.', style: GoogleFonts.poppins(color: Colors.grey.shade500), textAlign: TextAlign.center),
+                      child: Text(l10n.noSavedAddressesYet, style: GoogleFonts.poppins(color: Colors.grey.shade500), textAlign: TextAlign.center),
                     ),
                   )
                 : ListView.builder(
@@ -128,9 +136,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
                               if (value == 'edit') _openEditor(existing: address);
                               if (value == 'delete') _delete(address);
                             },
-                            itemBuilder: (context) => const [
-                              PopupMenuItem(value: 'edit', child: Text('Edit')),
-                              PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            itemBuilder: (context) => [
+                              PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                              PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
                             ],
                           ),
                         ),

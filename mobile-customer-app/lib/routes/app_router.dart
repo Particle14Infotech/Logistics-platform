@@ -20,6 +20,7 @@ import '../features/profile/payment_history_screen.dart';
 import '../features/profile/notification_settings_screen.dart';
 import '../features/profile/help_support_screen.dart';
 import '../features/profile/about_screen.dart';
+import '../features/profile/language_selection_screen.dart';
 import '../features/price_calculator/price_calculator_screen.dart';
 import '../features/notifications/notification_center_screen.dart';
 
@@ -67,6 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile/notifications', builder: (context, state) => const NotificationSettingsScreen()),
       GoRoute(path: '/profile/help-support', builder: (context, state) => const HelpSupportScreen()),
       GoRoute(path: '/profile/about', builder: (context, state) => const AboutScreen()),
+      GoRoute(path: '/profile/language', builder: (context, state) => const LanguageSelectionScreen()),
       GoRoute(path: '/price-calculator', builder: (context, state) => const PriceCalculatorScreen()),
       GoRoute(path: '/notifications', builder: (context, state) => const NotificationCenterScreen()),
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/payment_service.dart';
 
 // Customer-app "Payment Methods" - saved cards (tokenized against a
@@ -38,19 +39,22 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load payment history.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadPaymentHistory);
+      }
     }
   }
 
   Future<void> _removeCard(SavedCard card) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove card?'),
-        content: Text('Remove the ${card.network} card ending in ${card.last4}?'),
+        title: Text(l10n.removeCardQuestion),
+        content: Text(l10n.removeCardConfirm(card.network, card.last4)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Remove')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.remove)),
         ],
       ),
     );
@@ -61,7 +65,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       await _service.deleteSavedCard(card.tokenId);
       if (mounted) setState(() => _cards = _cards?.where((c) => c.tokenId != card.tokenId).toList());
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not remove that card.');
+      if (mounted) setState(() => _error = l10n.couldNotRemoveThatCard);
     } finally {
       if (mounted) setState(() => _removingTokenId = null);
     }
@@ -91,10 +95,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final loading = _payments == null || _cards == null;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Payment Methods')),
+      appBar: AppBar(title: Text(l10n.paymentMethods)),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
@@ -103,13 +108,13 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text('Saved cards', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                    Text(l10n.savedCards, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
                     const SizedBox(height: 4),
                     if (_cards!.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
-                          'No saved cards yet - check "Save this card" during your next payment.',
+                          l10n.noSavedCardsYet,
                           style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade500),
                         ),
                       )
@@ -126,12 +131,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             ),
                           )),
                     const SizedBox(height: 24),
-                    Text('Transaction history', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                    Text(l10n.transactionHistory, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
                     const SizedBox(height: 4),
                     if (_payments!.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text('No payments yet.', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                        child: Text(l10n.noPaymentsYet, style: GoogleFonts.poppins(color: Colors.grey.shade500)),
                       )
                     else
                       ..._payments!.map((p) => Card(

@@ -33,53 +33,86 @@ class AppTheme {
     BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16, offset: const Offset(0, 4)),
   ];
 
-  static ThemeData get light => ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: primary,
-        scaffoldBackgroundColor: background,
-        textTheme: GoogleFonts.poppinsTextTheme().apply(bodyColor: textDark, displayColor: textDark),
-        appBarTheme: AppBarTheme(
-          backgroundColor: background,
+  // Poppins (this app's brand font) only covers Latin script - Devanagari
+  // (Hindi/Marathi), Gujarati, Tamil, and Telugu need their own Noto Sans
+  // variant or render as tofu/boxes. Picked per the active locale so every
+  // TextTheme-derived style below (buttons, app bar title, input labels)
+  // automatically uses a script that can actually render, not just the
+  // generic body text.
+  static TextTheme _textThemeForLocale(Locale? locale) {
+    switch (locale?.languageCode) {
+      case 'hi':
+      case 'mr':
+        return GoogleFonts.notoSansDevanagariTextTheme();
+      case 'gu':
+        return GoogleFonts.notoSansGujaratiTextTheme();
+      case 'ta':
+        return GoogleFonts.notoSansTamilTextTheme();
+      case 'te':
+        return GoogleFonts.notoSansTeluguTextTheme();
+      default:
+        return GoogleFonts.poppinsTextTheme();
+    }
+  }
+
+  // Was a static `light` getter always built on GoogleFonts.poppins() -
+  // now a function of the active locale so every screen (not just the ones
+  // that read plain body text) renders the right script. main.dart rebuilds
+  // MaterialApp.router's theme from this whenever localeProvider changes.
+  static ThemeData themeFor(Locale? locale) {
+    final baseTextTheme = _textThemeForLocale(locale).apply(bodyColor: textDark, displayColor: textDark);
+    return ThemeData(
+      useMaterial3: true,
+      colorSchemeSeed: primary,
+      scaffoldBackgroundColor: background,
+      textTheme: baseTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: background,
+        foregroundColor: textDark,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: baseTextTheme.titleLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, color: textDark),
+        centerTitle: false,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: baseTextTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 15),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
           foregroundColor: textDark,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          titleTextStyle: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: textDark),
-          centerTitle: false,
+          side: const BorderSide(color: borderColor, width: 1.4),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: baseTextTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
         ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: textDark,
-            side: const BorderSide(color: borderColor, width: 1.4),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15),
-          ),
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          color: white,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          labelStyle: GoogleFonts.poppins(fontSize: 14, color: textLight),
-          hintStyle: GoogleFonts.poppins(fontSize: 14, color: textLight),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: borderColor)),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: borderColor)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: primary, width: 1.6)),
-          errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: error)),
-        ),
-      );
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        labelStyle: baseTextTheme.bodyMedium?.copyWith(fontSize: 14, color: textLight),
+        hintStyle: baseTextTheme.bodyMedium?.copyWith(fontSize: 14, color: textLight),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: borderColor)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: borderColor)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: primary, width: 1.6)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: error)),
+      ),
+    );
+  }
+
+  // Kept for any call site that hasn't been migrated to themeFor(locale) -
+  // equivalent to themeFor(null) (Poppins/English).
+  static ThemeData get light => themeFor(null);
 }

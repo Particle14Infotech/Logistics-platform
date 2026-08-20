@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -58,7 +59,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           await ref.read(bookingServiceProvider).listMyBookings(user.id);
       if (mounted) setState(() => _bookings = bookings);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load your bookings.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadYourBookings);
+      }
     }
   }
 
@@ -81,6 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
     final isSearching = _searchQuery.trim().isNotEmpty;
     final searchResults = isSearching
@@ -128,12 +132,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Hey ${user?.name?.split(' ').first ?? 'there'} 👋',
+                        Text(
+                            l10n.heyNameWave(user?.name?.split(' ').first ?? l10n.thereFallbackName),
                             style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: AppTheme.textDark)),
-                        Text('Where are we shipping today?',
+                        Text(l10n.whereAreWeShippingToday,
                             style: GoogleFonts.poppins(
                                 fontSize: 12.5, color: Colors.grey.shade500)),
                       ],
@@ -191,7 +196,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
-                          hintText: 'Search shipments by waybill or address',
+                          hintText: l10n.searchShipmentsHint,
                           hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500, fontSize: 13),
                         ),
                       ),
@@ -236,13 +241,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Book a New Shipment',
+                                    Text(l10n.bookNewShipment,
                                         style: GoogleFonts.poppins(
                                             fontSize: 17,
                                             fontWeight: FontWeight.w700,
                                             color: Colors.white)),
                                     const SizedBox(height: 5),
-                                    Text('Get instant price and book your delivery',
+                                    Text(l10n.getInstantPriceBookDelivery,
                                         style: GoogleFonts.poppins(
                                             fontSize: 12.5,
                                             color: Colors.white
@@ -272,19 +277,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   _QuickAction(
                       icon: Icons.notifications_none,
-                      label: 'Notifications',
+                      label: l10n.notifications,
                       onTap: () => context.push('/notifications')),
                   _QuickAction(
                       icon: Icons.calculate_outlined,
-                      label: 'Price Calculator',
+                      label: l10n.priceCalculator,
                       onTap: () => context.push('/price-calculator')),
                   _QuickAction(
                       icon: Icons.receipt_long_outlined,
-                      label: 'My Orders',
+                      label: l10n.myOrders,
                       onTap: _goToOrders),
                   _QuickAction(
                       icon: Icons.support_agent_outlined,
-                      label: 'Support',
+                      label: l10n.support,
                       onTap: () => context.push('/profile/help-support')),
                 ],
               ),
@@ -292,7 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(isSearching ? 'Search results' : 'Recent Orders',
+                  Text(isSearching ? l10n.searchResults : l10n.recentOrders,
                       style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -300,7 +305,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   if (!isSearching)
                     TextButton(
                       onPressed: _goToOrders,
-                      child: Text('View All',
+                      child: Text(l10n.viewAll,
                           style: GoogleFonts.poppins(
                               fontSize: 13,
                               color: AppTheme.primary,
@@ -322,8 +327,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Text(
                         isSearching
-                            ? 'No shipments match "$_searchQuery".'
-                            : 'No bookings yet - your first one is just a tap away.',
+                            ? l10n.noShipmentsMatch(_searchQuery)
+                            : l10n.noBookingsYetTapAway,
                         style:
                             GoogleFonts.poppins(color: Colors.grey.shade500))),
               ...displayedBookings.map((b) => _BookingCard(order: b)),
