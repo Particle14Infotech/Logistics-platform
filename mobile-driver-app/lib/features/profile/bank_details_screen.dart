@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/driver_provider.dart';
 import '../../widgets/auth_text_field.dart';
 
@@ -34,11 +35,12 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     final accountNumber = _accountController.text.trim();
     final ifsc = _ifscController.text.trim();
     final name = _nameController.text.trim();
     if (accountNumber.isEmpty || ifsc.isEmpty || name.isEmpty) {
-      setState(() => _error = 'All fields are required.');
+      setState(() => _error = l10n.allFieldsAreRequired);
       return;
     }
     setState(() {
@@ -53,10 +55,10 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
             accountHolderName: name,
           );
       ref.invalidate(driverProfileProvider);
-      if (mounted) setState(() => _success = 'Bank details saved.');
+      if (mounted) setState(() => _success = l10n.bankDetailsSaved);
     } catch (e) {
       if (mounted) {
-        setState(() => _error = 'Could not save bank details. Try again.');
+        setState(() => _error = l10n.couldNotSaveBankDetailsTryAgain);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -65,16 +67,17 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(driverProfileProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.cream,
-      appBar: AppBar(title: const Text('Bank Details')),
+      appBar: AppBar(title: Text(l10n.bankDetails)),
       body: SafeArea(
         child: profileAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, __) =>
-              const Center(child: Text('Could not load your details.')),
+              Center(child: Text(l10n.couldNotLoadYourDetails)),
           data: (profile) {
             if (profile != null && !_initialized) {
               _accountController.text = profile.bankAccountNumber ?? '';
@@ -86,27 +89,27 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Used for wallet payouts - make sure this matches your actual bank account.',
+                  l10n.usedForWalletPayoutsHint,
                   style: GoogleFonts.poppins(
                       fontSize: 13, color: AppTheme.textGrey),
                 ),
                 const SizedBox(height: 20),
                 AuthTextField(
                     controller: _nameController,
-                    label: 'Account holder name',
-                    hint: 'As per bank records',
+                    label: l10n.accountHolderName,
+                    hint: l10n.asPerBankRecordsHint,
                     prefixIcon: Icons.person_outline),
                 const SizedBox(height: 14),
                 AuthTextField(
                     controller: _accountController,
-                    label: 'Account number',
+                    label: l10n.accountNumber,
                     hint: '1234567890',
                     prefixIcon: Icons.account_balance_outlined,
                     keyboardType: TextInputType.number),
                 const SizedBox(height: 14),
                 AuthTextField(
                     controller: _ifscController,
-                    label: 'IFSC code',
+                    label: l10n.ifscCode,
                     hint: 'ABCD0123456',
                     prefixIcon: Icons.pin_outlined),
                 if (_error != null) ...[
@@ -130,7 +133,7 @@ class _BankDetailsScreenState extends ConsumerState<BankDetailsScreen> {
                           width: 18,
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.black87))
-                      : const Text('Save'),
+                      : Text(l10n.save),
                 ),
               ],
             );

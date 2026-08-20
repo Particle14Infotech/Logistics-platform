@@ -237,6 +237,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About'**
   String get about;
+
+  /// No description provided for @raahmitrDriverAppLine.
+  ///
+  /// In en, this message translates to:
+  /// **'RaahMitr Driver App'**
+  String get raahmitrDriverAppLine;
+
+  /// No description provided for @versionNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {number}'**
+  String versionNumber(String number);
+
+  /// No description provided for @allFieldsAreRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields are required.'**
+  String get allFieldsAreRequired;
+
+  /// No description provided for @bankDetailsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank details saved.'**
+  String get bankDetailsSaved;
+
+  /// No description provided for @couldNotSaveBankDetailsTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save bank details. Try again.'**
+  String get couldNotSaveBankDetailsTryAgain;
+
+  /// No description provided for @couldNotLoadYourDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your details.'**
+  String get couldNotLoadYourDetails;
+
+  /// No description provided for @usedForWalletPayoutsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for wallet payouts - make sure this matches your actual bank account.'**
+  String get usedForWalletPayoutsHint;
+
+  /// No description provided for @accountHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account holder name'**
+  String get accountHolderName;
+
+  /// No description provided for @asPerBankRecordsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As per bank records'**
+  String get asPerBankRecordsHint;
+
+  /// No description provided for @accountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account number'**
+  String get accountNumber;
+
+  /// No description provided for @ifscCode.
+  ///
+  /// In en, this message translates to:
+  /// **'IFSC code'**
+  String get ifscCode;
+
+  /// No description provided for @couldNotLoadNotificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notification settings.'**
+  String get couldNotLoadNotificationSettings;
+
+  /// No description provided for @couldNotUpdateNotificationPrefTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update notification preference. Try again.'**
+  String get couldNotUpdateNotificationPrefTryAgain;
+
+  /// No description provided for @devicePermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Device permission'**
+  String get devicePermission;
+
+  /// No description provided for @notificationsAllowedOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are allowed on this device.'**
+  String get notificationsAllowedOnDevice;
+
+  /// No description provided for @notificationsNotAllowedWarningDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are not allowed - job alerts and trip updates won\'t reach you until you enable them.'**
+  String get notificationsNotAllowedWarningDriver;
+
+  /// No description provided for @enableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get enableNotifications;
+
+  /// No description provided for @notificationsBlockedManualEnableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If nothing happens when you tap that, your phone has already blocked this app - enable it manually in your phone\'s Settings > Apps > Notifications.'**
+  String get notificationsBlockedManualEnableHint;
+
+  /// No description provided for @pushNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get pushNotifications;
+
+  /// No description provided for @pushNotificationsDescriptionDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'New job alerts, trip status updates, and payments.'**
+  String get pushNotificationsDescriptionDriver;
+
+  /// No description provided for @enterCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password.'**
+  String get enterCurrentPassword;
+
+  /// No description provided for @newPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'New password must be at least 6 characters.'**
+  String get newPasswordMinLength;
+
+  /// No description provided for @newPasswordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'New passwords do not match.'**
+  String get newPasswordsDoNotMatch;
+
+  /// No description provided for @passwordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated'**
+  String get passwordUpdated;
+
+  /// No description provided for @currentPasswordIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password is incorrect.'**
+  String get currentPasswordIncorrect;
+
+  /// No description provided for @couldNotUpdatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update password.'**
+  String get couldNotUpdatePassword;
+
+  /// No description provided for @couldNotUpdatePasswordTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update password. Try again.'**
+  String get couldNotUpdatePasswordTryAgain;
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPassword;
+
+  /// No description provided for @yourCurrentPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current password'**
+  String get yourCurrentPasswordHint;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @min6CharsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Min 6 characters'**
+  String get min6CharsHint;
+
+  /// No description provided for @confirmNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get confirmNewPassword;
+
+  /// No description provided for @reEnterNewPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter new password'**
+  String get reEnterNewPasswordHint;
+
+  /// No description provided for @updatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Password'**
+  String get updatePassword;
+
+  /// No description provided for @couldNotLoadHelpContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load help content.'**
+  String get couldNotLoadHelpContent;
+
+  /// No description provided for @needMoreHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Need more help?'**
+  String get needMoreHelp;
+
+  /// No description provided for @emailSupportAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email support@raahmitr.com'**
+  String get emailSupportAddress;
+
+  /// No description provided for @frequentlyAskedQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequently asked questions'**
+  String get frequentlyAskedQuestions;
+
+  /// No description provided for @noFaqsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No FAQs available right now.'**
+  String get noFaqsAvailable;
 }
 
 class _AppLocalizationsDelegate
