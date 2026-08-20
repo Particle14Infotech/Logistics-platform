@@ -15,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import '../chat/chat_screen.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/driver_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/trip_model.dart';
@@ -74,10 +75,10 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   }
 
   Future<void> _startLocationBroadcast() async {
+    final l10n = AppLocalizations.of(context)!;
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      setState(() => _locationError =
-          'Turn on location services to share your position with the customer.');
+      setState(() => _locationError = l10n.turnOnLocationServicesShare);
       return;
     }
 
@@ -87,8 +88,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
     }
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      setState(() => _locationError =
-          'Location permission denied - the customer won\'t see your live position.');
+      setState(() => _locationError = l10n.locationPermissionDeniedNoShare);
       return;
     }
 
@@ -111,7 +111,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         _gpsTimer?.cancel();
         BackgroundLocationService.stop();
         setState(() {
-          _error = 'This booking was cancelled.';
+          _error = AppLocalizations.of(context)!.bookingWasCancelled;
           _trip = _trip?.copyWith(status: 'cancelled');
         });
       } else if (status == 'delivered' && mounted) {
@@ -173,7 +173,9 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         _startLocationBroadcast();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load this trip.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadThisTrip);
+      }
     }
   }
 
@@ -196,7 +198,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       final serverMessage = e is DioException && e.response?.data is Map
           ? e.response?.data['message'] as String?
           : null;
-      setState(() => _error = serverMessage ?? 'Could not update trip status.');
+      setState(() => _error = serverMessage ?? AppLocalizations.of(context)!.couldNotUpdateTripStatus);
     } finally {
       if (mounted) setState(() => _updating = false);
     }
@@ -217,19 +219,19 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   // product decision to keep this option frictionless for cases where
   // scanning genuinely can't happen.
   Future<void> _confirmManualPickup() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark as picked up?'),
-        content: const Text(
-            "Only use this if you can't scan the customer's QR code. This doesn't check anything - it just confirms pickup."),
+        title: Text(l10n.markAsPickedUpQuestion),
+        content: Text(l10n.manualPickupWarning),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+              child: Text(l10n.cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirm')),
+              child: Text(l10n.confirm)),
         ],
       ),
     );
@@ -265,7 +267,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       final serverMessage = e is DioException && e.response?.data is Map
           ? e.response?.data['message'] as String?
           : null;
-      setState(() => _error = serverMessage ?? 'Could not upload the document(s).');
+      setState(() => _error = serverMessage ?? AppLocalizations.of(context)!.couldNotUploadDocuments);
     } finally {
       if (mounted) setState(() => _uploadingPickupDocs = false);
     }
@@ -298,7 +300,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       final serverMessage = e is DioException && e.response?.data is Map
           ? e.response?.data['message'] as String?
           : null;
-      setState(() => _error = serverMessage ?? 'Could not upload the document(s).');
+      setState(() => _error = serverMessage ?? AppLocalizations.of(context)!.couldNotUploadDocuments);
     } finally {
       if (mounted) setState(() => _uploadingDeliveryDocs = false);
     }
@@ -307,22 +309,21 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   Future<void> _startTrip() async {
     final otp = _startOtpController.text.trim();
     if (otp.length != 6) {
-      setState(() => _error = 'Ask the customer for their 6-digit start code.');
+      setState(() => _error = AppLocalizations.of(context)!.askCustomerStartCode);
       return;
     }
     await _advanceStatus('in_transit', otp: otp);
   }
 
   Future<void> _confirmDelivery() async {
+    final l10n = AppLocalizations.of(context)!;
     final otp = _otpController.text.trim();
     if (otp.length != 6) {
-      setState(
-          () => _error = 'Ask the customer for their 6-digit delivery code.');
+      setState(() => _error = l10n.askCustomerDeliveryCode);
       return;
     }
     if (_trip?.paymentMethod == 'cod' && !_cashCollected) {
-      setState(() => _error =
-          'Confirm you\'ve collected the remaining cash before completing delivery.');
+      setState(() => _error = l10n.confirmCashCollectedBeforeDelivery);
       return;
     }
     setState(() {
@@ -356,13 +357,14 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           ? e.response?.data['message'] as String?
           : null;
       setState(() => _error = serverMessage ??
-          'Could not confirm delivery. Check your connection and try again.');
+          AppLocalizations.of(context)!.couldNotConfirmDeliveryTryAgain);
     } finally {
       if (mounted) setState(() => _updating = false);
     }
   }
 
   Future<void> _downloadInvoice() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _downloadingInvoice = true);
     try {
       final bytes =
@@ -371,33 +373,34 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       final file = File('${dir.path}/waybill-${widget.tripId}.pdf');
       await file.writeAsBytes(bytes);
       if (mounted) {
-        await Share.shareXFiles([XFile(file.path)], text: 'Delivery waybill');
+        await Share.shareXFiles([XFile(file.path)], text: l10n.deliveryWaybillShareText);
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not download the invoice.');
+      if (mounted) setState(() => _error = l10n.couldNotDownloadInvoice);
     } finally {
       if (mounted) setState(() => _downloadingInvoice = false);
     }
   }
 
   Future<void> _showAddEwayBillDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final ewayBillNo = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add E-Way Bill Number'),
+        title: Text(l10n.addEwayBillNumberTitle),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-              hintText: 'E-Way Bill No.', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+              hintText: l10n.ewayBillNoHint, border: const OutlineInputBorder()),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(l10n.cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('Save')),
+              child: Text(l10n.save)),
         ],
       ),
     );
@@ -410,10 +413,10 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           .addEwayBillNumber(widget.tripId, ewayBillNo);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('E-Way Bill number saved.')));
+            SnackBar(content: Text(l10n.ewayBillSaved)));
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not save the E-Way Bill number.');
+      if (mounted) setState(() => _error = l10n.couldNotSaveEwayBillNumber);
     } finally {
       if (mounted) setState(() => _addingEwayBill = false);
     }
@@ -428,15 +431,15 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   bool get _tripIsLive => _trip != null && _kLiveStatuses.contains(_trip!.status);
 
   Future<bool> _confirmLeaveTrip() async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Leave this trip?'),
-        content: const Text(
-            'Going back stops sharing your live location with the customer until you reopen this trip. The trip itself stays active.'),
+        title: Text(l10n.leaveThisTripQuestion),
+        content: Text(l10n.leaveTripWarning),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Stay')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Leave')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.stay)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.leave)),
         ],
       ),
     );
@@ -445,6 +448,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final trip = _trip;
     return PopScope(
       canPop: !_tripIsLive,
@@ -455,7 +459,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       },
       child: Scaffold(
       backgroundColor: AppTheme.cream,
-      appBar: AppBar(title: const Text('Active Trip')),
+      appBar: AppBar(title: Text(l10n.activeTrip)),
       body: trip == null
           ? Center(
               child: _error != null
@@ -478,29 +482,29 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                           style: const TextStyle(
                               color: AppTheme.error, fontSize: 12))
                     else if (_socketConnected)
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.gps_fixed,
+                          const Icon(Icons.gps_fixed,
                               size: 14, color: AppTheme.success),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                                'Sharing your live location with the customer',
-                                style: TextStyle(
+                                l10n.sharingLiveLocation,
+                                style: const TextStyle(
                                     color: AppTheme.success, fontSize: 12)),
                           ),
                         ],
                       )
                     else
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.gps_not_fixed,
+                          const Icon(Icons.gps_not_fixed,
                               size: 14, color: AppTheme.amber),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                                'Reconnecting - the customer may not see your live position right now',
-                                style: TextStyle(
+                                l10n.reconnectingLiveLocation,
+                                style: const TextStyle(
                                     color: AppTheme.amber, fontSize: 12)),
                           ),
                         ],
@@ -571,7 +575,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                                'Order #${trip.id.substring(trip.id.length - 8).toUpperCase()}',
+                                l10n.orderNumberLabel(trip.id.substring(trip.id.length - 8).toUpperCase()),
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w600)),
                             Text(
@@ -584,27 +588,27 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                         const Divider(height: 20),
                         _DetailRow(
                             icon: Icons.local_shipping_outlined,
-                            label: 'Vehicle',
+                            label: l10n.vehicleLabel,
                             value: trip.vehicleType),
                         if (trip.goodsType != null) ...[
                           const SizedBox(height: 8),
                           _DetailRow(
                               icon: Icons.inventory_2_outlined,
-                              label: 'Goods',
+                              label: l10n.goodsLabel,
                               value: trip.goodsType!),
                         ],
                         if (trip.weightKg != null) ...[
                           const SizedBox(height: 8),
                           _DetailRow(
                               icon: Icons.scale_outlined,
-                              label: 'Weight',
+                              label: l10n.weightLabel,
                               value: '${trip.weightKg!.toStringAsFixed(0)} kg'),
                         ],
                         if (trip.distanceKm != null) ...[
                           const SizedBox(height: 8),
                           _DetailRow(
                               icon: Icons.route_outlined,
-                              label: 'Distance',
+                              label: l10n.distanceLabel,
                               value:
                                   '${trip.distanceKm!.toStringAsFixed(1)} km'),
                         ],
@@ -612,7 +616,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                           const SizedBox(height: 8),
                           _DetailRow(
                             icon: Icons.payments_outlined,
-                            label: 'Cash to collect',
+                            label: l10n.cashToCollect,
                             value: '₹${trip.price - trip.advanceAmount}',
                           ),
                         ],
@@ -622,7 +626,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                           const SizedBox(height: 8),
                           _DetailRow(
                             icon: Icons.payments_outlined,
-                            label: 'Remaining (online)',
+                            label: l10n.remainingOnline,
                             value: '₹${trip.price - trip.advanceAmount}',
                           ),
                         ],
@@ -679,8 +683,8 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Fare',
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text(l10n.fareLabel,
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
                         Text('₹${trip.price}',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18)),
@@ -702,6 +706,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
   }
 
   Widget _buildActionArea(TripModel trip) {
+    final l10n = AppLocalizations.of(context)!;
     switch (trip.status) {
       case 'accepted':
         return Column(
@@ -714,13 +719,13 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
             FilledButton.icon(
               onPressed: _updating ? null : _scanBarcodeAndPickup,
               icon: const Icon(Icons.qr_code_scanner),
-              label: Text(_updating ? 'Updating…' : 'Scan pickup QR code'),
+              label: Text(_updating ? l10n.updatingEllipsis : l10n.scanPickupQrCode),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _updating ? null : _confirmManualPickup,
               icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Mark as picked up manually'),
+              label: Text(l10n.markAsPickedUpManually),
             ),
           ],
         );
@@ -730,7 +735,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _TripDocumentsCard(
-              title: 'Pickup documents',
+              title: l10n.pickupDocumentsTitle,
               documents: trip.pickupDocuments,
               uploading: _uploadingPickupDocs,
               onAddPressed: _uploadingPickupDocs ? null : _pickAndUploadPickupDocuments,
@@ -743,23 +748,23 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                   color: AppTheme.amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: AppTheme.amber, size: 18),
-                    SizedBox(width: 8),
+                    const Icon(Icons.info_outline, color: AppTheme.amber, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Upload at least one pickup document (LR copy, invoice, gate pass, etc.) handed over at the pickup point before you can start the trip.',
-                        style: TextStyle(fontSize: 12.5),
+                        l10n.uploadPickupDocHint,
+                        style: const TextStyle(fontSize: 12.5),
                       ),
                     ),
                   ],
                 ),
               )
             else ...[
-              const Text(
-                  "Ask the customer for their start code to begin the trip:",
+              Text(
+                  l10n.askCustomerStartCodePrompt,
                   textAlign: TextAlign.center),
               const SizedBox(height: 12),
               TextField(
@@ -782,7 +787,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               FilledButton.icon(
                 onPressed: _updating ? null : _startTrip,
                 icon: const Icon(Icons.local_shipping),
-                label: Text(_updating ? 'Starting…' : 'Start trip'),
+                label: Text(_updating ? l10n.startingEllipsis : l10n.startTrip),
               ),
             ],
           ],
@@ -794,7 +799,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _TripDocumentsCard(
-              title: 'Delivery documents',
+              title: l10n.deliveryDocumentsTitle,
               documents: trip.deliveryDocuments,
               uploading: _uploadingDeliveryDocs,
               onAddPressed: _uploadingDeliveryDocs ? null : _pickAndUploadDeliveryDocuments,
@@ -807,23 +812,23 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                   color: AppTheme.amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: AppTheme.amber, size: 18),
-                    SizedBox(width: 8),
+                    const Icon(Icons.info_outline, color: AppTheme.amber, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Upload at least one delivery document (signed receipt, POD photo, etc.) before you can confirm delivery.',
-                        style: TextStyle(fontSize: 12.5),
+                        l10n.uploadDeliveryDocHint,
+                        style: const TextStyle(fontSize: 12.5),
                       ),
                     ),
                   ],
                 ),
               )
             else ...[
-              const Text(
-                  "Ask the customer for their delivery code to confirm drop-off:",
+              Text(
+                  l10n.askCustomerDeliveryCodePrompt,
                   textAlign: TextAlign.center),
               const SizedBox(height: 12),
               TextField(
@@ -850,8 +855,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                       setState(() => _cashCollected = value ?? false),
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
-                  title: Text(
-                      'I have collected ₹$codRemaining in cash from the customer'),
+                  title: Text(l10n.collectedCashCheckbox('$codRemaining')),
                 ),
               ],
               if (trip.paymentMethod == 'online' &&
@@ -859,7 +863,7 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                   !trip.remainderPaid) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'The customer still owes ₹$codRemaining online. Confirming will mark drop-off as done and ask them to pay - the trip completes automatically once they do.',
+                  l10n.onlineRemainderNote('$codRemaining'),
                   style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
@@ -868,14 +872,14 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
               FilledButton.icon(
                 onPressed: _updating ? null : _confirmDelivery,
                 icon: const Icon(Icons.check_circle),
-                label: Text(_updating ? 'Confirming…' : 'Confirm delivery'),
+                label: Text(_updating ? l10n.confirmingEllipsis : l10n.confirmDelivery),
               ),
             ],
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _addingEwayBill ? null : _showAddEwayBillDialog,
               icon: const Icon(Icons.article_outlined),
-              label: Text(_addingEwayBill ? 'Saving…' : 'Add E-Way Bill No.'),
+              label: Text(_addingEwayBill ? l10n.savingEllipsis : l10n.addEwayBillNo),
             ),
           ],
         );
@@ -886,21 +890,21 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
           children: [
             const Icon(Icons.hourglass_top, size: 48, color: AppTheme.amber),
             const SizedBox(height: 12),
-            const Text(
-              'Delivery confirmed',
+            Text(
+              l10n.deliveryConfirmed,
               textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             const SizedBox(height: 8),
             Text(
-              'Waiting for the customer to pay the remaining ₹$remaining online. This screen updates automatically once paid.',
+              l10n.waitingForCustomerPay('$remaining'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: _updating ? null : _load,
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
+              label: Text(l10n.refresh),
             ),
           ],
         );
@@ -908,28 +912,28 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Center(child: Text('This trip is complete.')),
+            Center(child: Text(l10n.tripComplete)),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: _downloadingInvoice ? null : _downloadInvoice,
               icon: const Icon(Icons.receipt_long_outlined),
-              label: Text(_downloadingInvoice ? 'Preparing…' : 'Download invoice'),
+              label: Text(_downloadingInvoice ? l10n.preparingEllipsis : l10n.downloadInvoice),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
                 onPressed: () => context.go('/dashboard'),
-                child: const Text('Back to dashboard')),
+                child: Text(l10n.backToDashboard)),
           ],
         );
       case 'cancelled':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Center(child: Text('This booking was cancelled.')),
+            Center(child: Text(l10n.bookingWasCancelled)),
             const SizedBox(height: 12),
             OutlinedButton(
                 onPressed: () => context.go('/dashboard'),
-                child: const Text('Back to dashboard')),
+                child: Text(l10n.backToDashboard)),
           ],
         );
       default:
@@ -995,6 +999,7 @@ class _TripDocumentsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return _InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1038,7 +1043,7 @@ class _TripDocumentsCard extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onAddPressed,
             icon: const Icon(Icons.attach_file),
-            label: Text(uploading ? 'Uploading…' : 'Add documents'),
+            label: Text(uploading ? l10n.uploadingEllipsis : l10n.addDocuments),
           ),
         ],
       ),
@@ -1083,6 +1088,7 @@ class _LiveMapCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (driverPosition == null) {
       return Card(
         elevation: 0,
@@ -1098,7 +1104,7 @@ class _LiveMapCard extends StatelessWidget {
               const SizedBox(
                   height: 8, width: 200, child: LinearProgressIndicator()),
               const SizedBox(height: 12),
-              Text('Getting your GPS position…',
+              Text(l10n.gettingGpsPosition,
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
             ],
           ),
@@ -1166,7 +1172,7 @@ class _LiveMapCard extends StatelessWidget {
         if (distanceToDropKm != null) ...[
           const SizedBox(height: 6),
           Text(
-            '${distanceToDropKm.toStringAsFixed(1)} km to drop-off',
+            l10n.kmToDropOff(distanceToDropKm.toStringAsFixed(1)),
             style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade600,
@@ -1224,9 +1230,10 @@ class _BarcodeScanScreenState extends State<_BarcodeScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Scan package barcode'),
+          title: Text(l10n.scanPackageBarcode),
           backgroundColor: Colors.black,
           foregroundColor: Colors.white),
       backgroundColor: Colors.black,
@@ -1242,12 +1249,12 @@ class _BarcodeScanScreenState extends State<_BarcodeScanScreen> {
                   borderRadius: BorderRadius.circular(12)),
             ),
           ),
-          const Positioned(
+          Positioned(
             bottom: 32,
             left: 0,
             right: 0,
-            child: Text('Align the barcode within the frame',
-                style: TextStyle(color: Colors.white),
+            child: Text(l10n.alignBarcodeInFrame,
+                style: const TextStyle(color: Colors.white),
                 textAlign: TextAlign.center),
           ),
         ],

@@ -979,4 +979,214 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get selectYourDateOfBirth =>
       'உங்கள் பிறந்த தேதியைத் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get turnOnLocationServicesShare =>
+      'வாடிக்கையாளருடன் உங்கள் இருப்பிடத்தைப் பகிர லொகேஷன் சேவைகளை இயக்கவும்.';
+
+  @override
+  String get locationPermissionDeniedNoShare =>
+      'லொகேஷன் அனுமதி மறுக்கப்பட்டது - வாடிக்கையாளர் உங்கள் நேரலை இருப்பிடத்தைக் காண மாட்டார்.';
+
+  @override
+  String get bookingWasCancelled => 'இந்த முன்பதிவு ரத்து செய்யப்பட்டது.';
+
+  @override
+  String get couldNotLoadThisTrip => 'இந்த பயணத்தை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get couldNotUpdateTripStatus =>
+      'பயண நிலையைப் புதுப்பிக்க முடியவில்லை.';
+
+  @override
+  String get markAsPickedUpQuestion => 'பிக்அப் ஆகக் குறிக்கவா?';
+
+  @override
+  String get manualPickupWarning =>
+      'வாடிக்கையாளரின் QR குறியீட்டை ஸ்கேன் செய்ய முடியாதபோது மட்டும் இதைப் பயன்படுத்தவும். இது எதையும் சரிபார்க்காது - இது பிக்அப்பை உறுதிப்படுத்துகிறது.';
+
+  @override
+  String get confirm => 'உறுதிப்படுத்து';
+
+  @override
+  String get couldNotUploadDocuments => 'ஆவணங்களை பதிவேற்ற முடியவில்லை.';
+
+  @override
+  String get askCustomerStartCode =>
+      'வாடிக்கையாளரிடம் அவரது 6-இலக்க தொடக்க குறியீட்டைக் கேளுங்கள்.';
+
+  @override
+  String get askCustomerDeliveryCode =>
+      'வாடிக்கையாளரிடம் அவரது 6-இலக்க டெலிவரி குறியீட்டைக் கேளுங்கள்.';
+
+  @override
+  String get confirmCashCollectedBeforeDelivery =>
+      'டெலிவரியை முடிக்கும் முன் மீதமுள்ள பணத்தை நீங்கள் சேகரித்ததை உறுதிப்படுத்தவும்.';
+
+  @override
+  String get couldNotConfirmDeliveryTryAgain =>
+      'டெலிவரியை உறுதிப்படுத்த முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get couldNotDownloadInvoice =>
+      'விலைப்பட்டியலைப் பதிவிறக்க முடியவில்லை.';
+
+  @override
+  String get deliveryWaybillShareText => 'டெலிவரி வேபில்';
+
+  @override
+  String get addEwayBillNumberTitle => 'E-Way பில் எண்ணைச் சேர்க்கவும்';
+
+  @override
+  String get ewayBillNoHint => 'E-Way பில் எண்';
+
+  @override
+  String get ewayBillSaved => 'E-Way பில் எண் சேமிக்கப்பட்டது.';
+
+  @override
+  String get couldNotSaveEwayBillNumber =>
+      'E-Way பில் எண்ணை சேமிக்க முடியவில்லை.';
+
+  @override
+  String get leaveThisTripQuestion => 'இந்த பயணத்தை விடவா?';
+
+  @override
+  String get leaveTripWarning =>
+      'பின் செல்வது இந்த பயணத்தை மீண்டும் திறக்கும் வரை வாடிக்கையாளருடன் உங்கள் நேரலை இருப்பிடத்தைப் பகிர்வதை நிறுத்தும். பயணம் தொடர்ந்து செயலிலேயே இருக்கும்.';
+
+  @override
+  String get stay => 'தங்கு';
+
+  @override
+  String get leave => 'விடு';
+
+  @override
+  String get activeTrip => 'செயலில் உள்ள பயணம்';
+
+  @override
+  String get sharingLiveLocation =>
+      'வாடிக்கையாளருடன் உங்கள் நேரலை இருப்பிடம் பகிரப்படுகிறது';
+
+  @override
+  String get reconnectingLiveLocation =>
+      'மீண்டும் இணைக்கிறது - வாடிக்கையாளர் இப்போது உங்கள் நேரலை இருப்பிடத்தைக் காண முடியாது';
+
+  @override
+  String get vehicleLabel => 'வாகனம்';
+
+  @override
+  String get cashToCollect => 'சேகரிக்க வேண்டிய பணம்';
+
+  @override
+  String get remainingOnline => 'மீதமுள்ளது (ஆன்லைன்)';
+
+  @override
+  String get fareLabel => 'கட்டணம்';
+
+  @override
+  String get updatingEllipsis => 'புதுப்பிக்கிறது…';
+
+  @override
+  String get scanPickupQrCode => 'பிக்அப் QR குறியீட்டை ஸ்கேன் செய்யவும்';
+
+  @override
+  String get markAsPickedUpManually => 'கைமுறையாக பிக்அப் ஆகக் குறிக்கவும்';
+
+  @override
+  String get pickupDocumentsTitle => 'பிக்அப் ஆவணங்கள்';
+
+  @override
+  String get uploadPickupDocHint =>
+      'பயணத்தைத் தொடங்கும் முன் பிக்அப் இடத்தில் ஒப்படைக்கப்பட்ட குறைந்தது ஒரு பிக்அப் ஆவணத்தை (LR நகல், விலைப்பட்டியல், கேட் பாஸ் போன்றவை) பதிவேற்றவும்.';
+
+  @override
+  String get askCustomerStartCodePrompt =>
+      'பயணத்தைத் தொடங்க வாடிக்கையாளரிடம் அவரது தொடக்க குறியீட்டைக் கேளுங்கள்:';
+
+  @override
+  String get startingEllipsis => 'தொடங்குகிறது…';
+
+  @override
+  String get startTrip => 'பயணத்தைத் தொடங்கு';
+
+  @override
+  String get deliveryDocumentsTitle => 'டெலிவரி ஆவணங்கள்';
+
+  @override
+  String get uploadDeliveryDocHint =>
+      'டெலிவரியை உறுதிப்படுத்தும் முன் குறைந்தது ஒரு டெலிவரி ஆவணத்தை (கையொப்பமிடப்பட்ட ரசீது, POD புகைப்படம் போன்றவை) பதிவேற்றவும்.';
+
+  @override
+  String get askCustomerDeliveryCodePrompt =>
+      'டிராப்-ஆஃப்பை உறுதிப்படுத்த வாடிக்கையாளரிடம் அவரது டெலிவரி குறியீட்டைக் கேளுங்கள்:';
+
+  @override
+  String collectedCashCheckbox(String amount) {
+    return 'வாடிக்கையாளரிடமிருந்து ₹$amount பணமாக நான் பெற்றுள்ளேன்';
+  }
+
+  @override
+  String onlineRemainderNote(String amount) {
+    return 'வாடிக்கையாளர் இன்னும் ஆன்லைனில் ₹$amount செலுத்த வேண்டும். உறுதிப்படுத்துவது டிராப்-ஆஃப் முடிந்ததாகக் குறிக்கும் மற்றும் அவர்களிடம் பணம் செலுத்தக் கேட்கும் - அவர்கள் செலுத்தியவுடன் பயணம் தானாகவே முடிவடையும்.';
+  }
+
+  @override
+  String get confirmingEllipsis => 'உறுதிப்படுத்துகிறது…';
+
+  @override
+  String get confirmDelivery => 'டெலிவரியை உறுதிப்படுத்தவும்';
+
+  @override
+  String get savingEllipsis => 'சேமிக்கிறது…';
+
+  @override
+  String get addEwayBillNo => 'E-Way பில் எண்ணைச் சேர்க்கவும்';
+
+  @override
+  String get deliveryConfirmed => 'டெலிவரி உறுதிப்படுத்தப்பட்டது';
+
+  @override
+  String waitingForCustomerPay(String amount) {
+    return 'வாடிக்கையாளர் மீதமுள்ள ₹$amount ஐ ஆன்லைனில் செலுத்த காத்திருக்கிறது. அவர்கள் செலுத்தியவுடன் இந்த திரை தானாகவே புதுப்பிக்கப்படும்.';
+  }
+
+  @override
+  String get refresh => 'புதுப்பிக்கவும்';
+
+  @override
+  String get tripComplete => 'இந்த பயணம் முடிந்தது.';
+
+  @override
+  String get preparingEllipsis => 'தயார் செய்கிறது…';
+
+  @override
+  String get downloadInvoice => 'விலைப்பட்டியலைப் பதிவிறக்கவும்';
+
+  @override
+  String get backToDashboard => 'டாஷ்போர்டுக்குத் திரும்பு';
+
+  @override
+  String orderNumberLabel(String number) {
+    return 'ஆர்டர் #$number';
+  }
+
+  @override
+  String get gettingGpsPosition => 'உங்கள் GPS இருப்பிடத்தைப் பெறுகிறது…';
+
+  @override
+  String kmToDropOff(String km) {
+    return 'டிராப்-ஆஃப்பிற்கு $km கிமீ';
+  }
+
+  @override
+  String get scanPackageBarcode => 'பேக்கேஜ் பார்கோடை ஸ்கேன் செய்யவும்';
+
+  @override
+  String get alignBarcodeInFrame => 'பார்கோடை சட்டகத்திற்குள் சீரமைக்கவும்';
+
+  @override
+  String get uploadingEllipsis => 'பதிவேற்றுகிறது…';
+
+  @override
+  String get addDocuments => 'ஆவணங்களைச் சேர்க்கவும்';
 }

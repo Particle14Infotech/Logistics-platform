@@ -967,4 +967,212 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get selectYourDateOfBirth => 'तुमची जन्मतारीख निवडा';
+
+  @override
+  String get turnOnLocationServicesShare =>
+      'ग्राहकासोबत तुमचे स्थान शेअर करण्यासाठी लोकेशन सेवा चालू करा.';
+
+  @override
+  String get locationPermissionDeniedNoShare =>
+      'लोकेशन परवानगी नाकारली - ग्राहकाला तुमचे लाइव्ह स्थान दिसणार नाही.';
+
+  @override
+  String get bookingWasCancelled => 'ही बुकिंग रद्द करण्यात आली होती.';
+
+  @override
+  String get couldNotLoadThisTrip => 'ही ट्रिप लोड करता आली नाही.';
+
+  @override
+  String get couldNotUpdateTripStatus => 'ट्रिप स्थिती अपडेट करता आली नाही.';
+
+  @override
+  String get markAsPickedUpQuestion => 'पिकअप म्हणून चिन्हांकित करायचे?';
+
+  @override
+  String get manualPickupWarning =>
+      'तुम्ही ग्राहकाचा QR कोड स्कॅन करू शकत नसाल तरच वापरा. हे काहीही तपासत नाही - फक्त पिकअपची पुष्टी करते.';
+
+  @override
+  String get confirm => 'पुष्टी करा';
+
+  @override
+  String get couldNotUploadDocuments => 'कागदपत्रे अपलोड करता आली नाहीत.';
+
+  @override
+  String get askCustomerStartCode =>
+      'ग्राहकाला त्यांचा 6-अंकी स्टार्ट कोड विचारा.';
+
+  @override
+  String get askCustomerDeliveryCode =>
+      'ग्राहकाला त्यांचा 6-अंकी डिलिव्हरी कोड विचारा.';
+
+  @override
+  String get confirmCashCollectedBeforeDelivery =>
+      'डिलिव्हरी पूर्ण करण्यापूर्वी तुम्ही उर्वरित रोख रक्कम गोळा केल्याची पुष्टी करा.';
+
+  @override
+  String get couldNotConfirmDeliveryTryAgain =>
+      'डिलिव्हरीची पुष्टी करता आली नाही. तुमचे कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.';
+
+  @override
+  String get couldNotDownloadInvoice => 'इनव्हॉइस डाउनलोड करता आले नाही.';
+
+  @override
+  String get deliveryWaybillShareText => 'डिलिव्हरी वेबिल';
+
+  @override
+  String get addEwayBillNumberTitle => 'E-Way बिल क्रमांक जोडा';
+
+  @override
+  String get ewayBillNoHint => 'E-Way बिल क्रमांक';
+
+  @override
+  String get ewayBillSaved => 'E-Way बिल क्रमांक जतन झाला.';
+
+  @override
+  String get couldNotSaveEwayBillNumber =>
+      'E-Way बिल क्रमांक जतन करता आला नाही.';
+
+  @override
+  String get leaveThisTripQuestion => 'ही ट्रिप सोडायची?';
+
+  @override
+  String get leaveTripWarning =>
+      'मागे गेल्यास तुम्ही ही ट्रिप पुन्हा उघडेपर्यंत ग्राहकासोबत तुमचे लाइव्ह लोकेशन शेअर करणे थांबेल. ट्रिप स्वतः सक्रिय राहते.';
+
+  @override
+  String get stay => 'थांबा';
+
+  @override
+  String get leave => 'सोडा';
+
+  @override
+  String get activeTrip => 'सक्रिय ट्रिप';
+
+  @override
+  String get sharingLiveLocation =>
+      'ग्राहकासोबत तुमचे लाइव्ह लोकेशन शेअर केले जात आहे';
+
+  @override
+  String get reconnectingLiveLocation =>
+      'पुन्हा कनेक्ट होत आहे - ग्राहकाला सध्या तुमचे लाइव्ह स्थान दिसणार नाही';
+
+  @override
+  String get vehicleLabel => 'वाहन';
+
+  @override
+  String get cashToCollect => 'गोळा करायची रोकड';
+
+  @override
+  String get remainingOnline => 'उर्वरित (ऑनलाइन)';
+
+  @override
+  String get fareLabel => 'भाडे';
+
+  @override
+  String get updatingEllipsis => 'अपडेट होत आहे…';
+
+  @override
+  String get scanPickupQrCode => 'पिकअप QR कोड स्कॅन करा';
+
+  @override
+  String get markAsPickedUpManually => 'मॅन्युअली पिकअप म्हणून चिन्हांकित करा';
+
+  @override
+  String get pickupDocumentsTitle => 'पिकअप कागदपत्रे';
+
+  @override
+  String get uploadPickupDocHint =>
+      'ट्रिप सुरू करण्यापूर्वी पिकअप पॉइंटवर दिलेले किमान एक पिकअप कागदपत्र (LR कॉपी, इनव्हॉइस, गेट पास इ.) अपलोड करा.';
+
+  @override
+  String get askCustomerStartCodePrompt =>
+      'ट्रिप सुरू करण्यासाठी ग्राहकाला त्यांचा स्टार्ट कोड विचारा:';
+
+  @override
+  String get startingEllipsis => 'सुरू होत आहे…';
+
+  @override
+  String get startTrip => 'ट्रिप सुरू करा';
+
+  @override
+  String get deliveryDocumentsTitle => 'डिलिव्हरी कागदपत्रे';
+
+  @override
+  String get uploadDeliveryDocHint =>
+      'डिलिव्हरीची पुष्टी करण्यापूर्वी किमान एक डिलिव्हरी कागदपत्र (स्वाक्षरी केलेली पावती, POD फोटो इ.) अपलोड करा.';
+
+  @override
+  String get askCustomerDeliveryCodePrompt =>
+      'ड्रॉप-ऑफची पुष्टी करण्यासाठी ग्राहकाला त्यांचा डिलिव्हरी कोड विचारा:';
+
+  @override
+  String collectedCashCheckbox(String amount) {
+    return 'मी ग्राहकाकडून ₹$amount रोख गोळा केली आहे';
+  }
+
+  @override
+  String onlineRemainderNote(String amount) {
+    return 'ग्राहकाकडे अजूनही ऑनलाइन ₹$amount बाकी आहे. पुष्टी केल्यास ड्रॉप-ऑफ पूर्ण होईल आणि त्यांना पेमेंट करण्यास सांगितले जाईल - पेमेंट होताच ट्रिप आपोआप पूर्ण होते.';
+  }
+
+  @override
+  String get confirmingEllipsis => 'पुष्टी होत आहे…';
+
+  @override
+  String get confirmDelivery => 'डिलिव्हरीची पुष्टी करा';
+
+  @override
+  String get savingEllipsis => 'जतन होत आहे…';
+
+  @override
+  String get addEwayBillNo => 'E-Way बिल क्रमांक जोडा';
+
+  @override
+  String get deliveryConfirmed => 'डिलिव्हरीची पुष्टी झाली';
+
+  @override
+  String waitingForCustomerPay(String amount) {
+    return 'ग्राहकाने उर्वरित ₹$amount ऑनलाइन भरण्याची वाट पाहत आहे. पेमेंट होताच ही स्क्रीन आपोआप अपडेट होते.';
+  }
+
+  @override
+  String get refresh => 'रिफ्रेश करा';
+
+  @override
+  String get tripComplete => 'ही ट्रिप पूर्ण झाली आहे.';
+
+  @override
+  String get preparingEllipsis => 'तयार होत आहे…';
+
+  @override
+  String get downloadInvoice => 'इनव्हॉइस डाउनलोड करा';
+
+  @override
+  String get backToDashboard => 'डॅशबोर्डवर परत जा';
+
+  @override
+  String orderNumberLabel(String number) {
+    return 'ऑर्डर #$number';
+  }
+
+  @override
+  String get gettingGpsPosition => 'तुमचे GPS स्थान मिळवत आहे…';
+
+  @override
+  String kmToDropOff(String km) {
+    return 'ड्रॉप-ऑफपर्यंत $km किमी';
+  }
+
+  @override
+  String get scanPackageBarcode => 'पॅकेज बारकोड स्कॅन करा';
+
+  @override
+  String get alignBarcodeInFrame => 'बारकोड फ्रेममध्ये संरेखित करा';
+
+  @override
+  String get uploadingEllipsis => 'अपलोड होत आहे…';
+
+  @override
+  String get addDocuments => 'कागदपत्रे जोडा';
 }

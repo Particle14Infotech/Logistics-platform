@@ -965,4 +965,212 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectYourDateOfBirth => 'Select your date of birth';
+
+  @override
+  String get turnOnLocationServicesShare =>
+      'Turn on location services to share your position with the customer.';
+
+  @override
+  String get locationPermissionDeniedNoShare =>
+      'Location permission denied - the customer won\'t see your live position.';
+
+  @override
+  String get bookingWasCancelled => 'This booking was cancelled.';
+
+  @override
+  String get couldNotLoadThisTrip => 'Could not load this trip.';
+
+  @override
+  String get couldNotUpdateTripStatus => 'Could not update trip status.';
+
+  @override
+  String get markAsPickedUpQuestion => 'Mark as picked up?';
+
+  @override
+  String get manualPickupWarning =>
+      'Only use this if you can\'t scan the customer\'s QR code. This doesn\'t check anything - it just confirms pickup.';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get couldNotUploadDocuments => 'Could not upload the document(s).';
+
+  @override
+  String get askCustomerStartCode =>
+      'Ask the customer for their 6-digit start code.';
+
+  @override
+  String get askCustomerDeliveryCode =>
+      'Ask the customer for their 6-digit delivery code.';
+
+  @override
+  String get confirmCashCollectedBeforeDelivery =>
+      'Confirm you\'ve collected the remaining cash before completing delivery.';
+
+  @override
+  String get couldNotConfirmDeliveryTryAgain =>
+      'Could not confirm delivery. Check your connection and try again.';
+
+  @override
+  String get couldNotDownloadInvoice => 'Could not download the invoice.';
+
+  @override
+  String get deliveryWaybillShareText => 'Delivery waybill';
+
+  @override
+  String get addEwayBillNumberTitle => 'Add E-Way Bill Number';
+
+  @override
+  String get ewayBillNoHint => 'E-Way Bill No.';
+
+  @override
+  String get ewayBillSaved => 'E-Way Bill number saved.';
+
+  @override
+  String get couldNotSaveEwayBillNumber =>
+      'Could not save the E-Way Bill number.';
+
+  @override
+  String get leaveThisTripQuestion => 'Leave this trip?';
+
+  @override
+  String get leaveTripWarning =>
+      'Going back stops sharing your live location with the customer until you reopen this trip. The trip itself stays active.';
+
+  @override
+  String get stay => 'Stay';
+
+  @override
+  String get leave => 'Leave';
+
+  @override
+  String get activeTrip => 'Active Trip';
+
+  @override
+  String get sharingLiveLocation =>
+      'Sharing your live location with the customer';
+
+  @override
+  String get reconnectingLiveLocation =>
+      'Reconnecting - the customer may not see your live position right now';
+
+  @override
+  String get vehicleLabel => 'Vehicle';
+
+  @override
+  String get cashToCollect => 'Cash to collect';
+
+  @override
+  String get remainingOnline => 'Remaining (online)';
+
+  @override
+  String get fareLabel => 'Fare';
+
+  @override
+  String get updatingEllipsis => 'Updating…';
+
+  @override
+  String get scanPickupQrCode => 'Scan pickup QR code';
+
+  @override
+  String get markAsPickedUpManually => 'Mark as picked up manually';
+
+  @override
+  String get pickupDocumentsTitle => 'Pickup documents';
+
+  @override
+  String get uploadPickupDocHint =>
+      'Upload at least one pickup document (LR copy, invoice, gate pass, etc.) handed over at the pickup point before you can start the trip.';
+
+  @override
+  String get askCustomerStartCodePrompt =>
+      'Ask the customer for their start code to begin the trip:';
+
+  @override
+  String get startingEllipsis => 'Starting…';
+
+  @override
+  String get startTrip => 'Start trip';
+
+  @override
+  String get deliveryDocumentsTitle => 'Delivery documents';
+
+  @override
+  String get uploadDeliveryDocHint =>
+      'Upload at least one delivery document (signed receipt, POD photo, etc.) before you can confirm delivery.';
+
+  @override
+  String get askCustomerDeliveryCodePrompt =>
+      'Ask the customer for their delivery code to confirm drop-off:';
+
+  @override
+  String collectedCashCheckbox(String amount) {
+    return 'I have collected ₹$amount in cash from the customer';
+  }
+
+  @override
+  String onlineRemainderNote(String amount) {
+    return 'The customer still owes ₹$amount online. Confirming will mark drop-off as done and ask them to pay - the trip completes automatically once they do.';
+  }
+
+  @override
+  String get confirmingEllipsis => 'Confirming…';
+
+  @override
+  String get confirmDelivery => 'Confirm delivery';
+
+  @override
+  String get savingEllipsis => 'Saving…';
+
+  @override
+  String get addEwayBillNo => 'Add E-Way Bill No.';
+
+  @override
+  String get deliveryConfirmed => 'Delivery confirmed';
+
+  @override
+  String waitingForCustomerPay(String amount) {
+    return 'Waiting for the customer to pay the remaining ₹$amount online. This screen updates automatically once paid.';
+  }
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get tripComplete => 'This trip is complete.';
+
+  @override
+  String get preparingEllipsis => 'Preparing…';
+
+  @override
+  String get downloadInvoice => 'Download invoice';
+
+  @override
+  String get backToDashboard => 'Back to dashboard';
+
+  @override
+  String orderNumberLabel(String number) {
+    return 'Order #$number';
+  }
+
+  @override
+  String get gettingGpsPosition => 'Getting your GPS position…';
+
+  @override
+  String kmToDropOff(String km) {
+    return '$km km to drop-off';
+  }
+
+  @override
+  String get scanPackageBarcode => 'Scan package barcode';
+
+  @override
+  String get alignBarcodeInFrame => 'Align the barcode within the frame';
+
+  @override
+  String get uploadingEllipsis => 'Uploading…';
+
+  @override
+  String get addDocuments => 'Add documents';
 }

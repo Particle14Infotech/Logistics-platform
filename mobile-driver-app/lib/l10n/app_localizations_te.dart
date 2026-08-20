@@ -983,4 +983,215 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get selectYourDateOfBirth => 'మీ పుట్టిన తేదీని ఎంచుకోండి';
+
+  @override
+  String get turnOnLocationServicesShare =>
+      'కస్టమర్‌తో మీ స్థానాన్ని పంచుకోవడానికి లొకేషన్ సేవలను ఆన్ చేయండి.';
+
+  @override
+  String get locationPermissionDeniedNoShare =>
+      'లొకేషన్ అనుమతి తిరస్కరించబడింది - కస్టమర్ మీ ప్రత్యక్ష స్థానాన్ని చూడలేరు.';
+
+  @override
+  String get bookingWasCancelled => 'ఈ బుకింగ్ రద్దు చేయబడింది.';
+
+  @override
+  String get couldNotLoadThisTrip => 'ఈ ట్రిప్‌ను లోడ్ చేయడం సాధ్యం కాలేదు.';
+
+  @override
+  String get couldNotUpdateTripStatus =>
+      'ట్రిప్ స్థితిని నవీకరించడం సాధ్యం కాలేదు.';
+
+  @override
+  String get markAsPickedUpQuestion => 'పికప్‌గా గుర్తించాలా?';
+
+  @override
+  String get manualPickupWarning =>
+      'మీరు కస్టమర్ QR కోడ్‌ను స్కాన్ చేయలేనప్పుడు మాత్రమే దీన్ని ఉపయోగించండి. ఇది దేనినీ తనిఖీ చేయదు - ఇది కేవలం పికప్‌ను నిర్ధారిస్తుంది.';
+
+  @override
+  String get confirm => 'నిర్ధారించండి';
+
+  @override
+  String get couldNotUploadDocuments =>
+      'పత్రాలను అప్‌లోడ్ చేయడం సాధ్యం కాలేదు.';
+
+  @override
+  String get askCustomerStartCode =>
+      'కస్టమర్‌ను వారి 6-అంకెల స్టార్ట్ కోడ్‌ను అడగండి.';
+
+  @override
+  String get askCustomerDeliveryCode =>
+      'కస్టమర్‌ను వారి 6-అంకెల డెలివరీ కోడ్‌ను అడగండి.';
+
+  @override
+  String get confirmCashCollectedBeforeDelivery =>
+      'డెలివరీని పూర్తి చేయడానికి ముందు మీరు మిగిలిన నగదును సేకరించారని నిర్ధారించండి.';
+
+  @override
+  String get couldNotConfirmDeliveryTryAgain =>
+      'డెలివరీని నిర్ధారించడం సాధ్యం కాలేదు. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get couldNotDownloadInvoice =>
+      'ఇన్‌వాయిస్‌ను డౌన్‌లోడ్ చేయడం సాధ్యం కాలేదు.';
+
+  @override
+  String get deliveryWaybillShareText => 'డెలివరీ వేబిల్';
+
+  @override
+  String get addEwayBillNumberTitle => 'E-Way బిల్ నంబర్‌ను జోడించండి';
+
+  @override
+  String get ewayBillNoHint => 'E-Way బిల్ నంబర్';
+
+  @override
+  String get ewayBillSaved => 'E-Way బిల్ నంబర్ సేవ్ చేయబడింది.';
+
+  @override
+  String get couldNotSaveEwayBillNumber =>
+      'E-Way బిల్ నంబర్‌ను సేవ్ చేయడం సాధ్యం కాలేదు.';
+
+  @override
+  String get leaveThisTripQuestion => 'ఈ ట్రిప్‌ను వదిలివేయాలా?';
+
+  @override
+  String get leaveTripWarning =>
+      'వెనక్కి వెళ్లడం వల్ల మీరు ఈ ట్రిప్‌ను మళ్లీ తెరిచే వరకు కస్టమర్‌తో మీ ప్రత్యక్ష స్థానాన్ని పంచుకోవడం ఆగిపోతుంది. ట్రిప్ మాత్రం యాక్టివ్‌గానే ఉంటుంది.';
+
+  @override
+  String get stay => 'ఉండండి';
+
+  @override
+  String get leave => 'వదిలివేయండి';
+
+  @override
+  String get activeTrip => 'యాక్టివ్ ట్రిప్';
+
+  @override
+  String get sharingLiveLocation =>
+      'కస్టమర్‌తో మీ ప్రత్యక్ష స్థానం పంచుకోబడుతోంది';
+
+  @override
+  String get reconnectingLiveLocation =>
+      'మళ్లీ కనెక్ట్ అవుతోంది - కస్టమర్ ఇప్పుడు మీ ప్రత్యక్ష స్థానాన్ని చూడలేకపోవచ్చు';
+
+  @override
+  String get vehicleLabel => 'వాహనం';
+
+  @override
+  String get cashToCollect => 'సేకరించాల్సిన నగదు';
+
+  @override
+  String get remainingOnline => 'మిగిలినది (ఆన్‌లైన్)';
+
+  @override
+  String get fareLabel => 'చార్జీ';
+
+  @override
+  String get updatingEllipsis => 'నవీకరిస్తోంది…';
+
+  @override
+  String get scanPickupQrCode => 'పికప్ QR కోడ్‌ను స్కాన్ చేయండి';
+
+  @override
+  String get markAsPickedUpManually => 'మాన్యువల్‌గా పికప్‌గా గుర్తించండి';
+
+  @override
+  String get pickupDocumentsTitle => 'పికప్ పత్రాలు';
+
+  @override
+  String get uploadPickupDocHint =>
+      'ట్రిప్‌ను ప్రారంభించడానికి ముందు పికప్ పాయింట్ వద్ద అందించిన కనీసం ఒక పికప్ పత్రాన్ని (LR కాపీ, ఇన్‌వాయిస్, గేట్ పాస్ మొదలైనవి) అప్‌లోడ్ చేయండి.';
+
+  @override
+  String get askCustomerStartCodePrompt =>
+      'ట్రిప్‌ను ప్రారంభించడానికి కస్టమర్‌ను వారి స్టార్ట్ కోడ్‌ను అడగండి:';
+
+  @override
+  String get startingEllipsis => 'ప్రారంభమవుతోంది…';
+
+  @override
+  String get startTrip => 'ట్రిప్‌ను ప్రారంభించండి';
+
+  @override
+  String get deliveryDocumentsTitle => 'డెలివరీ పత్రాలు';
+
+  @override
+  String get uploadDeliveryDocHint =>
+      'డెలివరీని నిర్ధారించడానికి ముందు కనీసం ఒక డెలివరీ పత్రాన్ని (సంతకం చేసిన రసీదు, POD ఫోటో మొదలైనవి) అప్‌లోడ్ చేయండి.';
+
+  @override
+  String get askCustomerDeliveryCodePrompt =>
+      'డ్రాప్-ఆఫ్‌ను నిర్ధారించడానికి కస్టమర్‌ను వారి డెలివరీ కోడ్‌ను అడగండి:';
+
+  @override
+  String collectedCashCheckbox(String amount) {
+    return 'కస్టమర్ నుండి ₹$amount నగదును నేను సేకరించాను';
+  }
+
+  @override
+  String onlineRemainderNote(String amount) {
+    return 'కస్టమర్ ఇంకా ఆన్‌లైన్‌లో ₹$amount చెల్లించాల్సి ఉంది. నిర్ధారించడం వల్ల డ్రాప్-ఆఫ్ పూర్తయినట్లు గుర్తించబడుతుంది మరియు వారిని చెల్లించమని అడుగుతుంది - వారు చెల్లించిన వెంటనే ట్రిప్ స్వయంచాలకంగా పూర్తవుతుంది.';
+  }
+
+  @override
+  String get confirmingEllipsis => 'నిర్ధారిస్తోంది…';
+
+  @override
+  String get confirmDelivery => 'డెలివరీని నిర్ధారించండి';
+
+  @override
+  String get savingEllipsis => 'సేవ్ చేస్తోంది…';
+
+  @override
+  String get addEwayBillNo => 'E-Way బిల్ నంబర్‌ను జోడించండి';
+
+  @override
+  String get deliveryConfirmed => 'డెలివరీ నిర్ధారించబడింది';
+
+  @override
+  String waitingForCustomerPay(String amount) {
+    return 'కస్టమర్ మిగిలిన ₹$amount ఆన్‌లైన్‌లో చెల్లించడం కోసం వేచి ఉంది. వారు చెల్లించిన వెంటనే ఈ స్క్రీన్ స్వయంచాలకంగా నవీకరించబడుతుంది.';
+  }
+
+  @override
+  String get refresh => 'రిఫ్రెష్ చేయండి';
+
+  @override
+  String get tripComplete => 'ఈ ట్రిప్ పూర్తయింది.';
+
+  @override
+  String get preparingEllipsis => 'సిద్ధమవుతోంది…';
+
+  @override
+  String get downloadInvoice => 'ఇన్‌వాయిస్‌ను డౌన్‌లోడ్ చేయండి';
+
+  @override
+  String get backToDashboard => 'డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళండి';
+
+  @override
+  String orderNumberLabel(String number) {
+    return 'ఆర్డర్ #$number';
+  }
+
+  @override
+  String get gettingGpsPosition => 'మీ GPS స్థానాన్ని పొందుతోంది…';
+
+  @override
+  String kmToDropOff(String km) {
+    return 'డ్రాప్-ఆఫ్‌కు $km కి.మీ';
+  }
+
+  @override
+  String get scanPackageBarcode => 'ప్యాకేజీ బార్‌కోడ్‌ను స్కాన్ చేయండి';
+
+  @override
+  String get alignBarcodeInFrame => 'బార్‌కోడ్‌ను ఫ్రేమ్‌లో సర్దుబాటు చేయండి';
+
+  @override
+  String get uploadingEllipsis => 'అప్‌లోడ్ అవుతోంది…';
+
+  @override
+  String get addDocuments => 'పత్రాలను జోడించండి';
 }

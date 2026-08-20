@@ -1852,6 +1852,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select your date of birth'**
   String get selectYourDateOfBirth;
+
+  /// No description provided for @turnOnLocationServicesShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location services to share your position with the customer.'**
+  String get turnOnLocationServicesShare;
+
+  /// No description provided for @locationPermissionDeniedNoShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied - the customer won\'t see your live position.'**
+  String get locationPermissionDeniedNoShare;
+
+  /// No description provided for @bookingWasCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This booking was cancelled.'**
+  String get bookingWasCancelled;
+
+  /// No description provided for @couldNotLoadThisTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this trip.'**
+  String get couldNotLoadThisTrip;
+
+  /// No description provided for @couldNotUpdateTripStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update trip status.'**
+  String get couldNotUpdateTripStatus;
+
+  /// No description provided for @markAsPickedUpQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as picked up?'**
+  String get markAsPickedUpQuestion;
+
+  /// No description provided for @manualPickupWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Only use this if you can\'t scan the customer\'s QR code. This doesn\'t check anything - it just confirms pickup.'**
+  String get manualPickupWarning;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @couldNotUploadDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload the document(s).'**
+  String get couldNotUploadDocuments;
+
+  /// No description provided for @askCustomerStartCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the customer for their 6-digit start code.'**
+  String get askCustomerStartCode;
+
+  /// No description provided for @askCustomerDeliveryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the customer for their 6-digit delivery code.'**
+  String get askCustomerDeliveryCode;
+
+  /// No description provided for @confirmCashCollectedBeforeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm you\'ve collected the remaining cash before completing delivery.'**
+  String get confirmCashCollectedBeforeDelivery;
+
+  /// No description provided for @couldNotConfirmDeliveryTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm delivery. Check your connection and try again.'**
+  String get couldNotConfirmDeliveryTryAgain;
+
+  /// No description provided for @couldNotDownloadInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download the invoice.'**
+  String get couldNotDownloadInvoice;
+
+  /// No description provided for @deliveryWaybillShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery waybill'**
+  String get deliveryWaybillShareText;
+
+  /// No description provided for @addEwayBillNumberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add E-Way Bill Number'**
+  String get addEwayBillNumberTitle;
+
+  /// No description provided for @ewayBillNoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E-Way Bill No.'**
+  String get ewayBillNoHint;
+
+  /// No description provided for @ewayBillSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'E-Way Bill number saved.'**
+  String get ewayBillSaved;
+
+  /// No description provided for @couldNotSaveEwayBillNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the E-Way Bill number.'**
+  String get couldNotSaveEwayBillNumber;
+
+  /// No description provided for @leaveThisTripQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this trip?'**
+  String get leaveThisTripQuestion;
+
+  /// No description provided for @leaveTripWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Going back stops sharing your live location with the customer until you reopen this trip. The trip itself stays active.'**
+  String get leaveTripWarning;
+
+  /// No description provided for @stay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get stay;
+
+  /// No description provided for @leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get leave;
+
+  /// No description provided for @activeTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Trip'**
+  String get activeTrip;
+
+  /// No description provided for @sharingLiveLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing your live location with the customer'**
+  String get sharingLiveLocation;
+
+  /// No description provided for @reconnectingLiveLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting - the customer may not see your live position right now'**
+  String get reconnectingLiveLocation;
+
+  /// No description provided for @vehicleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get vehicleLabel;
+
+  /// No description provided for @cashToCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash to collect'**
+  String get cashToCollect;
+
+  /// No description provided for @remainingOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining (online)'**
+  String get remainingOnline;
+
+  /// No description provided for @fareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fare'**
+  String get fareLabel;
+
+  /// No description provided for @updatingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating…'**
+  String get updatingEllipsis;
+
+  /// No description provided for @scanPickupQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan pickup QR code'**
+  String get scanPickupQrCode;
+
+  /// No description provided for @markAsPickedUpManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as picked up manually'**
+  String get markAsPickedUpManually;
+
+  /// No description provided for @pickupDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup documents'**
+  String get pickupDocumentsTitle;
+
+  /// No description provided for @uploadPickupDocHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload at least one pickup document (LR copy, invoice, gate pass, etc.) handed over at the pickup point before you can start the trip.'**
+  String get uploadPickupDocHint;
+
+  /// No description provided for @askCustomerStartCodePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the customer for their start code to begin the trip:'**
+  String get askCustomerStartCodePrompt;
+
+  /// No description provided for @startingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting…'**
+  String get startingEllipsis;
+
+  /// No description provided for @startTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Start trip'**
+  String get startTrip;
+
+  /// No description provided for @deliveryDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery documents'**
+  String get deliveryDocumentsTitle;
+
+  /// No description provided for @uploadDeliveryDocHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload at least one delivery document (signed receipt, POD photo, etc.) before you can confirm delivery.'**
+  String get uploadDeliveryDocHint;
+
+  /// No description provided for @askCustomerDeliveryCodePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the customer for their delivery code to confirm drop-off:'**
+  String get askCustomerDeliveryCodePrompt;
+
+  /// No description provided for @collectedCashCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I have collected ₹{amount} in cash from the customer'**
+  String collectedCashCheckbox(String amount);
+
+  /// No description provided for @onlineRemainderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer still owes ₹{amount} online. Confirming will mark drop-off as done and ask them to pay - the trip completes automatically once they do.'**
+  String onlineRemainderNote(String amount);
+
+  /// No description provided for @confirmingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming…'**
+  String get confirmingEllipsis;
+
+  /// No description provided for @confirmDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm delivery'**
+  String get confirmDelivery;
+
+  /// No description provided for @savingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get savingEllipsis;
+
+  /// No description provided for @addEwayBillNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Add E-Way Bill No.'**
+  String get addEwayBillNo;
+
+  /// No description provided for @deliveryConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery confirmed'**
+  String get deliveryConfirmed;
+
+  /// No description provided for @waitingForCustomerPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the customer to pay the remaining ₹{amount} online. This screen updates automatically once paid.'**
+  String waitingForCustomerPay(String amount);
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @tripComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'This trip is complete.'**
+  String get tripComplete;
+
+  /// No description provided for @preparingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get preparingEllipsis;
+
+  /// No description provided for @downloadInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Download invoice'**
+  String get downloadInvoice;
+
+  /// No description provided for @backToDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to dashboard'**
+  String get backToDashboard;
+
+  /// No description provided for @orderNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{number}'**
+  String orderNumberLabel(String number);
+
+  /// No description provided for @gettingGpsPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting your GPS position…'**
+  String get gettingGpsPosition;
+
+  /// No description provided for @kmToDropOff.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km to drop-off'**
+  String kmToDropOff(String km);
+
+  /// No description provided for @scanPackageBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan package barcode'**
+  String get scanPackageBarcode;
+
+  /// No description provided for @alignBarcodeInFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the barcode within the frame'**
+  String get alignBarcodeInFrame;
+
+  /// No description provided for @uploadingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get uploadingEllipsis;
+
+  /// No description provided for @addDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Add documents'**
+  String get addDocuments;
 }
 
 class _AppLocalizationsDelegate
