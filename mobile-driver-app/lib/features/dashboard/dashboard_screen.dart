@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -88,6 +89,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
     final profileAsync = ref.watch(driverProfileProvider);
 
@@ -97,7 +99,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: profileAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, __) => Center(
-              child: Text('Could not load your profile.\n$e',
+              child: Text(l10n.couldNotLoadYourProfile('$e'),
                   textAlign: TextAlign.center)),
           data: (profile) {
             if (profile == null) {
@@ -159,7 +161,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                'Hey ${user?.name?.split(' ').first ?? 'there'}',
+                                l10n.heyName(user?.name?.split(' ').first ?? l10n.thereFallbackName),
                                 style: GoogleFonts.poppins(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
@@ -174,8 +176,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 const SizedBox(width: 5),
                                 Text(
                                     profile.isAvailable
-                                        ? 'Online - ready for jobs'
-                                        : 'Offline',
+                                        ? l10n.onlineReadyForJobs
+                                        : l10n.offline,
                                     style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         color: AppTheme.textGrey)),
@@ -260,7 +262,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             decoration: InputDecoration(
                               isDense: true,
                               border: InputBorder.none,
-                              hintText: 'Search trips, waybill no.',
+                              hintText: l10n.searchTripsWaybillHint,
                               hintStyle: GoogleFonts.poppins(
                                   color: AppTheme.textGrey, fontSize: 13),
                             ),
@@ -292,19 +294,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     children: [
                       _QuickAction(
                           icon: Icons.assignment_outlined,
-                          label: 'Jobs',
+                          label: l10n.jobs,
                           onTap: () => _goToTab(1, '/jobs')),
                       _QuickAction(
                           icon: Icons.account_balance_wallet_outlined,
-                          label: 'Earnings',
+                          label: l10n.earnings,
                           onTap: () => _goToTab(3, '/earnings')),
                       _QuickAction(
                           icon: Icons.history,
-                          label: 'History',
+                          label: l10n.history,
                           onTap: () => _goToTab(2, '/history')),
                       _QuickAction(
                           icon: Icons.folder_shared_outlined,
-                          label: 'Documents',
+                          label: l10n.documents,
                           onTap: () => context.push('/documents')),
                     ],
                   ),
@@ -313,7 +315,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(searching ? 'Search results' : 'Recent trips',
+                      Text(searching ? l10n.searchResults : l10n.recentTrips,
                           style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -321,7 +323,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       if (!searching)
                         TextButton(
                           onPressed: () => _goToTab(2, '/history'),
-                          child: Text('View All',
+                          child: Text(l10n.viewAll,
                               style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: AppTheme.amber,
@@ -338,8 +340,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Text(
                           searching
-                              ? 'No trips match "$_searchQuery".'
-                              : 'No trips yet.',
+                              ? l10n.noTripsMatch(_searchQuery)
+                              : l10n.noTripsYet,
                           style: GoogleFonts.poppins(color: AppTheme.textGrey)),
                     )
                   else
@@ -366,6 +368,7 @@ class _HeroBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         gradient: AppTheme.heroGradient,
@@ -403,8 +406,8 @@ class _HeroBanner extends StatelessWidget {
                         children: [
                           Text(
                               hasActiveTrip
-                                  ? 'Trip in progress'
-                                  : 'View job requests',
+                                  ? l10n.tripInProgress
+                                  : l10n.viewJobRequests,
                               style: GoogleFonts.poppins(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
@@ -412,8 +415,8 @@ class _HeroBanner extends StatelessWidget {
                           const SizedBox(height: 5),
                           Text(
                             hasActiveTrip
-                                ? 'Tap to resume tracking'
-                                : 'Browse bookings near you',
+                                ? l10n.tapToResumeTracking
+                                : l10n.browseBookingsNearYou,
                             style: GoogleFonts.poppins(
                                 fontSize: 12.5,
                                 color: Colors.black.withValues(alpha: 0.65)),
@@ -566,8 +569,8 @@ class _PendingApprovalViewState extends State<_PendingApprovalView> {
       final approved = await widget.onCheckStatus();
       if (!approved && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Still pending approval - check back soon.')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.stillPendingApprovalCheckBack)),
         );
       }
       // If now approved, the parent's .when() re-renders past this view
@@ -579,6 +582,7 @@ class _PendingApprovalViewState extends State<_PendingApprovalView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -587,12 +591,12 @@ class _PendingApprovalViewState extends State<_PendingApprovalView> {
           children: [
             const Icon(Icons.hourglass_top, size: 80, color: AppTheme.amber),
             const SizedBox(height: 24),
-            Text('Pending approval',
+            Text(l10n.pendingApproval,
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            const Text(
-              "We're verifying your vehicle details. You'll be able to go online once an admin approves your account.",
+            Text(
+              l10n.verifyingVehicleDetails,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -606,7 +610,7 @@ class _PendingApprovalViewState extends State<_PendingApprovalView> {
               child: FilledButton.icon(
                 onPressed: () => context.push('/documents'),
                 icon: const Icon(Icons.upload_file),
-                label: const Text('Upload remaining documents'),
+                label: Text(l10n.uploadRemainingDocuments),
               ),
             ),
             const SizedBox(height: 12),
@@ -620,7 +624,7 @@ class _PendingApprovalViewState extends State<_PendingApprovalView> {
                         width: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Check status'),
+                    : Text(l10n.checkStatus),
               ),
             ),
           ],

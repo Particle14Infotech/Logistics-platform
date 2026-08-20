@@ -219,5 +219,25 @@
   "driverDetails": "ડ્રાઈવર વિગતો",
   "driversName": "ડ્રાઈવરનું નામ",
   "driversPhoneNumber": "ડ્રાઈવરનો ફોન નંબર",
-  "driversLicenseNumber": "ડ્રાઈવરનો લાઇસન્સ નંબર"
+  "driversLicenseNumber": "ડ્રાઈવરનો લાઇસન્સ નંબર",
+
+  "couldNotLoadYourProfile": "તમારી પ્રોફાઇલ લોડ કરી શકાઈ નહીં.\n{error}",
+  "heyName": "નમસ્તે {name}",
+  "thereFallbackName": "જી",
+  "onlineReadyForJobs": "ઓનલાઇન - જોબ માટે તૈયાર",
+  "searchTripsWaybillHint": "ટ્રિપ, વેબિલ નંબર શોધો",
+  "tripInProgress": "ટ્રિપ ચાલુ છે",
+  "viewJobRequests": "જોબ વિનંતીઓ જુઓ",
+  "tapToResumeTracking": "ટ્રેકિંગ ફરી શરૂ કરવા માટે ટેપ કરો",
+  "browseBookingsNearYou": "તમારી નજીકની બુકિંગ્સ જુઓ",
+  "searchResults": "શોધ પરિણામો",
+  "recentTrips": "તાજેતરની ટ્રિપ",
+  "viewAll": "બધું જુઓ",
+  "noTripsMatch": "\"{query}\" સાથે મેળ ખાતું કોઈ ટ્રિપ નથી.",
+  "noTripsYet": "હજુ સુધી કોઈ ટ્રિપ નથી.",
+  "pendingApproval": "મંજૂરી બાકી",
+  "verifyingVehicleDetails": "અમે તમારા વાહનની વિગતો ચકાસી રહ્યા છીએ. એડમિન તમારું ખાતું મંજૂર કરે પછી તમે ઓનલાઇન જઈ શકશો.",
+  "uploadRemainingDocuments": "બાકીના દસ્તાવેજો અપલોડ કરો",
+  "checkStatus": "સ્થિતિ તપાસો",
+  "stillPendingApprovalCheckBack": "હજુ પણ મંજૂરી બાકી છે - ટૂંક સમયમાં ફરી તપાસો."
 }

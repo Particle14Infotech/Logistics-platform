@@ -219,5 +219,25 @@
   "driverDetails": "டிரைவர் விவரங்கள்",
   "driversName": "டிரைவரின் பெயர்",
   "driversPhoneNumber": "டிரைவரின் தொலைபேசி எண்",
-  "driversLicenseNumber": "டிரைவரின் உரிம எண்"
+  "driversLicenseNumber": "டிரைவரின் உரிம எண்",
+
+  "couldNotLoadYourProfile": "உங்கள் சுயவிவரத்தை ஏற்ற முடியவில்லை.\n{error}",
+  "heyName": "வணக்கம் {name}",
+  "thereFallbackName": "நண்பரே",
+  "onlineReadyForJobs": "ஆன்லைன் - வேலைகளுக்குத் தயார்",
+  "searchTripsWaybillHint": "பயணங்கள், வேபில் எண்ணைத் தேடுங்கள்",
+  "tripInProgress": "பயணம் நடைபெறுகிறது",
+  "viewJobRequests": "வேலை கோரிக்கைகளைக் காண்க",
+  "tapToResumeTracking": "கண்காணிப்பை மீண்டும் தொடங்க தட்டவும்",
+  "browseBookingsNearYou": "உங்களுக்கு அருகிலுள்ள முன்பதிவுகளை உலாவவும்",
+  "searchResults": "தேடல் முடிவுகள்",
+  "recentTrips": "சமீபத்திய பயணங்கள்",
+  "viewAll": "அனைத்தையும் காண்க",
+  "noTripsMatch": "\"{query}\" உடன் பொருந்தும் பயணங்கள் இல்லை.",
+  "noTripsYet": "இதுவரை பயணங்கள் இல்லை.",
+  "pendingApproval": "ஒப்புதல் நிலுவையில்",
+  "verifyingVehicleDetails": "உங்கள் வாகன விவரங்களை நாங்கள் சரிபார்க்கிறோம். நிர்வாகி உங்கள் கணக்கை அங்கீகரித்தவுடன் நீங்கள் ஆன்லைனுக்கு செல்லலாம்.",
+  "uploadRemainingDocuments": "மீதமுள்ள ஆவணங்களைப் பதிவேற்றவும்",
+  "checkStatus": "நிலையைச் சரிபார்க்கவும்",
+  "stillPendingApprovalCheckBack": "இன்னும் ஒப்புதல் நிலுவையில் உள்ளது - விரைவில் மீண்டும் சரிபார்க்கவும்."
 }

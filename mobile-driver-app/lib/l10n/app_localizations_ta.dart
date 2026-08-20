@@ -662,4 +662,70 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get driversLicenseNumber => 'டிரைவரின் உரிம எண்';
+
+  @override
+  String couldNotLoadYourProfile(String error) {
+    return 'உங்கள் சுயவிவரத்தை ஏற்ற முடியவில்லை.\n$error';
+  }
+
+  @override
+  String heyName(String name) {
+    return 'வணக்கம் $name';
+  }
+
+  @override
+  String get thereFallbackName => 'நண்பரே';
+
+  @override
+  String get onlineReadyForJobs => 'ஆன்லைன் - வேலைகளுக்குத் தயார்';
+
+  @override
+  String get searchTripsWaybillHint => 'பயணங்கள், வேபில் எண்ணைத் தேடுங்கள்';
+
+  @override
+  String get tripInProgress => 'பயணம் நடைபெறுகிறது';
+
+  @override
+  String get viewJobRequests => 'வேலை கோரிக்கைகளைக் காண்க';
+
+  @override
+  String get tapToResumeTracking => 'கண்காணிப்பை மீண்டும் தொடங்க தட்டவும்';
+
+  @override
+  String get browseBookingsNearYou =>
+      'உங்களுக்கு அருகிலுள்ள முன்பதிவுகளை உலாவவும்';
+
+  @override
+  String get searchResults => 'தேடல் முடிவுகள்';
+
+  @override
+  String get recentTrips => 'சமீபத்திய பயணங்கள்';
+
+  @override
+  String get viewAll => 'அனைத்தையும் காண்க';
+
+  @override
+  String noTripsMatch(String query) {
+    return '\"$query\" உடன் பொருந்தும் பயணங்கள் இல்லை.';
+  }
+
+  @override
+  String get noTripsYet => 'இதுவரை பயணங்கள் இல்லை.';
+
+  @override
+  String get pendingApproval => 'ஒப்புதல் நிலுவையில்';
+
+  @override
+  String get verifyingVehicleDetails =>
+      'உங்கள் வாகன விவரங்களை நாங்கள் சரிபார்க்கிறோம். நிர்வாகி உங்கள் கணக்கை அங்கீகரித்தவுடன் நீங்கள் ஆன்லைனுக்கு செல்லலாம்.';
+
+  @override
+  String get uploadRemainingDocuments => 'மீதமுள்ள ஆவணங்களைப் பதிவேற்றவும்';
+
+  @override
+  String get checkStatus => 'நிலையைச் சரிபார்க்கவும்';
+
+  @override
+  String get stillPendingApprovalCheckBack =>
+      'இன்னும் ஒப்புதல் நிலுவையில் உள்ளது - விரைவில் மீண்டும் சரிபார்க்கவும்.';
 }

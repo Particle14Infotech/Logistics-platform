@@ -659,4 +659,69 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get driversLicenseNumber => 'ડ્રાઈવરનો લાઇસન્સ નંબર';
+
+  @override
+  String couldNotLoadYourProfile(String error) {
+    return 'તમારી પ્રોફાઇલ લોડ કરી શકાઈ નહીં.\n$error';
+  }
+
+  @override
+  String heyName(String name) {
+    return 'નમસ્તે $name';
+  }
+
+  @override
+  String get thereFallbackName => 'જી';
+
+  @override
+  String get onlineReadyForJobs => 'ઓનલાઇન - જોબ માટે તૈયાર';
+
+  @override
+  String get searchTripsWaybillHint => 'ટ્રિપ, વેબિલ નંબર શોધો';
+
+  @override
+  String get tripInProgress => 'ટ્રિપ ચાલુ છે';
+
+  @override
+  String get viewJobRequests => 'જોબ વિનંતીઓ જુઓ';
+
+  @override
+  String get tapToResumeTracking => 'ટ્રેકિંગ ફરી શરૂ કરવા માટે ટેપ કરો';
+
+  @override
+  String get browseBookingsNearYou => 'તમારી નજીકની બુકિંગ્સ જુઓ';
+
+  @override
+  String get searchResults => 'શોધ પરિણામો';
+
+  @override
+  String get recentTrips => 'તાજેતરની ટ્રિપ';
+
+  @override
+  String get viewAll => 'બધું જુઓ';
+
+  @override
+  String noTripsMatch(String query) {
+    return '\"$query\" સાથે મેળ ખાતું કોઈ ટ્રિપ નથી.';
+  }
+
+  @override
+  String get noTripsYet => 'હજુ સુધી કોઈ ટ્રિપ નથી.';
+
+  @override
+  String get pendingApproval => 'મંજૂરી બાકી';
+
+  @override
+  String get verifyingVehicleDetails =>
+      'અમે તમારા વાહનની વિગતો ચકાસી રહ્યા છીએ. એડમિન તમારું ખાતું મંજૂર કરે પછી તમે ઓનલાઇન જઈ શકશો.';
+
+  @override
+  String get uploadRemainingDocuments => 'બાકીના દસ્તાવેજો અપલોડ કરો';
+
+  @override
+  String get checkStatus => 'સ્થિતિ તપાસો';
+
+  @override
+  String get stillPendingApprovalCheckBack =>
+      'હજુ પણ મંજૂરી બાકી છે - ટૂંક સમયમાં ફરી તપાસો.';
 }

@@ -219,5 +219,25 @@
   "driverDetails": "ड्राइवर विवरण",
   "driversName": "ड्राइवर का नाम",
   "driversPhoneNumber": "ड्राइवर का फ़ोन नंबर",
-  "driversLicenseNumber": "ड्राइवर की लाइसेंस संख्या"
+  "driversLicenseNumber": "ड्राइवर की लाइसेंस संख्या",
+
+  "couldNotLoadYourProfile": "आपकी प्रोफ़ाइल लोड नहीं हो सकी।\n{error}",
+  "heyName": "नमस्ते {name}",
+  "thereFallbackName": "जी",
+  "onlineReadyForJobs": "ऑनलाइन - जॉब के लिए तैयार",
+  "searchTripsWaybillHint": "ट्रिप, वेबिल नंबर खोजें",
+  "tripInProgress": "ट्रिप जारी है",
+  "viewJobRequests": "जॉब अनुरोध देखें",
+  "tapToResumeTracking": "ट्रैकिंग फिर से शुरू करने के लिए टैप करें",
+  "browseBookingsNearYou": "अपने आस-पास की बुकिंग देखें",
+  "searchResults": "खोज परिणाम",
+  "recentTrips": "हाल की ट्रिप",
+  "viewAll": "सभी देखें",
+  "noTripsMatch": "\"{query}\" से मेल खाने वाली कोई ट्रिप नहीं।",
+  "noTripsYet": "अभी तक कोई ट्रिप नहीं।",
+  "pendingApproval": "मंज़ूरी लंबित",
+  "verifyingVehicleDetails": "हम आपके वाहन विवरण सत्यापित कर रहे हैं। एडमिन आपके खाते को मंज़ूरी देने के बाद आप ऑनलाइन जा सकेंगे।",
+  "uploadRemainingDocuments": "शेष दस्तावेज़ अपलोड करें",
+  "checkStatus": "स्थिति जांचें",
+  "stillPendingApprovalCheckBack": "अभी भी मंज़ूरी लंबित है - जल्द ही फिर से जांचें।"
 }

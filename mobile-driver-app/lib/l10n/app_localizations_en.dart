@@ -660,4 +660,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driversLicenseNumber => 'Driver\'s license number';
+
+  @override
+  String couldNotLoadYourProfile(String error) {
+    return 'Could not load your profile.\n$error';
+  }
+
+  @override
+  String heyName(String name) {
+    return 'Hey $name';
+  }
+
+  @override
+  String get thereFallbackName => 'there';
+
+  @override
+  String get onlineReadyForJobs => 'Online - ready for jobs';
+
+  @override
+  String get searchTripsWaybillHint => 'Search trips, waybill no.';
+
+  @override
+  String get tripInProgress => 'Trip in progress';
+
+  @override
+  String get viewJobRequests => 'View job requests';
+
+  @override
+  String get tapToResumeTracking => 'Tap to resume tracking';
+
+  @override
+  String get browseBookingsNearYou => 'Browse bookings near you';
+
+  @override
+  String get searchResults => 'Search results';
+
+  @override
+  String get recentTrips => 'Recent trips';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String noTripsMatch(String query) {
+    return 'No trips match \"$query\".';
+  }
+
+  @override
+  String get noTripsYet => 'No trips yet.';
+
+  @override
+  String get pendingApproval => 'Pending approval';
+
+  @override
+  String get verifyingVehicleDetails =>
+      'We\'re verifying your vehicle details. You\'ll be able to go online once an admin approves your account.';
+
+  @override
+  String get uploadRemainingDocuments => 'Upload remaining documents';
+
+  @override
+  String get checkStatus => 'Check status';
+
+  @override
+  String get stillPendingApprovalCheckBack =>
+      'Still pending approval - check back soon.';
 }

@@ -660,4 +660,69 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get driversLicenseNumber => 'ड्राइवर की लाइसेंस संख्या';
+
+  @override
+  String couldNotLoadYourProfile(String error) {
+    return 'आपकी प्रोफ़ाइल लोड नहीं हो सकी।\n$error';
+  }
+
+  @override
+  String heyName(String name) {
+    return 'नमस्ते $name';
+  }
+
+  @override
+  String get thereFallbackName => 'जी';
+
+  @override
+  String get onlineReadyForJobs => 'ऑनलाइन - जॉब के लिए तैयार';
+
+  @override
+  String get searchTripsWaybillHint => 'ट्रिप, वेबिल नंबर खोजें';
+
+  @override
+  String get tripInProgress => 'ट्रिप जारी है';
+
+  @override
+  String get viewJobRequests => 'जॉब अनुरोध देखें';
+
+  @override
+  String get tapToResumeTracking => 'ट्रैकिंग फिर से शुरू करने के लिए टैप करें';
+
+  @override
+  String get browseBookingsNearYou => 'अपने आस-पास की बुकिंग देखें';
+
+  @override
+  String get searchResults => 'खोज परिणाम';
+
+  @override
+  String get recentTrips => 'हाल की ट्रिप';
+
+  @override
+  String get viewAll => 'सभी देखें';
+
+  @override
+  String noTripsMatch(String query) {
+    return '\"$query\" से मेल खाने वाली कोई ट्रिप नहीं।';
+  }
+
+  @override
+  String get noTripsYet => 'अभी तक कोई ट्रिप नहीं।';
+
+  @override
+  String get pendingApproval => 'मंज़ूरी लंबित';
+
+  @override
+  String get verifyingVehicleDetails =>
+      'हम आपके वाहन विवरण सत्यापित कर रहे हैं। एडमिन आपके खाते को मंज़ूरी देने के बाद आप ऑनलाइन जा सकेंगे।';
+
+  @override
+  String get uploadRemainingDocuments => 'शेष दस्तावेज़ अपलोड करें';
+
+  @override
+  String get checkStatus => 'स्थिति जांचें';
+
+  @override
+  String get stillPendingApprovalCheckBack =>
+      'अभी भी मंज़ूरी लंबित है - जल्द ही फिर से जांचें।';
 }

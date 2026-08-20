@@ -219,5 +219,25 @@
   "driverDetails": "డ్రైవర్ వివరాలు",
   "driversName": "డ్రైవర్ పేరు",
   "driversPhoneNumber": "డ్రైవర్ ఫోన్ నంబర్",
-  "driversLicenseNumber": "డ్రైవర్ లైసెన్స్ నంబర్"
+  "driversLicenseNumber": "డ్రైవర్ లైసెన్స్ నంబర్",
+
+  "couldNotLoadYourProfile": "మీ ప్రొఫైల్‌ను లోడ్ చేయడం సాధ్యం కాలేదు.\n{error}",
+  "heyName": "నమస్తే {name}",
+  "thereFallbackName": "మిత్రమా",
+  "onlineReadyForJobs": "ఆన్‌లైన్‌లో - జాబ్‌ల కోసం సిద్ధంగా ఉంది",
+  "searchTripsWaybillHint": "ట్రిప్‌లు, వేబిల్ నంబర్‌ను శోధించండి",
+  "tripInProgress": "ట్రిప్ జరుగుతోంది",
+  "viewJobRequests": "జాబ్ అభ్యర్థనలను వీక్షించండి",
+  "tapToResumeTracking": "ట్రాకింగ్‌ను తిరిగి ప్రారంభించడానికి నొక్కండి",
+  "browseBookingsNearYou": "మీ సమీపంలోని బుకింగ్‌లను బ్రౌజ్ చేయండి",
+  "searchResults": "శోధన ఫలితాలు",
+  "recentTrips": "ఇటీవలి ట్రిప్‌లు",
+  "viewAll": "అన్నీ వీక్షించండి",
+  "noTripsMatch": "\"{query}\"కి సరిపోలే ట్రిప్‌లు లేవు.",
+  "noTripsYet": "ఇంకా ట్రిప్‌లు లేవు.",
+  "pendingApproval": "ఆమోదం పెండింగ్‌లో ఉంది",
+  "verifyingVehicleDetails": "మేము మీ వాహన వివరాలను ధృవీకరిస్తున్నాము. అడ్మిన్ మీ ఖాతాను ఆమోదించిన తర్వాత మీరు ఆన్‌లైన్‌కి వెళ్లగలరు.",
+  "uploadRemainingDocuments": "మిగిలిన పత్రాలను అప్‌లోడ్ చేయండి",
+  "checkStatus": "స్థితిని తనిఖీ చేయండి",
+  "stillPendingApprovalCheckBack": "ఇంకా ఆమోదం పెండింగ్‌లో ఉంది - త్వరలో మళ్లీ తనిఖీ చేయండి."
 }

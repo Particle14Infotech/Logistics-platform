@@ -668,4 +668,70 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get driversLicenseNumber => 'డ్రైవర్ లైసెన్స్ నంబర్';
+
+  @override
+  String couldNotLoadYourProfile(String error) {
+    return 'మీ ప్రొఫైల్‌ను లోడ్ చేయడం సాధ్యం కాలేదు.\n$error';
+  }
+
+  @override
+  String heyName(String name) {
+    return 'నమస్తే $name';
+  }
+
+  @override
+  String get thereFallbackName => 'మిత్రమా';
+
+  @override
+  String get onlineReadyForJobs => 'ఆన్‌లైన్‌లో - జాబ్‌ల కోసం సిద్ధంగా ఉంది';
+
+  @override
+  String get searchTripsWaybillHint => 'ట్రిప్‌లు, వేబిల్ నంబర్‌ను శోధించండి';
+
+  @override
+  String get tripInProgress => 'ట్రిప్ జరుగుతోంది';
+
+  @override
+  String get viewJobRequests => 'జాబ్ అభ్యర్థనలను వీక్షించండి';
+
+  @override
+  String get tapToResumeTracking =>
+      'ట్రాకింగ్‌ను తిరిగి ప్రారంభించడానికి నొక్కండి';
+
+  @override
+  String get browseBookingsNearYou => 'మీ సమీపంలోని బుకింగ్‌లను బ్రౌజ్ చేయండి';
+
+  @override
+  String get searchResults => 'శోధన ఫలితాలు';
+
+  @override
+  String get recentTrips => 'ఇటీవలి ట్రిప్‌లు';
+
+  @override
+  String get viewAll => 'అన్నీ వీక్షించండి';
+
+  @override
+  String noTripsMatch(String query) {
+    return '\"$query\"కి సరిపోలే ట్రిప్‌లు లేవు.';
+  }
+
+  @override
+  String get noTripsYet => 'ఇంకా ట్రిప్‌లు లేవు.';
+
+  @override
+  String get pendingApproval => 'ఆమోదం పెండింగ్‌లో ఉంది';
+
+  @override
+  String get verifyingVehicleDetails =>
+      'మేము మీ వాహన వివరాలను ధృవీకరిస్తున్నాము. అడ్మిన్ మీ ఖాతాను ఆమోదించిన తర్వాత మీరు ఆన్‌లైన్‌కి వెళ్లగలరు.';
+
+  @override
+  String get uploadRemainingDocuments => 'మిగిలిన పత్రాలను అప్‌లోడ్ చేయండి';
+
+  @override
+  String get checkStatus => 'స్థితిని తనిఖీ చేయండి';
+
+  @override
+  String get stillPendingApprovalCheckBack =>
+      'ఇంకా ఆమోదం పెండింగ్‌లో ఉంది - త్వరలో మళ్లీ తనిఖీ చేయండి.';
 }

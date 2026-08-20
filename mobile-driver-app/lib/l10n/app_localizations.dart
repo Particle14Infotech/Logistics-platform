@@ -1300,6 +1300,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Driver\'s license number'**
   String get driversLicenseNumber;
+
+  /// No description provided for @couldNotLoadYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your profile.\n{error}'**
+  String couldNotLoadYourProfile(String error);
+
+  /// No description provided for @heyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey {name}'**
+  String heyName(String name);
+
+  /// No description provided for @thereFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'there'**
+  String get thereFallbackName;
+
+  /// No description provided for @onlineReadyForJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Online - ready for jobs'**
+  String get onlineReadyForJobs;
+
+  /// No description provided for @searchTripsWaybillHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search trips, waybill no.'**
+  String get searchTripsWaybillHint;
+
+  /// No description provided for @tripInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip in progress'**
+  String get tripInProgress;
+
+  /// No description provided for @viewJobRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'View job requests'**
+  String get viewJobRequests;
+
+  /// No description provided for @tapToResumeTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to resume tracking'**
+  String get tapToResumeTracking;
+
+  /// No description provided for @browseBookingsNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse bookings near you'**
+  String get browseBookingsNearYou;
+
+  /// No description provided for @searchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Search results'**
+  String get searchResults;
+
+  /// No description provided for @recentTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent trips'**
+  String get recentTrips;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @noTripsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No trips match \"{query}\".'**
+  String noTripsMatch(String query);
+
+  /// No description provided for @noTripsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No trips yet.'**
+  String get noTripsYet;
+
+  /// No description provided for @pendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get pendingApproval;
+
+  /// No description provided for @verifyingVehicleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re verifying your vehicle details. You\'ll be able to go online once an admin approves your account.'**
+  String get verifyingVehicleDetails;
+
+  /// No description provided for @uploadRemainingDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload remaining documents'**
+  String get uploadRemainingDocuments;
+
+  /// No description provided for @checkStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Check status'**
+  String get checkStatus;
+
+  /// No description provided for @stillPendingApprovalCheckBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Still pending approval - check back soon.'**
+  String get stillPendingApprovalCheckBack;
 }
 
 class _AppLocalizationsDelegate
