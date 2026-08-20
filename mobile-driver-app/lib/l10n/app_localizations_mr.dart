@@ -724,4 +724,247 @@ class AppLocalizationsMr extends AppLocalizations {
   @override
   String get stillPendingApprovalCheckBack =>
       'अजूनही मंजुरी प्रलंबित आहे - लवकरच पुन्हा तपासा.';
+
+  @override
+  String get enterValidEmail => 'वैध ईमेल पत्ता टाका.';
+
+  @override
+  String get enterYourPassword => 'तुमचा पासवर्ड टाका.';
+
+  @override
+  String get couldNotLogInTryAgain =>
+      'लॉग इन करता आले नाही. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get passwordMinLength => 'पासवर्ड किमान 6 अक्षरांचा असावा.';
+
+  @override
+  String get passwordsDoNotMatch => 'पासवर्ड जुळत नाहीत.';
+
+  @override
+  String get couldNotCreateAccountTryAgain =>
+      'तुमचे खाते तयार करता आले नाही. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get notVerifiedYetTapLink =>
+      'अजून सत्यापित नाही - आम्ही पाठवलेल्या ईमेलमधील लिंकवर टॅप करा.';
+
+  @override
+  String get couldNotCheckVerificationTryAgain =>
+      'सत्यापन स्थिती तपासता आली नाही. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get couldNotResendEmailTryAgain =>
+      'ईमेल पुन्हा पाठवता आला नाही. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get couldNotSendCodeTryAgain =>
+      'कोड पाठवता आला नाही. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get enterSixDigitCode => '6-अंकी कोड टाका.';
+
+  @override
+  String get incorrectOrExpiredCode => 'चुकीचा किंवा कालबाह्य कोड.';
+
+  @override
+  String get couldNotVerifyCodeTryAgain =>
+      'तो कोड सत्यापित करता आला नाही. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get enterFullName => 'तुमचे पूर्ण नाव टाका.';
+
+  @override
+  String get enterValidPhoneNumber10Digit => 'वैध 10-अंकी फोन नंबर टाका.';
+
+  @override
+  String get selectYourDob => 'तुमची जन्मतारीख निवडा.';
+
+  @override
+  String get couldNotSaveDetailsTryAgain =>
+      'तुमचे तपशील जतन करता आले नाहीत. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get enterEmailFirstThenForgot =>
+      'आधी वर तुमचा ईमेल टाका, नंतर \"पासवर्ड विसरलात?\" वर टॅप करा.';
+
+  @override
+  String passwordResetLinkSentTo(String email) {
+    return 'पासवर्ड रीसेट लिंक $email वर पाठवली';
+  }
+
+  @override
+  String get enterValidMobileNumber => 'वैध 10-अंकी मोबाइल नंबर टाका.';
+
+  @override
+  String get accountExistsForEmailTryLogin =>
+      'त्या ईमेलसाठी आधीच खाते अस्तित्वात आहे. त्याऐवजी लॉग इन करून पहा.';
+
+  @override
+  String get emailLooksInvalid => 'तो ईमेल पत्ता अवैध वाटतो.';
+
+  @override
+  String get chooseStrongerPassword => 'अधिक मजबूत पासवर्ड निवडा.';
+
+  @override
+  String get incorrectEmailOrPassword => 'चुकीचा ईमेल किंवा पासवर्ड.';
+
+  @override
+  String get tooManyAttemptsTryAgain =>
+      'खूप जास्त प्रयत्न. थोड्या वेळाने पुन्हा प्रयत्न करा.';
+
+  @override
+  String get phoneNumberLooksInvalid => 'तो फोन नंबर अवैध वाटतो.';
+
+  @override
+  String get codeExpiredRequestNew => 'तो कोड कालबाह्य झाला - नवीन विनंती करा.';
+
+  @override
+  String get somethingWentWrongTryAgain =>
+      'काहीतरी चूक झाली. पुन्हा प्रयत्न करा.';
+
+  @override
+  String get verifyYourNumber => 'तुमचा नंबर सत्यापित करा';
+
+  @override
+  String get welcomeExclaim => 'स्वागत आहे!';
+
+  @override
+  String weveSentCodeToPhone(String phone) {
+    return 'आम्ही +91 $phone वर 6-अंकी कोड पाठवला आहे';
+  }
+
+  @override
+  String get logInOrSignUpWithMobile =>
+      'तुमच्या मोबाइल नंबरने लॉग इन किंवा साइन अप करा';
+
+  @override
+  String get welcomeBack => 'पुन्हा स्वागत आहे!';
+
+  @override
+  String get createAccount => 'खाते तयार करा';
+
+  @override
+  String get verifyYourEmail => 'तुमचा ईमेल सत्यापित करा';
+
+  @override
+  String get tellUsAboutYourself => 'आम्हाला तुमच्याबद्दल सांगा';
+
+  @override
+  String get logInWithEmailToContinue =>
+      'सुरू ठेवण्यासाठी तुमच्या ईमेलने लॉग इन करा';
+
+  @override
+  String get signUpWithEmailToGetStarted =>
+      'सुरुवात करण्यासाठी तुमच्या ईमेलने साइन अप करा';
+
+  @override
+  String weveSentVerificationLinkTo(String email) {
+    return 'आम्ही $email वर सत्यापन लिंक पाठवली आहे';
+  }
+
+  @override
+  String get thisHelpsCustomersSupportIdentifyYou =>
+      'यामुळे ग्राहक आणि सपोर्ट टीमला तुम्हाला ओळखण्यास मदत होते.';
+
+  @override
+  String get emailLabel => 'ईमेल';
+
+  @override
+  String get emailExampleHint => 'you@example.com';
+
+  @override
+  String get passwordLabel => 'पासवर्ड';
+
+  @override
+  String get yourPasswordHint => 'तुमचा पासवर्ड';
+
+  @override
+  String get forgotPassword => 'पासवर्ड विसरलात?';
+
+  @override
+  String get logIn => 'लॉग इन करा';
+
+  @override
+  String get dontHaveAccountSignUp => 'खाते नाही? साइन अप करा';
+
+  @override
+  String get emailMethod => 'ईमेल';
+
+  @override
+  String get phoneMethod => 'फोन';
+
+  @override
+  String get verificationCode => 'सत्यापन कोड';
+
+  @override
+  String get sixDigitCodeHint => '6-अंकी कोड';
+
+  @override
+  String get verifyAndContinue => 'सत्यापित करा आणि सुरू ठेवा';
+
+  @override
+  String resendCodeInSeconds(int seconds) {
+    return '$seconds सेकंदात कोड पुन्हा पाठवा';
+  }
+
+  @override
+  String get resendCode => 'कोड पुन्हा पाठवा';
+
+  @override
+  String get phoneNumberLabel => 'फोन नंबर';
+
+  @override
+  String get phoneNumberSampleHint => '98765 43210';
+
+  @override
+  String get sendOtp => 'OTP पाठवा';
+
+  @override
+  String get min6CharsHintPassword => 'किमान 6 अक्षरे';
+
+  @override
+  String get confirmPasswordLabel => 'पासवर्डची पुष्टी करा';
+
+  @override
+  String get reEnterPasswordHint => 'पासवर्ड पुन्हा टाका';
+
+  @override
+  String get signUp => 'साइन अप करा';
+
+  @override
+  String get alreadyHaveAccountLogIn => 'आधीच खाते आहे? लॉग इन करा';
+
+  @override
+  String get sendCode => 'कोड पाठवा';
+
+  @override
+  String get verifyCode => 'कोड सत्यापित करा';
+
+  @override
+  String get useLinkInstead => 'त्याऐवजी लिंक वापरा';
+
+  @override
+  String get iveVerifiedMyEmail => 'मी माझा ईमेल सत्यापित केला आहे';
+
+  @override
+  String get verificationEmailSentAgain => 'सत्यापन ईमेल पुन्हा पाठवला';
+
+  @override
+  String get resendVerificationEmail => 'सत्यापन ईमेल पुन्हा पाठवा';
+
+  @override
+  String get enterCodeInstead => 'त्याऐवजी कोड टाका';
+
+  @override
+  String get fullNameLabel => 'पूर्ण नाव';
+
+  @override
+  String get yourNameHint => 'तुमचे नाव';
+
+  @override
+  String get dateOfBirth => 'जन्मतारीख';
+
+  @override
+  String get selectYourDateOfBirth => 'तुमची जन्मतारीख निवडा';
 }

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/selected_role_provider.dart';
 import '../../services/auth_service.dart';
@@ -106,14 +107,15 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   bool _isValidEmail(String value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value);
 
   Future<void> _login() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (!_isValidEmail(email)) {
-      setState(() => _error = 'Enter a valid email address.');
+      setState(() => _error = l10n.enterValidEmail);
       return;
     }
     if (password.isEmpty) {
-      setState(() => _error = 'Enter your password.');
+      setState(() => _error = l10n.enterYourPassword);
       return;
     }
     setState(() {
@@ -132,25 +134,26 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       await _syncSessionAndContinue();
     } catch (e, st) {
       debugPrint('[_login] EXCEPTION: $e\n$st');
-      setState(() => _error = _extractErrorMessage(e, 'Could not log in. Try again.'));
+      setState(() => _error = _extractErrorMessage(e, l10n.couldNotLogInTryAgain));
     } finally {
       setState(() => _loading = false);
     }
   }
 
   Future<void> _register() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (!_isValidEmail(email)) {
-      setState(() => _error = 'Enter a valid email address.');
+      setState(() => _error = l10n.enterValidEmail);
       return;
     }
     if (password.length < 6) {
-      setState(() => _error = 'Password must be at least 6 characters.');
+      setState(() => _error = l10n.passwordMinLength);
       return;
     }
     if (password != _confirmPasswordController.text) {
-      setState(() => _error = 'Passwords do not match.');
+      setState(() => _error = l10n.passwordsDoNotMatch);
       return;
     }
     setState(() {
@@ -167,13 +170,14 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       setState(() => _error = _messageFor(e));
     } catch (e, st) {
       debugPrint('[_register] EXCEPTION: $e\n$st');
-      setState(() => _error = 'Could not create your account. Try again.');
+      setState(() => _error = l10n.couldNotCreateAccountTryAgain);
     } finally {
       setState(() => _loading = false);
     }
   }
 
   Future<void> _checkVerifiedAndContinue() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _loading = true;
       _error = null;
@@ -181,28 +185,30 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     try {
       final verified = await _authService.checkEmailVerified();
       if (!verified) {
-        setState(() => _error = "Not verified yet - tap the link in the email we sent you.");
+        setState(() => _error = l10n.notVerifiedYetTapLink);
         return;
       }
       await _syncSessionAndContinue();
     } catch (e, st) {
       debugPrint('[_checkVerifiedAndContinue] EXCEPTION: $e\n$st');
-      setState(() => _error = _extractErrorMessage(e, 'Could not check verification status. Try again.'));
+      setState(() => _error = _extractErrorMessage(e, l10n.couldNotCheckVerificationTryAgain));
     } finally {
       setState(() => _loading = false);
     }
   }
 
   Future<void> _resendVerification() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       await _authService.resendVerificationEmail();
       setState(() => _resendSent = true);
     } catch (e) {
-      setState(() => _error = _extractErrorMessage(e, 'Could not resend the email. Try again.'));
+      setState(() => _error = _extractErrorMessage(e, l10n.couldNotResendEmailTryAgain));
     }
   }
 
   Future<void> _sendOtp() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _loading = true;
       _error = null;
@@ -212,15 +218,16 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       setState(() => _otpSent = true);
       _startResendCooldown();
     } catch (e) {
-      setState(() => _error = _extractErrorMessage(e, 'Could not send the code. Try again.'));
+      setState(() => _error = _extractErrorMessage(e, l10n.couldNotSendCodeTryAgain));
     } finally {
       setState(() => _loading = false);
     }
   }
 
   Future<void> _verifyOtp() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_otpController.text.trim().length != 6) {
-      setState(() => _error = 'Enter the 6-digit code.');
+      setState(() => _error = l10n.enterSixDigitCode);
       return;
     }
     setState(() {
@@ -230,12 +237,12 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     try {
       final valid = await _authService.verifyEmailOtp(_otpController.text.trim());
       if (!valid) {
-        setState(() => _error = 'Incorrect or expired code.');
+        setState(() => _error = l10n.incorrectOrExpiredCode);
         return;
       }
       await _syncSessionAndContinue();
     } catch (e) {
-      setState(() => _error = _extractErrorMessage(e, 'Could not verify that code. Try again.'));
+      setState(() => _error = _extractErrorMessage(e, l10n.couldNotVerifyCodeTryAgain));
     } finally {
       setState(() => _loading = false);
     }
@@ -267,30 +274,32 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   }
 
   Future<void> _pickDob() async {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime(now.year - 25),
       firstDate: DateTime(now.year - 100),
       lastDate: DateTime(now.year - 18, now.month, now.day),
-      helpText: 'Date of birth',
+      helpText: l10n.dateOfBirth,
     );
     if (picked != null) setState(() => _dob = picked);
   }
 
   Future<void> _submitPersonalDetails() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Enter your full name.');
+      setState(() => _error = l10n.enterFullName);
       return;
     }
     if (phone.length < 10) {
-      setState(() => _error = 'Enter a valid 10-digit phone number.');
+      setState(() => _error = l10n.enterValidPhoneNumber10Digit);
       return;
     }
     if (_dob == null) {
-      setState(() => _error = 'Select your date of birth.');
+      setState(() => _error = l10n.selectYourDob);
       return;
     }
     setState(() {
@@ -311,23 +320,24 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
           );
       if (mounted) context.go('/splash');
     } catch (e) {
-      setState(() => _error = 'Could not save your details. Try again.');
+      setState(() => _error = l10n.couldNotSaveDetailsTryAgain);
     } finally {
       setState(() => _loading = false);
     }
   }
 
   Future<void> _forgotPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (!_isValidEmail(email)) {
-      setState(() => _error = 'Enter your email above first, then tap "Forgot password?".');
+      setState(() => _error = l10n.enterEmailFirstThenForgot);
       return;
     }
     try {
       await _authService.sendPasswordResetEmail(email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Password reset link sent to $email')),
+          SnackBar(content: Text(l10n.passwordResetLinkSentTo(email))),
         );
       }
     } on fb.FirebaseAuthException catch (e) {
@@ -338,9 +348,10 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   bool _isValidPhone(String value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value);
 
   Future<void> _sendPhoneOtp() async {
+    final l10n = AppLocalizations.of(context)!;
     final phone = _phoneController.text.trim();
     if (!_isValidPhone(phone)) {
-      setState(() => _error = 'Enter a valid 10-digit mobile number.');
+      setState(() => _error = l10n.enterValidMobileNumber);
       return;
     }
     setState(() {
@@ -358,16 +369,17 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       setState(() => _error = _messageFor(e));
     } catch (e, st) {
       debugPrint('[_sendPhoneOtp] EXCEPTION: $e\n$st');
-      setState(() => _error = 'Could not send the code. Try again.');
+      setState(() => _error = l10n.couldNotSendCodeTryAgain);
     } finally {
       setState(() => _loading = false);
     }
   }
 
   Future<void> _verifyPhoneOtp() async {
+    final l10n = AppLocalizations.of(context)!;
     final code = _phoneOtpController.text.trim();
     if (code.length != 6) {
-      setState(() => _error = 'Enter the 6-digit code.');
+      setState(() => _error = l10n.enterSixDigitCode);
       return;
     }
     setState(() {
@@ -379,36 +391,37 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       await _syncSessionAndContinue();
     } catch (e, st) {
       debugPrint('[_verifyPhoneOtp] EXCEPTION: $e\n$st');
-      setState(() => _error = _extractErrorMessage(e, 'Could not verify that code. Try again.'));
+      setState(() => _error = _extractErrorMessage(e, l10n.couldNotVerifyCodeTryAgain));
     } finally {
       setState(() => _loading = false);
     }
   }
 
   String _messageFor(fb.FirebaseAuthException e) {
+    final l10n = AppLocalizations.of(context)!;
     switch (e.code) {
       case 'email-already-in-use':
-        return 'An account already exists for that email. Try logging in instead.';
+        return l10n.accountExistsForEmailTryLogin;
       case 'invalid-email':
-        return 'That email address looks invalid.';
+        return l10n.emailLooksInvalid;
       case 'weak-password':
-        return 'Choose a stronger password.';
+        return l10n.chooseStrongerPassword;
       case 'user-not-found':
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Incorrect email or password.';
+        return l10n.incorrectEmailOrPassword;
       case 'too-many-requests':
       case 'quota-exceeded':
-        return 'Too many attempts. Try again in a moment.';
+        return l10n.tooManyAttemptsTryAgain;
       case 'invalid-phone-number':
-        return 'That phone number looks invalid.';
+        return l10n.phoneNumberLooksInvalid;
       case 'invalid-verification-code':
       case 'invalid-otp':
-        return 'Incorrect or expired code.';
+        return l10n.incorrectOrExpiredCode;
       case 'session-expired':
-        return 'That code expired - request a new one.';
+        return l10n.codeExpiredRequestNew;
       default:
-        return e.message ?? 'Something went wrong. Try again.';
+        return e.message ?? l10n.somethingWentWrongTryAgain;
     }
   }
 
@@ -450,17 +463,19 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   }
 
   String get _title {
+    final l10n = AppLocalizations.of(context)!;
     if (_method == _AuthMethod.phone && _step != _Step.personalDetails) {
-      return _phoneStep == _PhoneStep.enterOtp ? 'Verify Your Number' : 'Welcome!';
+      return _phoneStep == _PhoneStep.enterOtp ? l10n.verifyYourNumber : l10n.welcomeExclaim;
     }
     return _titleFor(_step);
   }
 
   String get _subtitle {
+    final l10n = AppLocalizations.of(context)!;
     if (_method == _AuthMethod.phone && _step != _Step.personalDetails) {
       return _phoneStep == _PhoneStep.enterOtp
-          ? "We've sent a 6-digit code to\n+91 ${_phoneController.text.trim()}"
-          : 'Log in or sign up with your mobile number';
+          ? l10n.weveSentCodeToPhone(_phoneController.text.trim())
+          : l10n.logInOrSignUpWithMobile;
     }
     return _subtitleFor(_step);
   }
@@ -516,36 +531,42 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     );
   }
 
-  String _titleFor(_Step step) => switch (step) {
-        _Step.login => 'Welcome Back!',
-        _Step.register => 'Create Account',
-        _Step.verifyEmail => 'Verify Your Email',
-        _Step.personalDetails => 'Tell Us About Yourself',
-      };
+  String _titleFor(_Step step) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (step) {
+      _Step.login => l10n.welcomeBack,
+      _Step.register => l10n.createAccount,
+      _Step.verifyEmail => l10n.verifyYourEmail,
+      _Step.personalDetails => l10n.tellUsAboutYourself,
+    };
+  }
 
-  String _subtitleFor(_Step step) => switch (step) {
-        _Step.login => 'Log in with your email to continue',
-        _Step.register => 'Sign up with your email to get started',
-        _Step.verifyEmail =>
-          "We've sent a verification link to\n${_emailController.text.trim()}",
-        _Step.personalDetails => 'This helps customers and support identify you.',
-      };
+  String _subtitleFor(_Step step) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (step) {
+      _Step.login => l10n.logInWithEmailToContinue,
+      _Step.register => l10n.signUpWithEmailToGetStarted,
+      _Step.verifyEmail => l10n.weveSentVerificationLinkTo(_emailController.text.trim()),
+      _Step.personalDetails => l10n.thisHelpsCustomersSupportIdentifyYou,
+    };
+  }
 
   Widget _buildLoginStep() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthTextField(
-          label: 'Email',
-          hint: 'you@example.com',
+          label: l10n.emailLabel,
+          hint: l10n.emailExampleHint,
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           prefixIcon: Icons.mail_outline,
         ),
         const SizedBox(height: 16),
         AuthTextField(
-          label: 'Password',
-          hint: 'Your password',
+          label: l10n.passwordLabel,
+          hint: l10n.yourPasswordHint,
           controller: _passwordController,
           prefixIcon: Icons.lock_outline,
           obscureText: true,
@@ -554,11 +575,11 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: _forgotPassword,
-            child: Text('Forgot password?', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.amber)),
+            child: Text(l10n.forgotPassword, style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.amber)),
           ),
         ),
         const SizedBox(height: 8),
-        AuthButton(label: 'Log In', onPressed: _login, isLoading: _loading),
+        AuthButton(label: l10n.logIn, onPressed: _login, isLoading: _loading),
         const SizedBox(height: 20),
         Center(
           child: TextButton(
@@ -566,7 +587,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
               _step = _Step.register;
               _error = null;
             }),
-            child: Text("Don't have an account? Sign up", style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+            child: Text(l10n.dontHaveAccountSignUp, style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
           ),
         ),
       ],
@@ -574,6 +595,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   }
 
   Widget _buildMethodToggle() {
+    final l10n = AppLocalizations.of(context)!;
     Widget tab(String label, _AuthMethod method) {
       final selected = _method == method;
       return Expanded(
@@ -605,18 +627,19 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: AppTheme.cardWhite, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.borderColor)),
-      child: Row(children: [tab('Email', _AuthMethod.email), tab('Phone', _AuthMethod.phone)]),
+      child: Row(children: [tab(l10n.emailMethod, _AuthMethod.email), tab(l10n.phoneMethod, _AuthMethod.phone)]),
     );
   }
 
   Widget _buildPhoneStep() {
+    final l10n = AppLocalizations.of(context)!;
     if (_phoneStep == _PhoneStep.enterOtp) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthTextField(
-            label: 'Verification code',
-            hint: '6-digit code',
+            label: l10n.verificationCode,
+            hint: l10n.sixDigitCodeHint,
             controller: _phoneOtpController,
             keyboardType: TextInputType.number,
             prefixIcon: Icons.pin_outlined,
@@ -624,13 +647,13 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
             autofillHints: const [AutofillHints.oneTimeCode],
           ),
           const SizedBox(height: 16),
-          AuthButton(label: 'Verify & Continue', onPressed: _verifyPhoneOtp, isLoading: _loading),
+          AuthButton(label: l10n.verifyAndContinue, onPressed: _verifyPhoneOtp, isLoading: _loading),
           const SizedBox(height: 12),
           Center(
             child: TextButton(
               onPressed: _resendSecondsLeft > 0 ? null : _sendPhoneOtp,
               child: Text(
-                _resendSecondsLeft > 0 ? 'Resend code in ${_resendSecondsLeft}s' : 'Resend code',
+                _resendSecondsLeft > 0 ? l10n.resendCodeInSeconds(_resendSecondsLeft) : l10n.resendCode,
                 style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
               ),
             ),
@@ -643,48 +666,49 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthTextField(
-          label: 'Phone number',
-          hint: '98765 43210',
+          label: l10n.phoneNumberLabel,
+          hint: l10n.phoneNumberSampleHint,
           controller: _phoneController,
           keyboardType: TextInputType.phone,
           prefixIcon: Icons.phone_outlined,
           maxLength: 10,
         ),
         const SizedBox(height: 24),
-        AuthButton(label: 'Send OTP', onPressed: _sendPhoneOtp, isLoading: _loading),
+        AuthButton(label: l10n.sendOtp, onPressed: _sendPhoneOtp, isLoading: _loading),
       ],
     );
   }
 
   Widget _buildRegisterStep() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthTextField(
-          label: 'Email',
-          hint: 'you@example.com',
+          label: l10n.emailLabel,
+          hint: l10n.emailExampleHint,
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           prefixIcon: Icons.mail_outline,
         ),
         const SizedBox(height: 16),
         AuthTextField(
-          label: 'Password',
-          hint: 'Min 6 characters',
+          label: l10n.passwordLabel,
+          hint: l10n.min6CharsHintPassword,
           controller: _passwordController,
           prefixIcon: Icons.lock_outline,
           obscureText: true,
         ),
         const SizedBox(height: 16),
         AuthTextField(
-          label: 'Confirm password',
-          hint: 'Re-enter password',
+          label: l10n.confirmPasswordLabel,
+          hint: l10n.reEnterPasswordHint,
           controller: _confirmPasswordController,
           prefixIcon: Icons.lock_outline,
           obscureText: true,
         ),
         const SizedBox(height: 24),
-        AuthButton(label: 'Sign Up', onPressed: _register, isLoading: _loading),
+        AuthButton(label: l10n.signUp, onPressed: _register, isLoading: _loading),
         const SizedBox(height: 20),
         Center(
           child: TextButton(
@@ -692,7 +716,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
               _step = _Step.login;
               _error = null;
             }),
-            child: Text('Already have an account? Log in', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+            child: Text(l10n.alreadyHaveAccountLogIn, style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
           ),
         ),
       ],
@@ -700,16 +724,17 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   }
 
   Widget _buildVerifyEmailStep() {
+    final l10n = AppLocalizations.of(context)!;
     if (_useOtpEntry) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!_otpSent) ...[
-            AuthButton(label: 'Send code', onPressed: _sendOtp, isLoading: _loading),
+            AuthButton(label: l10n.sendCode, onPressed: _sendOtp, isLoading: _loading),
           ] else ...[
             AuthTextField(
-              label: 'Verification code',
-              hint: '6-digit code',
+              label: l10n.verificationCode,
+              hint: l10n.sixDigitCodeHint,
               controller: _otpController,
               keyboardType: TextInputType.number,
               prefixIcon: Icons.pin_outlined,
@@ -717,13 +742,13 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
               autofillHints: const [AutofillHints.oneTimeCode],
             ),
             const SizedBox(height: 16),
-            AuthButton(label: 'Verify code', onPressed: _verifyOtp, isLoading: _loading),
+            AuthButton(label: l10n.verifyCode, onPressed: _verifyOtp, isLoading: _loading),
             const SizedBox(height: 12),
             Center(
               child: TextButton(
                 onPressed: _resendSecondsLeft > 0 ? null : _sendOtp,
                 child: Text(
-                  _resendSecondsLeft > 0 ? 'Resend code in ${_resendSecondsLeft}s' : 'Resend code',
+                  _resendSecondsLeft > 0 ? l10n.resendCodeInSeconds(_resendSecondsLeft) : l10n.resendCode,
                   style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
                 ),
               ),
@@ -736,7 +761,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                 _useOtpEntry = false;
                 _error = null;
               }),
-              child: Text('Use the link instead', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+              child: Text(l10n.useLinkInstead, style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
             ),
           ),
         ],
@@ -746,13 +771,13 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AuthButton(label: "I've verified my email", onPressed: _checkVerifiedAndContinue, isLoading: _loading),
+        AuthButton(label: l10n.iveVerifiedMyEmail, onPressed: _checkVerifiedAndContinue, isLoading: _loading),
         const SizedBox(height: 16),
         Center(
           child: TextButton(
             onPressed: _resendVerification,
             child: Text(
-              _resendSent ? 'Verification email sent again' : 'Resend verification email',
+              _resendSent ? l10n.verificationEmailSentAgain : l10n.resendVerificationEmail,
               style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey),
             ),
           ),
@@ -765,7 +790,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
               _otpSent = false;
               _error = null;
             }),
-            child: Text('Enter code instead', style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
+            child: Text(l10n.enterCodeInstead, style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textGrey)),
           ),
         ),
       ],
@@ -773,26 +798,27 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
   }
 
   Widget _buildPersonalDetailsStep() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthTextField(
-          label: 'Full name',
-          hint: 'Your name',
+          label: l10n.fullNameLabel,
+          hint: l10n.yourNameHint,
           controller: _nameController,
           prefixIcon: Icons.person_outline,
         ),
         const SizedBox(height: 16),
         AuthTextField(
-          label: 'Phone number',
-          hint: '98765 43210',
+          label: l10n.phoneNumberLabel,
+          hint: l10n.phoneNumberSampleHint,
           controller: _phoneController,
           keyboardType: TextInputType.phone,
           prefixIcon: Icons.phone_outlined,
           maxLength: 10,
         ),
         const SizedBox(height: 16),
-        Text('Date of birth', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+        Text(l10n.dateOfBirth, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
         const SizedBox(height: 8),
         InkWell(
           onTap: _pickDob,
@@ -811,7 +837,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                 const SizedBox(width: 12),
                 Text(
                   _dob == null
-                      ? 'Select your date of birth'
+                      ? l10n.selectYourDateOfBirth
                       : '${_dob!.day}/${_dob!.month}/${_dob!.year}',
                   style: GoogleFonts.poppins(
                     fontSize: 15,
@@ -823,7 +849,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        AuthButton(label: 'Continue', onPressed: _submitPersonalDetails, isLoading: _loading),
+        AuthButton(label: l10n.continueLabel, onPressed: _submitPersonalDetails, isLoading: _loading),
       ],
     );
   }

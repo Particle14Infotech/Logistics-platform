@@ -734,4 +734,253 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get stillPendingApprovalCheckBack =>
       'ఇంకా ఆమోదం పెండింగ్‌లో ఉంది - త్వరలో మళ్లీ తనిఖీ చేయండి.';
+
+  @override
+  String get enterValidEmail =>
+      'చెల్లుబాటు అయ్యే ఇమెయిల్ చిరునామాను నమోదు చేయండి.';
+
+  @override
+  String get enterYourPassword => 'మీ పాస్‌వర్డ్‌ను నమోదు చేయండి.';
+
+  @override
+  String get couldNotLogInTryAgain =>
+      'లాగిన్ చేయడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get passwordMinLength => 'పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి.';
+
+  @override
+  String get passwordsDoNotMatch => 'పాస్‌వర్డ్‌లు సరిపోలలేదు.';
+
+  @override
+  String get couldNotCreateAccountTryAgain =>
+      'మీ ఖాతాను సృష్టించడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get notVerifiedYetTapLink =>
+      'ఇంకా ధృవీకరించబడలేదు - మేము పంపిన ఇమెయిల్‌లోని లింక్‌ను నొక్కండి.';
+
+  @override
+  String get couldNotCheckVerificationTryAgain =>
+      'ధృవీకరణ స్థితిని తనిఖీ చేయడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get couldNotResendEmailTryAgain =>
+      'ఇమెయిల్‌ను మళ్లీ పంపడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get couldNotSendCodeTryAgain =>
+      'కోడ్‌ను పంపడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get enterSixDigitCode => '6-అంకెల కోడ్‌ను నమోదు చేయండి.';
+
+  @override
+  String get incorrectOrExpiredCode => 'తప్పు లేదా గడువు ముగిసిన కోడ్.';
+
+  @override
+  String get couldNotVerifyCodeTryAgain =>
+      'ఆ కోడ్‌ను ధృవీకరించడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get enterFullName => 'మీ పూర్తి పేరును నమోదు చేయండి.';
+
+  @override
+  String get enterValidPhoneNumber10Digit =>
+      'చెల్లుబాటు అయ్యే 10-అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి.';
+
+  @override
+  String get selectYourDob => 'మీ పుట్టిన తేదీని ఎంచుకోండి.';
+
+  @override
+  String get couldNotSaveDetailsTryAgain =>
+      'మీ వివరాలను సేవ్ చేయడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get enterEmailFirstThenForgot =>
+      'ముందుగా పైన మీ ఇమెయిల్‌ను నమోదు చేయండి, తర్వాత \"పాస్‌వర్డ్ మర్చిపోయారా?\" నొక్కండి.';
+
+  @override
+  String passwordResetLinkSentTo(String email) {
+    return 'పాస్‌వర్డ్ రీసెట్ లింక్ $emailకి పంపబడింది';
+  }
+
+  @override
+  String get enterValidMobileNumber =>
+      'చెల్లుబాటు అయ్యే 10-అంకెల మొబైల్ నంబర్‌ను నమోదు చేయండి.';
+
+  @override
+  String get accountExistsForEmailTryLogin =>
+      'ఆ ఇమెయిల్ కోసం ఇప్పటికే ఖాతా ఉంది. బదులుగా లాగిన్ చేయడానికి ప్రయత్నించండి.';
+
+  @override
+  String get emailLooksInvalid =>
+      'ఆ ఇమెయిల్ చిరునామా చెల్లనిదిగా కనిపిస్తోంది.';
+
+  @override
+  String get chooseStrongerPassword => 'బలమైన పాస్‌వర్డ్‌ను ఎంచుకోండి.';
+
+  @override
+  String get incorrectEmailOrPassword => 'తప్పు ఇమెయిల్ లేదా పాస్‌వర్డ్.';
+
+  @override
+  String get tooManyAttemptsTryAgain =>
+      'చాలా ఎక్కువ ప్రయత్నాలు. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get phoneNumberLooksInvalid =>
+      'ఆ ఫోన్ నంబర్ చెల్లనిదిగా కనిపిస్తోంది.';
+
+  @override
+  String get codeExpiredRequestNew =>
+      'ఆ కోడ్ గడువు ముగిసింది - కొత్తదాన్ని అభ్యర్థించండి.';
+
+  @override
+  String get somethingWentWrongTryAgain =>
+      'ఏదో తప్పు జరిగింది. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get verifyYourNumber => 'మీ నంబర్‌ను ధృవీకరించండి';
+
+  @override
+  String get welcomeExclaim => 'స్వాగతం!';
+
+  @override
+  String weveSentCodeToPhone(String phone) {
+    return 'మేము +91 $phoneకి 6-అంకెల కోడ్‌ను పంపాము';
+  }
+
+  @override
+  String get logInOrSignUpWithMobile =>
+      'మీ మొబైల్ నంబర్‌తో లాగిన్ చేయండి లేదా సైన్ అప్ చేయండి';
+
+  @override
+  String get welcomeBack => 'మళ్లీ స్వాగతం!';
+
+  @override
+  String get createAccount => 'ఖాతాను సృష్టించండి';
+
+  @override
+  String get verifyYourEmail => 'మీ ఇమెయిల్‌ను ధృవీకరించండి';
+
+  @override
+  String get tellUsAboutYourself => 'మీ గురించి మాకు చెప్పండి';
+
+  @override
+  String get logInWithEmailToContinue =>
+      'కొనసాగించడానికి మీ ఇమెయిల్‌తో లాగిన్ చేయండి';
+
+  @override
+  String get signUpWithEmailToGetStarted =>
+      'ప్రారంభించడానికి మీ ఇమెయిల్‌తో సైన్ అప్ చేయండి';
+
+  @override
+  String weveSentVerificationLinkTo(String email) {
+    return 'మేము $emailకి ధృవీకరణ లింక్‌ను పంపాము';
+  }
+
+  @override
+  String get thisHelpsCustomersSupportIdentifyYou =>
+      'ఇది కస్టమర్‌లు మరియు సపోర్ట్ టీమ్ మిమ్మల్ని గుర్తించడంలో సహాయపడుతుంది.';
+
+  @override
+  String get emailLabel => 'ఇమెయిల్';
+
+  @override
+  String get emailExampleHint => 'you@example.com';
+
+  @override
+  String get passwordLabel => 'పాస్‌వర్డ్';
+
+  @override
+  String get yourPasswordHint => 'మీ పాస్‌వర్డ్';
+
+  @override
+  String get forgotPassword => 'పాస్‌వర్డ్ మర్చిపోయారా?';
+
+  @override
+  String get logIn => 'లాగిన్ చేయండి';
+
+  @override
+  String get dontHaveAccountSignUp => 'ఖాతా లేదా? సైన్ అప్ చేయండి';
+
+  @override
+  String get emailMethod => 'ఇమెయిల్';
+
+  @override
+  String get phoneMethod => 'ఫోన్';
+
+  @override
+  String get verificationCode => 'ధృవీకరణ కోడ్';
+
+  @override
+  String get sixDigitCodeHint => '6-అంకెల కోడ్';
+
+  @override
+  String get verifyAndContinue => 'ధృవీకరించి కొనసాగించండి';
+
+  @override
+  String resendCodeInSeconds(int seconds) {
+    return '$seconds సెకన్లలో కోడ్‌ను మళ్లీ పంపండి';
+  }
+
+  @override
+  String get resendCode => 'కోడ్‌ను మళ్లీ పంపండి';
+
+  @override
+  String get phoneNumberLabel => 'ఫోన్ నంబర్';
+
+  @override
+  String get phoneNumberSampleHint => '98765 43210';
+
+  @override
+  String get sendOtp => 'OTP పంపండి';
+
+  @override
+  String get min6CharsHintPassword => 'కనీసం 6 అక్షరాలు';
+
+  @override
+  String get confirmPasswordLabel => 'పాస్‌వర్డ్‌ను నిర్ధారించండి';
+
+  @override
+  String get reEnterPasswordHint => 'పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి';
+
+  @override
+  String get signUp => 'సైన్ అప్ చేయండి';
+
+  @override
+  String get alreadyHaveAccountLogIn => 'ఇప్పటికే ఖాతా ఉందా? లాగిన్ చేయండి';
+
+  @override
+  String get sendCode => 'కోడ్‌ను పంపండి';
+
+  @override
+  String get verifyCode => 'కోడ్‌ను ధృవీకరించండి';
+
+  @override
+  String get useLinkInstead => 'బదులుగా లింక్‌ను ఉపయోగించండి';
+
+  @override
+  String get iveVerifiedMyEmail => 'నేను నా ఇమెయిల్‌ను ధృవీకరించాను';
+
+  @override
+  String get verificationEmailSentAgain => 'ధృవీకరణ ఇమెయిల్ మళ్లీ పంపబడింది';
+
+  @override
+  String get resendVerificationEmail => 'ధృవీకరణ ఇమెయిల్‌ను మళ్లీ పంపండి';
+
+  @override
+  String get enterCodeInstead => 'బదులుగా కోడ్‌ను నమోదు చేయండి';
+
+  @override
+  String get fullNameLabel => 'పూర్తి పేరు';
+
+  @override
+  String get yourNameHint => 'మీ పేరు';
+
+  @override
+  String get dateOfBirth => 'పుట్టిన తేదీ';
+
+  @override
+  String get selectYourDateOfBirth => 'మీ పుట్టిన తేదీని ఎంచుకోండి';
 }

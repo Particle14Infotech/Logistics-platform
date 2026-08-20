@@ -725,4 +725,244 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stillPendingApprovalCheckBack =>
       'Still pending approval - check back soon.';
+
+  @override
+  String get enterValidEmail => 'Enter a valid email address.';
+
+  @override
+  String get enterYourPassword => 'Enter your password.';
+
+  @override
+  String get couldNotLogInTryAgain => 'Could not log in. Try again.';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 6 characters.';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match.';
+
+  @override
+  String get couldNotCreateAccountTryAgain =>
+      'Could not create your account. Try again.';
+
+  @override
+  String get notVerifiedYetTapLink =>
+      'Not verified yet - tap the link in the email we sent you.';
+
+  @override
+  String get couldNotCheckVerificationTryAgain =>
+      'Could not check verification status. Try again.';
+
+  @override
+  String get couldNotResendEmailTryAgain =>
+      'Could not resend the email. Try again.';
+
+  @override
+  String get couldNotSendCodeTryAgain => 'Could not send the code. Try again.';
+
+  @override
+  String get enterSixDigitCode => 'Enter the 6-digit code.';
+
+  @override
+  String get incorrectOrExpiredCode => 'Incorrect or expired code.';
+
+  @override
+  String get couldNotVerifyCodeTryAgain =>
+      'Could not verify that code. Try again.';
+
+  @override
+  String get enterFullName => 'Enter your full name.';
+
+  @override
+  String get enterValidPhoneNumber10Digit =>
+      'Enter a valid 10-digit phone number.';
+
+  @override
+  String get selectYourDob => 'Select your date of birth.';
+
+  @override
+  String get couldNotSaveDetailsTryAgain =>
+      'Could not save your details. Try again.';
+
+  @override
+  String get enterEmailFirstThenForgot =>
+      'Enter your email above first, then tap \"Forgot password?\".';
+
+  @override
+  String passwordResetLinkSentTo(String email) {
+    return 'Password reset link sent to $email';
+  }
+
+  @override
+  String get enterValidMobileNumber => 'Enter a valid 10-digit mobile number.';
+
+  @override
+  String get accountExistsForEmailTryLogin =>
+      'An account already exists for that email. Try logging in instead.';
+
+  @override
+  String get emailLooksInvalid => 'That email address looks invalid.';
+
+  @override
+  String get chooseStrongerPassword => 'Choose a stronger password.';
+
+  @override
+  String get incorrectEmailOrPassword => 'Incorrect email or password.';
+
+  @override
+  String get tooManyAttemptsTryAgain =>
+      'Too many attempts. Try again in a moment.';
+
+  @override
+  String get phoneNumberLooksInvalid => 'That phone number looks invalid.';
+
+  @override
+  String get codeExpiredRequestNew => 'That code expired - request a new one.';
+
+  @override
+  String get somethingWentWrongTryAgain => 'Something went wrong. Try again.';
+
+  @override
+  String get verifyYourNumber => 'Verify Your Number';
+
+  @override
+  String get welcomeExclaim => 'Welcome!';
+
+  @override
+  String weveSentCodeToPhone(String phone) {
+    return 'We\'ve sent a 6-digit code to\n+91 $phone';
+  }
+
+  @override
+  String get logInOrSignUpWithMobile =>
+      'Log in or sign up with your mobile number';
+
+  @override
+  String get welcomeBack => 'Welcome Back!';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get verifyYourEmail => 'Verify Your Email';
+
+  @override
+  String get tellUsAboutYourself => 'Tell Us About Yourself';
+
+  @override
+  String get logInWithEmailToContinue => 'Log in with your email to continue';
+
+  @override
+  String get signUpWithEmailToGetStarted =>
+      'Sign up with your email to get started';
+
+  @override
+  String weveSentVerificationLinkTo(String email) {
+    return 'We\'ve sent a verification link to\n$email';
+  }
+
+  @override
+  String get thisHelpsCustomersSupportIdentifyYou =>
+      'This helps customers and support identify you.';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get emailExampleHint => 'you@example.com';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get yourPasswordHint => 'Your password';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get logIn => 'Log In';
+
+  @override
+  String get dontHaveAccountSignUp => 'Don\'t have an account? Sign up';
+
+  @override
+  String get emailMethod => 'Email';
+
+  @override
+  String get phoneMethod => 'Phone';
+
+  @override
+  String get verificationCode => 'Verification code';
+
+  @override
+  String get sixDigitCodeHint => '6-digit code';
+
+  @override
+  String get verifyAndContinue => 'Verify & Continue';
+
+  @override
+  String resendCodeInSeconds(int seconds) {
+    return 'Resend code in ${seconds}s';
+  }
+
+  @override
+  String get resendCode => 'Resend code';
+
+  @override
+  String get phoneNumberLabel => 'Phone number';
+
+  @override
+  String get phoneNumberSampleHint => '98765 43210';
+
+  @override
+  String get sendOtp => 'Send OTP';
+
+  @override
+  String get min6CharsHintPassword => 'Min 6 characters';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get reEnterPasswordHint => 'Re-enter password';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get alreadyHaveAccountLogIn => 'Already have an account? Log in';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String get verifyCode => 'Verify code';
+
+  @override
+  String get useLinkInstead => 'Use the link instead';
+
+  @override
+  String get iveVerifiedMyEmail => 'I\'ve verified my email';
+
+  @override
+  String get verificationEmailSentAgain => 'Verification email sent again';
+
+  @override
+  String get resendVerificationEmail => 'Resend verification email';
+
+  @override
+  String get enterCodeInstead => 'Enter code instead';
+
+  @override
+  String get fullNameLabel => 'Full name';
+
+  @override
+  String get yourNameHint => 'Your name';
+
+  @override
+  String get dateOfBirth => 'Date of birth';
+
+  @override
+  String get selectYourDateOfBirth => 'Select your date of birth';
 }

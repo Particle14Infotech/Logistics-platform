@@ -728,4 +728,255 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get stillPendingApprovalCheckBack =>
       'இன்னும் ஒப்புதல் நிலுவையில் உள்ளது - விரைவில் மீண்டும் சரிபார்க்கவும்.';
+
+  @override
+  String get enterValidEmail => 'சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்.';
+
+  @override
+  String get enterYourPassword => 'உங்கள் கடவுச்சொல்லை உள்ளிடவும்.';
+
+  @override
+  String get couldNotLogInTryAgain =>
+      'உள்நுழைய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get passwordMinLength =>
+      'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்.';
+
+  @override
+  String get passwordsDoNotMatch => 'கடவுச்சொற்கள் பொருந்தவில்லை.';
+
+  @override
+  String get couldNotCreateAccountTryAgain =>
+      'உங்கள் கணக்கை உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get notVerifiedYetTapLink =>
+      'இன்னும் சரிபார்க்கப்படவில்லை - நாங்கள் அனுப்பிய மின்னஞ்சலில் உள்ள இணைப்பைத் தட்டவும்.';
+
+  @override
+  String get couldNotCheckVerificationTryAgain =>
+      'சரிபார்ப்பு நிலையை சரிபார்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get couldNotResendEmailTryAgain =>
+      'மின்னஞ்சலை மீண்டும் அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get couldNotSendCodeTryAgain =>
+      'குறியீட்டை அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get enterSixDigitCode => '6-இலக்க குறியீட்டை உள்ளிடவும்.';
+
+  @override
+  String get incorrectOrExpiredCode => 'தவறான அல்லது காலாவதியான குறியீடு.';
+
+  @override
+  String get couldNotVerifyCodeTryAgain =>
+      'அந்த குறியீட்டை சரிபார்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get enterFullName => 'உங்கள் முழு பெயரை உள்ளிடவும்.';
+
+  @override
+  String get enterValidPhoneNumber10Digit =>
+      'சரியான 10-இலக்க தொலைபேசி எண்ணை உள்ளிடவும்.';
+
+  @override
+  String get selectYourDob => 'உங்கள் பிறந்த தேதியைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get couldNotSaveDetailsTryAgain =>
+      'உங்கள் விவரங்களை சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get enterEmailFirstThenForgot =>
+      'முதலில் மேலே உங்கள் மின்னஞ்சலை உள்ளிடவும், பின்னர் \"கடவுச்சொல் மறந்துவிட்டதா?\" என்பதைத் தட்டவும்.';
+
+  @override
+  String passwordResetLinkSentTo(String email) {
+    return 'கடவுச்சொல் மீட்டமைப்பு இணைப்பு $emailக்கு அனுப்பப்பட்டது';
+  }
+
+  @override
+  String get enterValidMobileNumber =>
+      'சரியான 10-இலக்க மொபைல் எண்ணை உள்ளிடவும்.';
+
+  @override
+  String get accountExistsForEmailTryLogin =>
+      'அந்த மின்னஞ்சலுக்கு ஏற்கனவே ஒரு கணக்கு உள்ளது. அதற்கு பதிலாக உள்நுழைய முயற்சிக்கவும்.';
+
+  @override
+  String get emailLooksInvalid => 'அந்த மின்னஞ்சல் முகவரி தவறானதாக தெரிகிறது.';
+
+  @override
+  String get chooseStrongerPassword =>
+      'வலுவான கடவுச்சொல்லைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get incorrectEmailOrPassword => 'தவறான மின்னஞ்சல் அல்லது கடவுச்சொல்.';
+
+  @override
+  String get tooManyAttemptsTryAgain =>
+      'மிக அதிக முயற்சிகள். சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get phoneNumberLooksInvalid => 'அந்த தொலைபேசி எண் தவறானதாக தெரிகிறது.';
+
+  @override
+  String get codeExpiredRequestNew =>
+      'அந்த குறியீடு காலாவதியானது - புதிய ஒன்றை கோரவும்.';
+
+  @override
+  String get somethingWentWrongTryAgain =>
+      'ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get verifyYourNumber => 'உங்கள் எண்ணை சரிபார்க்கவும்';
+
+  @override
+  String get welcomeExclaim => 'வரவேற்கிறோம்!';
+
+  @override
+  String weveSentCodeToPhone(String phone) {
+    return 'நாங்கள் +91 $phone க்கு 6-இலக்க குறியீட்டை அனுப்பியுள்ளோம்';
+  }
+
+  @override
+  String get logInOrSignUpWithMobile =>
+      'உங்கள் மொபைல் எண்ணுடன் உள்நுழையவும் அல்லது பதிவு செய்யவும்';
+
+  @override
+  String get welcomeBack => 'மீண்டும் வரவேற்கிறோம்!';
+
+  @override
+  String get createAccount => 'கணக்கை உருவாக்கு';
+
+  @override
+  String get verifyYourEmail => 'உங்கள் மின்னஞ்சலை சரிபார்க்கவும்';
+
+  @override
+  String get tellUsAboutYourself => 'உங்களைப் பற்றி எங்களிடம் சொல்லுங்கள்';
+
+  @override
+  String get logInWithEmailToContinue =>
+      'தொடர உங்கள் மின்னஞ்சலுடன் உள்நுழையவும்';
+
+  @override
+  String get signUpWithEmailToGetStarted =>
+      'தொடங்க உங்கள் மின்னஞ்சலுடன் பதிவு செய்யவும்';
+
+  @override
+  String weveSentVerificationLinkTo(String email) {
+    return 'நாங்கள் $email க்கு சரிபார்ப்பு இணைப்பை அனுப்பியுள்ளோம்';
+  }
+
+  @override
+  String get thisHelpsCustomersSupportIdentifyYou =>
+      'இது வாடிக்கையாளர்களும் ஆதரவு குழுவும் உங்களை அடையாளம் காண உதவுகிறது.';
+
+  @override
+  String get emailLabel => 'மின்னஞ்சல்';
+
+  @override
+  String get emailExampleHint => 'you@example.com';
+
+  @override
+  String get passwordLabel => 'கடவுச்சொல்';
+
+  @override
+  String get yourPasswordHint => 'உங்கள் கடவுச்சொல்';
+
+  @override
+  String get forgotPassword => 'கடவுச்சொல் மறந்துவிட்டதா?';
+
+  @override
+  String get logIn => 'உள்நுழை';
+
+  @override
+  String get dontHaveAccountSignUp => 'கணக்கு இல்லையா? பதிவு செய்யவும்';
+
+  @override
+  String get emailMethod => 'மின்னஞ்சல்';
+
+  @override
+  String get phoneMethod => 'தொலைபேசி';
+
+  @override
+  String get verificationCode => 'சரிபார்ப்பு குறியீடு';
+
+  @override
+  String get sixDigitCodeHint => '6-இலக்க குறியீடு';
+
+  @override
+  String get verifyAndContinue => 'சரிபார்த்து தொடரவும்';
+
+  @override
+  String resendCodeInSeconds(int seconds) {
+    return '$seconds வினாடிகளில் குறியீட்டை மீண்டும் அனுப்பு';
+  }
+
+  @override
+  String get resendCode => 'குறியீட்டை மீண்டும் அனுப்பு';
+
+  @override
+  String get phoneNumberLabel => 'தொலைபேசி எண்';
+
+  @override
+  String get phoneNumberSampleHint => '98765 43210';
+
+  @override
+  String get sendOtp => 'OTP அனுப்பு';
+
+  @override
+  String get min6CharsHintPassword => 'குறைந்தது 6 எழுத்துகள்';
+
+  @override
+  String get confirmPasswordLabel => 'கடவுச்சொல்லை உறுதிப்படுத்தவும்';
+
+  @override
+  String get reEnterPasswordHint => 'கடவுச்சொல்லை மீண்டும் உள்ளிடவும்';
+
+  @override
+  String get signUp => 'பதிவு செய்';
+
+  @override
+  String get alreadyHaveAccountLogIn => 'ஏற்கனவே கணக்கு உள்ளதா? உள்நுழையவும்';
+
+  @override
+  String get sendCode => 'குறியீட்டை அனுப்பு';
+
+  @override
+  String get verifyCode => 'குறியீட்டை சரிபார்';
+
+  @override
+  String get useLinkInstead => 'அதற்கு பதிலாக இணைப்பைப் பயன்படுத்தவும்';
+
+  @override
+  String get iveVerifiedMyEmail => 'நான் என் மின்னஞ்சலை சரிபார்த்துவிட்டேன்';
+
+  @override
+  String get verificationEmailSentAgain =>
+      'சரிபார்ப்பு மின்னஞ்சல் மீண்டும் அனுப்பப்பட்டது';
+
+  @override
+  String get resendVerificationEmail =>
+      'சரிபார்ப்பு மின்னஞ்சலை மீண்டும் அனுப்பு';
+
+  @override
+  String get enterCodeInstead => 'அதற்கு பதிலாக குறியீட்டை உள்ளிடவும்';
+
+  @override
+  String get fullNameLabel => 'முழு பெயர்';
+
+  @override
+  String get yourNameHint => 'உங்கள் பெயர்';
+
+  @override
+  String get dateOfBirth => 'பிறந்த தேதி';
+
+  @override
+  String get selectYourDateOfBirth =>
+      'உங்கள் பிறந்த தேதியைத் தேர்ந்தெடுக்கவும்';
 }
