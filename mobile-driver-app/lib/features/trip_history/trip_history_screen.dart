@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/driver_provider.dart';
 import '../../models/trip_model.dart';
 import '../../widgets/vehicle_category_field.dart';
@@ -10,6 +11,8 @@ import '../../widgets/status_pill.dart';
 
 const _kActiveStatuses = ['accepted', 'picked_up', 'in_transit', 'awaiting_payment'];
 
+// Canonical filter keys - label resolved from AppLocalizations at build
+// time (see _filterLabel below).
 const _kFilters = [
   (label: 'All', status: null),
   (label: 'Active', status: 'active'),
@@ -46,7 +49,9 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
       final trips = await ref.read(driverServiceProvider).listMyTrips();
       if (mounted) setState(() => _trips = trips);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load trip history.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadTripHistory);
+      }
     }
   }
 
@@ -60,11 +65,20 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     return _trips!.where((t) => t.status == status).toList();
   }
 
+  String _filterLabel(String key, AppLocalizations l10n) => switch (key) {
+        'All' => l10n.filterAll,
+        'Active' => l10n.filterActive,
+        'Delivered' => l10n.statusDelivered,
+        'Cancelled' => l10n.statusCancelled,
+        _ => key,
+      };
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.cream,
-      appBar: AppBar(title: const Text('Trip History')),
+      appBar: AppBar(title: Text(l10n.tripHistory)),
       body: Column(
         children: [
           SizedBox(
@@ -77,7 +91,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
               itemBuilder: (context, i) {
                 final selected = i == _filterIndex;
                 return ChoiceChip(
-                  label: Text(_kFilters[i].label),
+                  label: Text(_filterLabel(_kFilters[i].label, l10n)),
                   selected: selected,
                   selectedColor: AppTheme.amber.withValues(alpha: 0.25),
                   onSelected: (_) => setState(() => _filterIndex = i),
@@ -93,10 +107,10 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                       ? Center(child: Text(_error!))
                       : const Center(child: CircularProgressIndicator()))
                   : _filtered.isEmpty
-                      ? ListView(children: const [
+                      ? ListView(children: [
                           Padding(
-                              padding: EdgeInsets.all(32),
-                              child: Center(child: Text('No trips here yet.')))
+                              padding: const EdgeInsets.all(32),
+                              child: Center(child: Text(l10n.noTripsHereYet)))
                         ])
                       : ListView.builder(
                           padding: const EdgeInsets.all(16),
@@ -152,7 +166,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                                '${trip.customerName ?? 'Customer'} · ${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}',
+                                                '${trip.customerName ?? l10n.customerFallback} · ${trip.createdAt.day}/${trip.createdAt.month}/${trip.createdAt.year}',
                                                 style: GoogleFonts.poppins(
                                                     fontSize: 11,
                                                     color: AppTheme.textGrey)),

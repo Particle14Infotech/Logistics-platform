@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../services/push_notification_service.dart';
@@ -43,7 +44,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     if (_lastBackPress == null || now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
       _lastBackPress = now;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Press back again to exit'), duration: Duration(seconds: 2)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.pressBackAgainToExit), duration: const Duration(seconds: 2)),
       );
       return;
     }
@@ -76,7 +77,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text([title, body].whereType<String>().join(' — ')),
-            action: SnackBarAction(label: 'View', onPressed: () => context.push('/notifications')),
+            action: SnackBarAction(
+                label: AppLocalizations.of(context)!.view,
+                onPressed: () => context.push('/notifications')),
           ),
         );
       },
@@ -103,6 +106,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -123,12 +127,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         bottomNavigationBar: CustomBottomBar(
           currentIndex: _selectedIndex,
           onTap: _onNavigateToTab,
-          items: const [
-            BottomBarItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
-            BottomBarItem(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: 'Jobs'),
-            BottomBarItem(icon: Icons.history, label: 'History'),
-            BottomBarItem(icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet, label: 'Earnings'),
-            BottomBarItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
+          items: [
+            BottomBarItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: l10n.home),
+            BottomBarItem(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: l10n.jobs),
+            BottomBarItem(icon: Icons.history, label: l10n.history),
+            BottomBarItem(icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet, label: l10n.earnings),
+            BottomBarItem(icon: Icons.person_outline, activeIcon: Icons.person, label: l10n.profile),
           ],
         ),
       ),

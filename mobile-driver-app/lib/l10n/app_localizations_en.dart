@@ -205,4 +205,226 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noFaqsAvailable => 'No FAQs available right now.';
+
+  @override
+  String get accountNotRegisteredAsDriver =>
+      'This account isn\'t registered as a driver. Sign out and log in with a driver account.';
+
+  @override
+  String get couldNotReachServerCheckConnection =>
+      'Couldn\'t reach the server. Check your connection and try again.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get signOutAndLogInAgain => 'Sign out and log in again';
+
+  @override
+  String get howWillYouUseTheApp => 'How will you use the app?';
+
+  @override
+  String get iDriveMyOwnVehicle => 'I drive my own vehicle';
+
+  @override
+  String get acceptJobsEarnPerTrip => 'Accept jobs and earn per trip';
+
+  @override
+  String get iManageAFleet => 'I manage a fleet';
+
+  @override
+  String get multipleVehiclesAndDrivers => 'Multiple vehicles and drivers';
+
+  @override
+  String get pressBackAgainToExit => 'Press back again to exit';
+
+  @override
+  String get view => 'View';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get jobs => 'Jobs';
+
+  @override
+  String get history => 'History';
+
+  @override
+  String get earnings => 'Earnings';
+
+  @override
+  String get couldNotLoadNotifications => 'Could not load notifications.';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get allCaughtUpNothingHereYet =>
+      'You\'re all caught up - nothing here yet.';
+
+  @override
+  String couldNotUploadDocumentTryAgain(String label) {
+    return 'Could not upload $label. Try again.';
+  }
+
+  @override
+  String get takeAPhoto => 'Take a photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from gallery';
+
+  @override
+  String get documents => 'Documents';
+
+  @override
+  String couldNotLoadDocuments(String error) {
+    return 'Could not load documents.\n$error';
+  }
+
+  @override
+  String get completeVehicleSetupFirst => 'Complete vehicle setup first.';
+
+  @override
+  String get uploaded => 'Uploaded';
+
+  @override
+  String get requiredNotUploaded => 'Required - not uploaded';
+
+  @override
+  String get optionalNotUploaded => 'Optional - not uploaded';
+
+  @override
+  String get retake => 'Retake';
+
+  @override
+  String get upload => 'Upload';
+
+  @override
+  String get docLabelPhotoId => 'Photo ID (Selfie)';
+
+  @override
+  String get docLabelLicenseFront => 'Driving License (Front)';
+
+  @override
+  String get docLabelLicenseBack => 'Driving License (Back)';
+
+  @override
+  String get docLabelRcFront => 'Vehicle RC (Front)';
+
+  @override
+  String get docLabelRcBack => 'Vehicle RC (Back)';
+
+  @override
+  String get docLabelAadhaarFront => 'Aadhaar Card (Front)';
+
+  @override
+  String get docLabelAadhaarBack => 'Aadhaar Card (Back)';
+
+  @override
+  String get docLabelInsurance => 'Insurance';
+
+  @override
+  String get docLabelPermit => 'Permit';
+
+  @override
+  String get docLabelPollution => 'Pollution certificate';
+
+  @override
+  String get docLabelPan => 'PAN card';
+
+  @override
+  String get docLabelCheque => 'Cancelled Cheque';
+
+  @override
+  String get couldNotLoadEarnings => 'Could not load earnings.';
+
+  @override
+  String get totalLifetimeEarnings => 'Total lifetime earnings';
+
+  @override
+  String tripsCompleted(int count) {
+    return '$count trips completed';
+  }
+
+  @override
+  String get thisWeek => 'This week';
+
+  @override
+  String get thisMonth => 'This month';
+
+  @override
+  String get walletBalance => 'Wallet balance';
+
+  @override
+  String get recentActivity => 'Recent activity';
+
+  @override
+  String get walletTxnTripFare => 'Trip fare';
+
+  @override
+  String get walletTxnCancellationCompensation => 'Cancellation compensation';
+
+  @override
+  String get walletTxnPayout => 'Payout';
+
+  @override
+  String get walletTxnAdjustment => 'Adjustment';
+
+  @override
+  String tripsCount(int count) {
+    return '$count trips';
+  }
+
+  @override
+  String get couldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get notConnectedCouldNotSendMessage =>
+      'Not connected - couldn\'t send that message. Check your connection and try again.';
+
+  @override
+  String get chatWithCustomer => 'Chat with customer';
+
+  @override
+  String get sayHelloToYourCustomer => 'Say hello to your customer.';
+
+  @override
+  String get typeAMessageHint => 'Type a message…';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusAccepted => 'Accepted';
+
+  @override
+  String get statusInTransit => 'In Transit';
+
+  @override
+  String get statusAwaitingPayment => 'Awaiting Payment';
+
+  @override
+  String get statusDelivered => 'Delivered';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterActive => 'Active';
+
+  @override
+  String get couldNotLoadTripHistory => 'Could not load trip history.';
+
+  @override
+  String get noTripsHereYet => 'No trips here yet.';
+
+  @override
+  String get tripHistory => 'Trip History';
+
+  @override
+  String get customerFallback => 'Customer';
 }

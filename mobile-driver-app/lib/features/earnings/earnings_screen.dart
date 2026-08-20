@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/driver_provider.dart';
 import '../../services/driver_service.dart';
 
@@ -35,15 +36,18 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load earnings.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadEarnings);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final e = _earnings;
     return Scaffold(
-      appBar: AppBar(title: const Text('Earnings')),
+      appBar: AppBar(title: Text(l10n.earnings)),
       body: RefreshIndicator(
         onRefresh: _load,
         child: e == null
@@ -57,10 +61,10 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
-                          const Text('Total lifetime earnings', style: TextStyle(fontSize: 14)),
+                          Text(l10n.totalLifetimeEarnings, style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 4),
                           Text('₹${e.totalEarnings}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                          Text('${e.totalTrips} trips completed', style: TextStyle(color: Colors.grey.shade700)),
+                          Text(l10n.tripsCompleted(e.totalTrips), style: TextStyle(color: Colors.grey.shade700)),
                         ],
                       ),
                     ),
@@ -68,9 +72,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _PeriodCard(label: 'This week', total: e.weekTotal, trips: e.weekTrips)),
+                      Expanded(child: _PeriodCard(label: l10n.thisWeek, total: e.weekTotal, trips: e.weekTrips)),
                       const SizedBox(width: 12),
-                      Expanded(child: _PeriodCard(label: 'This month', total: e.monthTotal, trips: e.monthTrips)),
+                      Expanded(child: _PeriodCard(label: l10n.thisMonth, total: e.monthTotal, trips: e.monthTrips)),
                     ],
                   ),
                   if (_wallet != null) ...[
@@ -84,7 +88,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Wallet balance', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                Text(l10n.walletBalance, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                                 const SizedBox(height: 4),
                                 Text('₹${_wallet!.balance}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                               ],
@@ -96,7 +100,7 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                     ),
                     const SizedBox(height: 16),
                     if (_wallet!.transactions.isNotEmpty) ...[
-                      const Text('Recent activity', style: TextStyle(fontWeight: FontWeight.w600)),
+                      Text(l10n.recentActivity, style: const TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       ..._wallet!.transactions.take(20).map((t) => _WalletTransactionTile(transaction: t)),
                     ],
@@ -112,15 +116,17 @@ class _WalletTransactionTile extends StatelessWidget {
   final WalletTransaction transaction;
   const _WalletTransactionTile({required this.transaction});
 
-  static const _labels = {
-    'trip_earning': 'Trip fare',
-    'cancellation_compensation': 'Cancellation compensation',
-    'payout': 'Payout',
-    'adjustment': 'Adjustment',
-  };
+  String _label(AppLocalizations l10n) => switch (transaction.type) {
+        'trip_earning' => l10n.walletTxnTripFare,
+        'cancellation_compensation' => l10n.walletTxnCancellationCompensation,
+        'payout' => l10n.walletTxnPayout,
+        'adjustment' => l10n.walletTxnAdjustment,
+        _ => transaction.type,
+      };
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isCredit = transaction.amount >= 0;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -129,7 +135,7 @@ class _WalletTransactionTile extends StatelessWidget {
           isCredit ? Icons.arrow_downward : Icons.arrow_upward,
           color: isCredit ? Colors.green : Colors.red,
         ),
-        title: Text(_labels[transaction.type] ?? transaction.type),
+        title: Text(_label(l10n)),
         subtitle: Text(
           '${transaction.createdAt.day}/${transaction.createdAt.month}/${transaction.createdAt.year}'
           '${transaction.note != null ? ' · ${transaction.note}' : ''}',
@@ -155,6 +161,7 @@ class _PeriodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -164,7 +171,7 @@ class _PeriodCard extends StatelessWidget {
             Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
             const SizedBox(height: 4),
             Text('₹$total', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text('$trips trips', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+            Text(l10n.tripsCount(trips), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
           ],
         ),
       ),

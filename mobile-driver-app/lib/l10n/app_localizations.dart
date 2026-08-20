@@ -471,6 +471,426 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No FAQs available right now.'**
   String get noFaqsAvailable;
+
+  /// No description provided for @accountNotRegisteredAsDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'This account isn\'t registered as a driver. Sign out and log in with a driver account.'**
+  String get accountNotRegisteredAsDriver;
+
+  /// No description provided for @couldNotReachServerCheckConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the server. Check your connection and try again.'**
+  String get couldNotReachServerCheckConnection;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @signOutAndLogInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and log in again'**
+  String get signOutAndLogInAgain;
+
+  /// No description provided for @howWillYouUseTheApp.
+  ///
+  /// In en, this message translates to:
+  /// **'How will you use the app?'**
+  String get howWillYouUseTheApp;
+
+  /// No description provided for @iDriveMyOwnVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'I drive my own vehicle'**
+  String get iDriveMyOwnVehicle;
+
+  /// No description provided for @acceptJobsEarnPerTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept jobs and earn per trip'**
+  String get acceptJobsEarnPerTrip;
+
+  /// No description provided for @iManageAFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'I manage a fleet'**
+  String get iManageAFleet;
+
+  /// No description provided for @multipleVehiclesAndDrivers.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple vehicles and drivers'**
+  String get multipleVehiclesAndDrivers;
+
+  /// No description provided for @pressBackAgainToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get pressBackAgainToExit;
+
+  /// No description provided for @view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get view;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @jobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs'**
+  String get jobs;
+
+  /// No description provided for @history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// No description provided for @earnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings'**
+  String get earnings;
+
+  /// No description provided for @couldNotLoadNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications.'**
+  String get couldNotLoadNotifications;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
+
+  /// No description provided for @allCaughtUpNothingHereYet.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up - nothing here yet.'**
+  String get allCaughtUpNothingHereYet;
+
+  /// No description provided for @couldNotUploadDocumentTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload {label}. Try again.'**
+  String couldNotUploadDocumentTryAgain(String label);
+
+  /// No description provided for @takeAPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get takeAPhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents;
+
+  /// No description provided for @couldNotLoadDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load documents.\n{error}'**
+  String couldNotLoadDocuments(String error);
+
+  /// No description provided for @completeVehicleSetupFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete vehicle setup first.'**
+  String get completeVehicleSetupFirst;
+
+  /// No description provided for @uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded'**
+  String get uploaded;
+
+  /// No description provided for @requiredNotUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Required - not uploaded'**
+  String get requiredNotUploaded;
+
+  /// No description provided for @optionalNotUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional - not uploaded'**
+  String get optionalNotUploaded;
+
+  /// No description provided for @retake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get retake;
+
+  /// No description provided for @upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get upload;
+
+  /// No description provided for @docLabelPhotoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo ID (Selfie)'**
+  String get docLabelPhotoId;
+
+  /// No description provided for @docLabelLicenseFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving License (Front)'**
+  String get docLabelLicenseFront;
+
+  /// No description provided for @docLabelLicenseBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving License (Back)'**
+  String get docLabelLicenseBack;
+
+  /// No description provided for @docLabelRcFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle RC (Front)'**
+  String get docLabelRcFront;
+
+  /// No description provided for @docLabelRcBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle RC (Back)'**
+  String get docLabelRcBack;
+
+  /// No description provided for @docLabelAadhaarFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar Card (Front)'**
+  String get docLabelAadhaarFront;
+
+  /// No description provided for @docLabelAadhaarBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar Card (Back)'**
+  String get docLabelAadhaarBack;
+
+  /// No description provided for @docLabelInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get docLabelInsurance;
+
+  /// No description provided for @docLabelPermit.
+  ///
+  /// In en, this message translates to:
+  /// **'Permit'**
+  String get docLabelPermit;
+
+  /// No description provided for @docLabelPollution.
+  ///
+  /// In en, this message translates to:
+  /// **'Pollution certificate'**
+  String get docLabelPollution;
+
+  /// No description provided for @docLabelPan.
+  ///
+  /// In en, this message translates to:
+  /// **'PAN card'**
+  String get docLabelPan;
+
+  /// No description provided for @docLabelCheque.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled Cheque'**
+  String get docLabelCheque;
+
+  /// No description provided for @couldNotLoadEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load earnings.'**
+  String get couldNotLoadEarnings;
+
+  /// No description provided for @totalLifetimeEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Total lifetime earnings'**
+  String get totalLifetimeEarnings;
+
+  /// No description provided for @tripsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} trips completed'**
+  String tripsCompleted(int count);
+
+  /// No description provided for @thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get thisWeek;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get thisMonth;
+
+  /// No description provided for @walletBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet balance'**
+  String get walletBalance;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent activity'**
+  String get recentActivity;
+
+  /// No description provided for @walletTxnTripFare.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip fare'**
+  String get walletTxnTripFare;
+
+  /// No description provided for @walletTxnCancellationCompensation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation compensation'**
+  String get walletTxnCancellationCompensation;
+
+  /// No description provided for @walletTxnPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout'**
+  String get walletTxnPayout;
+
+  /// No description provided for @walletTxnAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment'**
+  String get walletTxnAdjustment;
+
+  /// No description provided for @tripsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} trips'**
+  String tripsCount(int count);
+
+  /// No description provided for @couldNotLoadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load messages.'**
+  String get couldNotLoadMessages;
+
+  /// No description provided for @notConnectedCouldNotSendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected - couldn\'t send that message. Check your connection and try again.'**
+  String get notConnectedCouldNotSendMessage;
+
+  /// No description provided for @chatWithCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with customer'**
+  String get chatWithCustomer;
+
+  /// No description provided for @sayHelloToYourCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello to your customer.'**
+  String get sayHelloToYourCustomer;
+
+  /// No description provided for @typeAMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message…'**
+  String get typeAMessageHint;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get statusAccepted;
+
+  /// No description provided for @statusInTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'In Transit'**
+  String get statusInTransit;
+
+  /// No description provided for @statusAwaitingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting Payment'**
+  String get statusAwaitingPayment;
+
+  /// No description provided for @statusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get statusDelivered;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get filterActive;
+
+  /// No description provided for @couldNotLoadTripHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load trip history.'**
+  String get couldNotLoadTripHistory;
+
+  /// No description provided for @noTripsHereYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No trips here yet.'**
+  String get noTripsHereYet;
+
+  /// No description provided for @tripHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip History'**
+  String get tripHistory;
+
+  /// No description provided for @customerFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerFallback;
 }
 
 class _AppLocalizationsDelegate

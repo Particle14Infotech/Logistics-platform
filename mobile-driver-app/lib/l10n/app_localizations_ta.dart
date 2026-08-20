@@ -205,4 +205,228 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get noFaqsAvailable => 'தற்போது FAQகள் எதுவும் இல்லை.';
+
+  @override
+  String get accountNotRegisteredAsDriver =>
+      'இந்த கணக்கு டிரைவராக பதிவு செய்யப்படவில்லை. வெளியேறி டிரைவர் கணக்குடன் உள்நுழையவும்.';
+
+  @override
+  String get couldNotReachServerCheckConnection =>
+      'சேவையகத்தை அடைய முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get retry => 'மீண்டும் முயற்சி';
+
+  @override
+  String get signOutAndLogInAgain => 'வெளியேறி மீண்டும் உள்நுழையவும்';
+
+  @override
+  String get howWillYouUseTheApp => 'நீங்கள் ஆப்பை எப்படி பயன்படுத்துவீர்கள்?';
+
+  @override
+  String get iDriveMyOwnVehicle => 'நான் எனது சொந்த வாகனத்தை ஓட்டுகிறேன்';
+
+  @override
+  String get acceptJobsEarnPerTrip =>
+      'வேலைகளை ஏற்று ஒவ்வொரு பயணத்திலும் சம்பாதிக்கவும்';
+
+  @override
+  String get iManageAFleet => 'நான் ஒரு பிளீட்டை நிர்வகிக்கிறேன்';
+
+  @override
+  String get multipleVehiclesAndDrivers => 'பல வாகனங்கள் மற்றும் டிரைவர்கள்';
+
+  @override
+  String get pressBackAgainToExit => 'வெளியேற மீண்டும் பேக் அழுத்தவும்';
+
+  @override
+  String get view => 'பார்';
+
+  @override
+  String get home => 'முகப்பு';
+
+  @override
+  String get jobs => 'வேலைகள்';
+
+  @override
+  String get history => 'வரலாறு';
+
+  @override
+  String get earnings => 'வருமானம்';
+
+  @override
+  String get couldNotLoadNotifications => 'அறிவிப்புகளை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get markAllRead => 'அனைத்தையும் படித்ததாகக் குறிக்கவும்';
+
+  @override
+  String get allCaughtUpNothingHereYet =>
+      'நீங்கள் முழுமையாக புதுப்பித்துவிட்டீர்கள் - இங்கே இன்னும் எதுவும் இல்லை.';
+
+  @override
+  String couldNotUploadDocumentTryAgain(String label) {
+    return '$label பதிவேற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+  }
+
+  @override
+  String get takeAPhoto => 'புகைப்படம் எடுக்கவும்';
+
+  @override
+  String get chooseFromGallery => 'கேலரியிலிருந்து தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get documents => 'ஆவணங்கள்';
+
+  @override
+  String couldNotLoadDocuments(String error) {
+    return 'ஆவணங்களை ஏற்ற முடியவில்லை.\n$error';
+  }
+
+  @override
+  String get completeVehicleSetupFirst => 'முதலில் வாகன அமைப்பை முடிக்கவும்.';
+
+  @override
+  String get uploaded => 'பதிவேற்றப்பட்டது';
+
+  @override
+  String get requiredNotUploaded => 'தேவை - பதிவேற்றப்படவில்லை';
+
+  @override
+  String get optionalNotUploaded => 'விருப்பத்தேர்வு - பதிவேற்றப்படவில்லை';
+
+  @override
+  String get retake => 'மீண்டும் எடுக்கவும்';
+
+  @override
+  String get upload => 'பதிவேற்றவும்';
+
+  @override
+  String get docLabelPhotoId => 'புகைப்பட அடையாளம் (செல்ஃபி)';
+
+  @override
+  String get docLabelLicenseFront => 'ஓட்டுநர் உரிமம் (முன்)';
+
+  @override
+  String get docLabelLicenseBack => 'ஓட்டுநர் உரிமம் (பின்)';
+
+  @override
+  String get docLabelRcFront => 'வாகன RC (முன்)';
+
+  @override
+  String get docLabelRcBack => 'வாகன RC (பின்)';
+
+  @override
+  String get docLabelAadhaarFront => 'ஆதார் கார்டு (முன்)';
+
+  @override
+  String get docLabelAadhaarBack => 'ஆதார் கார்டு (பின்)';
+
+  @override
+  String get docLabelInsurance => 'காப்பீடு';
+
+  @override
+  String get docLabelPermit => 'அனுமதி';
+
+  @override
+  String get docLabelPollution => 'மாசு சான்றிதழ்';
+
+  @override
+  String get docLabelPan => 'PAN கார்டு';
+
+  @override
+  String get docLabelCheque => 'ரத்து செய்யப்பட்ட காசோலை';
+
+  @override
+  String get couldNotLoadEarnings => 'வருமானத்தை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get totalLifetimeEarnings => 'மொத்த வாழ்நாள் வருமானம்';
+
+  @override
+  String tripsCompleted(int count) {
+    return '$count பயணங்கள் முடிந்தன';
+  }
+
+  @override
+  String get thisWeek => 'இந்த வாரம்';
+
+  @override
+  String get thisMonth => 'இந்த மாதம்';
+
+  @override
+  String get walletBalance => 'வாலட் இருப்பு';
+
+  @override
+  String get recentActivity => 'சமீபத்திய செயல்பாடு';
+
+  @override
+  String get walletTxnTripFare => 'பயண கட்டணம்';
+
+  @override
+  String get walletTxnCancellationCompensation => 'ரத்து இழப்பீடு';
+
+  @override
+  String get walletTxnPayout => 'கட்டணம் செலுத்தல்';
+
+  @override
+  String get walletTxnAdjustment => 'சரிசெய்தல்';
+
+  @override
+  String tripsCount(int count) {
+    return '$count பயணங்கள்';
+  }
+
+  @override
+  String get couldNotLoadMessages => 'செய்திகளை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get notConnectedCouldNotSendMessage =>
+      'இணைக்கப்படவில்லை - அந்த செய்தியை அனுப்ப முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get chatWithCustomer => 'வாடிக்கையாளருடன் அரட்டை அடிக்கவும்';
+
+  @override
+  String get sayHelloToYourCustomer =>
+      'உங்கள் வாடிக்கையாளரிடம் வணக்கம் சொல்லுங்கள்.';
+
+  @override
+  String get typeAMessageHint => 'செய்தியை தட்டச்சு செய்யவும்…';
+
+  @override
+  String get statusPending => 'நிலுவையில்';
+
+  @override
+  String get statusAccepted => 'ஏற்றுக்கொள்ளப்பட்டது';
+
+  @override
+  String get statusInTransit => 'போக்குவரத்தில்';
+
+  @override
+  String get statusAwaitingPayment => 'பணம் செலுத்த காத்திருக்கிறது';
+
+  @override
+  String get statusDelivered => 'டெலிவரி ஆனது';
+
+  @override
+  String get statusCancelled => 'ரத்து செய்யப்பட்டது';
+
+  @override
+  String get filterAll => 'அனைத்தும்';
+
+  @override
+  String get filterActive => 'செயலில்';
+
+  @override
+  String get couldNotLoadTripHistory => 'பயண வரலாற்றை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get noTripsHereYet => 'இங்கே இதுவரை பயணங்கள் இல்லை.';
+
+  @override
+  String get tripHistory => 'பயண வரலாறு';
+
+  @override
+  String get customerFallback => 'வாடிக்கையாளர்';
 }

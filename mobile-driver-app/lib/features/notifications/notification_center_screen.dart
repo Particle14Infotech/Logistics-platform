@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/notification_model.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/notification_service.dart';
@@ -33,7 +34,9 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
       final result = await _service.list();
       if (mounted) setState(() => _notifications = result.notifications);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load notifications.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadNotifications);
+      }
     }
   }
 
@@ -57,11 +60,12 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasUnread = _notifications?.any((n) => !n.isRead) ?? false;
     return Scaffold(
       backgroundColor: AppTheme.cream,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(l10n.notifications),
         actions: [
           if (hasUnread)
             TextButton.icon(
@@ -71,7 +75,7 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
               // Colors.white text, invisible against it, so the feature
               // existed but nobody could ever see it to tap it.
               icon: const Icon(Icons.done_all, size: 16, color: AppTheme.amberDeep),
-              label: Text('Mark all read',
+              label: Text(l10n.markAllRead,
                   style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.amberDeep)),
             ),
         ],
@@ -91,7 +95,7 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
                           padding: const EdgeInsets.all(32),
                           child: Center(
                             child: Text(
-                                "You're all caught up - nothing here yet.",
+                                l10n.allCaughtUpNothingHereYet,
                                 style: GoogleFonts.poppins(
                                     color: AppTheme.textGrey)),
                           ),

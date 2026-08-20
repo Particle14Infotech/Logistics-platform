@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/selected_role_provider.dart';
 
 // Select Driver or Fleet Owner (SRS 3.2.1). The choice is remembered via
@@ -13,6 +14,7 @@ class RoleSelectionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -23,12 +25,12 @@ class RoleSelectionScreen extends ConsumerWidget {
             children: [
               Image.asset('assets/images/logo.png', width: 100, height: 100),
               const SizedBox(height: 16),
-              Text('How will you use the app?', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
+              Text(l10n.howWillYouUseTheApp, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
               const SizedBox(height: 32),
               _RoleCard(
                 icon: Icons.person,
-                title: 'I drive my own vehicle',
-                subtitle: 'Accept jobs and earn per trip',
+                title: l10n.iDriveMyOwnVehicle,
+                subtitle: l10n.acceptJobsEarnPerTrip,
                 onTap: () {
                   ref.read(selectedRoleProvider.notifier).state = 'driver';
                   context.go('/login');
@@ -37,8 +39,8 @@ class RoleSelectionScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               _RoleCard(
                 icon: Icons.groups,
-                title: 'I manage a fleet',
-                subtitle: 'Multiple vehicles and drivers',
+                title: l10n.iManageAFleet,
+                subtitle: l10n.multipleVehiclesAndDrivers,
                 onTap: () {
                   ref.read(selectedRoleProvider.notifier).state = 'fleet_owner';
                   context.go('/login');

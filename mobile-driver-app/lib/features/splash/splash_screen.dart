@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
 import '../../providers/fleet_provider.dart';
@@ -22,6 +23,7 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
     final isFleetOwner = authState.user?.role == 'fleet_owner';
     final driverProfileAsync = ref.watch(driverProfileProvider);
@@ -54,8 +56,8 @@ class SplashScreen extends ConsumerWidget {
                   // than a generic 'check your connection' that sends
                   // someone down the wrong troubleshooting path.
                   isRoleMismatch
-                      ? "This account isn't registered as a driver. Sign out and log in with a driver account."
-                      : "Couldn't reach the server. Check your connection and try again.",
+                      ? l10n.accountNotRegisteredAsDriver
+                      : l10n.couldNotReachServerCheckConnection,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white),
                 ),
@@ -67,7 +69,7 @@ class SplashScreen extends ConsumerWidget {
                       ref.invalidate(driverProfileProvider);
                       ref.invalidate(fleetProfileProvider);
                     },
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 const SizedBox(height: 8),
                 TextButton(
@@ -75,7 +77,7 @@ class SplashScreen extends ConsumerWidget {
                     await ref.read(authProvider.notifier).logout();
                     if (context.mounted) context.go('/role-selection');
                   },
-                  child: const Text('Sign out and log in again', style: TextStyle(color: Colors.white)),
+                  child: Text(l10n.signOutAndLogInAgain, style: const TextStyle(color: Colors.white)),
                 ),
               ] else
                 const CircularProgressIndicator(color: Colors.white),

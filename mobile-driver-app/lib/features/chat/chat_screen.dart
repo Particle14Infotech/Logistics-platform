@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/message_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/chat_service.dart';
@@ -56,7 +57,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _scrollToBottom();
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load messages.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.couldNotLoadMessages);
     }
   }
 
@@ -85,7 +86,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (text.isEmpty) return;
     if (!_socketService.isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Not connected - couldn't send that message. Check your connection and try again.")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.notConnectedCouldNotSendMessage)),
       );
       return;
     }
@@ -95,9 +96,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.cream,
-      appBar: AppBar(title: Text(widget.customerName ?? 'Chat with customer')),
+      appBar: AppBar(title: Text(widget.customerName ?? l10n.chatWithCustomer)),
       body: SafeArea(
         child: Column(
           children: [
@@ -106,7 +108,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ? Center(child: _error != null ? Text(_error!) : const CircularProgressIndicator())
                   : _messages!.isEmpty
                       ? Center(
-                          child: Text('Say hello to your customer.',
+                          child: Text(l10n.sayHelloToYourCustomer,
                               style: GoogleFonts.poppins(color: AppTheme.textGrey)))
                       : ListView.builder(
                           controller: _scrollController,
@@ -126,7 +128,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         controller: _textController,
                         onSubmitted: (_) => _send(),
                         decoration: InputDecoration(
-                          hintText: 'Type a message…',
+                          hintText: l10n.typeAMessageHint,
                           filled: true,
                           fillColor: Colors.grey.shade100,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),

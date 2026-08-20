@@ -205,4 +205,226 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get noFaqsAvailable => 'सध्या कोणतेही FAQ उपलब्ध नाहीत.';
+
+  @override
+  String get accountNotRegisteredAsDriver =>
+      'हे खाते ड्रायव्हर म्हणून नोंदणीकृत नाही. साइन आउट करा आणि ड्रायव्हर खात्याने लॉग इन करा.';
+
+  @override
+  String get couldNotReachServerCheckConnection =>
+      'सर्व्हरपर्यंत पोहोचता आले नाही. तुमचे कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.';
+
+  @override
+  String get retry => 'पुन्हा प्रयत्न करा';
+
+  @override
+  String get signOutAndLogInAgain => 'साइन आउट करा आणि पुन्हा लॉग इन करा';
+
+  @override
+  String get howWillYouUseTheApp => 'तुम्ही अ‍ॅप कसे वापराल?';
+
+  @override
+  String get iDriveMyOwnVehicle => 'मी माझे स्वतःचे वाहन चालवतो';
+
+  @override
+  String get acceptJobsEarnPerTrip => 'जॉब स्वीकारा आणि प्रति ट्रिप कमवा';
+
+  @override
+  String get iManageAFleet => 'मी एक फ्लीट व्यवस्थापित करतो';
+
+  @override
+  String get multipleVehiclesAndDrivers => 'अनेक वाहने आणि ड्रायव्हर्स';
+
+  @override
+  String get pressBackAgainToExit => 'बाहेर पडण्यासाठी पुन्हा बॅक दाबा';
+
+  @override
+  String get view => 'पहा';
+
+  @override
+  String get home => 'होम';
+
+  @override
+  String get jobs => 'जॉब्स';
+
+  @override
+  String get history => 'इतिहास';
+
+  @override
+  String get earnings => 'कमाई';
+
+  @override
+  String get couldNotLoadNotifications => 'सूचना लोड करता आल्या नाहीत.';
+
+  @override
+  String get markAllRead => 'सर्व वाचले म्हणून चिन्हांकित करा';
+
+  @override
+  String get allCaughtUpNothingHereYet =>
+      'तुम्ही पूर्णपणे अद्ययावत आहात - इथे अजून काही नाही.';
+
+  @override
+  String couldNotUploadDocumentTryAgain(String label) {
+    return '$label अपलोड करता आले नाही. पुन्हा प्रयत्न करा.';
+  }
+
+  @override
+  String get takeAPhoto => 'फोटो घ्या';
+
+  @override
+  String get chooseFromGallery => 'गॅलरीमधून निवडा';
+
+  @override
+  String get documents => 'कागदपत्रे';
+
+  @override
+  String couldNotLoadDocuments(String error) {
+    return 'कागदपत्रे लोड करता आली नाहीत.\n$error';
+  }
+
+  @override
+  String get completeVehicleSetupFirst => 'आधी वाहन सेटअप पूर्ण करा.';
+
+  @override
+  String get uploaded => 'अपलोड केले';
+
+  @override
+  String get requiredNotUploaded => 'आवश्यक - अपलोड केलेले नाही';
+
+  @override
+  String get optionalNotUploaded => 'ऐच्छिक - अपलोड केलेले नाही';
+
+  @override
+  String get retake => 'पुन्हा घ्या';
+
+  @override
+  String get upload => 'अपलोड करा';
+
+  @override
+  String get docLabelPhotoId => 'फोटो ओळख (सेल्फी)';
+
+  @override
+  String get docLabelLicenseFront => 'ड्रायव्हिंग लायसन्स (पुढे)';
+
+  @override
+  String get docLabelLicenseBack => 'ड्रायव्हिंग लायसन्स (मागे)';
+
+  @override
+  String get docLabelRcFront => 'वाहन RC (पुढे)';
+
+  @override
+  String get docLabelRcBack => 'वाहन RC (मागे)';
+
+  @override
+  String get docLabelAadhaarFront => 'आधार कार्ड (पुढे)';
+
+  @override
+  String get docLabelAadhaarBack => 'आधार कार्ड (मागे)';
+
+  @override
+  String get docLabelInsurance => 'विमा';
+
+  @override
+  String get docLabelPermit => 'परमिट';
+
+  @override
+  String get docLabelPollution => 'प्रदूषण प्रमाणपत्र';
+
+  @override
+  String get docLabelPan => 'पॅन कार्ड';
+
+  @override
+  String get docLabelCheque => 'रद्द केलेला चेक';
+
+  @override
+  String get couldNotLoadEarnings => 'कमाई लोड करता आली नाही.';
+
+  @override
+  String get totalLifetimeEarnings => 'एकूण आजीवन कमाई';
+
+  @override
+  String tripsCompleted(int count) {
+    return '$count ट्रिप पूर्ण झाल्या';
+  }
+
+  @override
+  String get thisWeek => 'या आठवड्यात';
+
+  @override
+  String get thisMonth => 'या महिन्यात';
+
+  @override
+  String get walletBalance => 'वॉलेट शिल्लक';
+
+  @override
+  String get recentActivity => 'अलीकडील क्रियाकलाप';
+
+  @override
+  String get walletTxnTripFare => 'ट्रिप भाडे';
+
+  @override
+  String get walletTxnCancellationCompensation => 'रद्दीकरण भरपाई';
+
+  @override
+  String get walletTxnPayout => 'पेआउट';
+
+  @override
+  String get walletTxnAdjustment => 'समायोजन';
+
+  @override
+  String tripsCount(int count) {
+    return '$count ट्रिप';
+  }
+
+  @override
+  String get couldNotLoadMessages => 'मेसेज लोड करता आले नाहीत.';
+
+  @override
+  String get notConnectedCouldNotSendMessage =>
+      'कनेक्ट नाही - तो मेसेज पाठवता आला नाही. तुमचे कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.';
+
+  @override
+  String get chatWithCustomer => 'ग्राहकाशी चॅट करा';
+
+  @override
+  String get sayHelloToYourCustomer => 'तुमच्या ग्राहकाला हॅलो म्हणा.';
+
+  @override
+  String get typeAMessageHint => 'मेसेज टाइप करा…';
+
+  @override
+  String get statusPending => 'प्रलंबित';
+
+  @override
+  String get statusAccepted => 'स्वीकारले';
+
+  @override
+  String get statusInTransit => 'वाहतुकीत';
+
+  @override
+  String get statusAwaitingPayment => 'पेमेंटच्या प्रतीक्षेत';
+
+  @override
+  String get statusDelivered => 'वितरित झाले';
+
+  @override
+  String get statusCancelled => 'रद्द केले';
+
+  @override
+  String get filterAll => 'सर्व';
+
+  @override
+  String get filterActive => 'सक्रिय';
+
+  @override
+  String get couldNotLoadTripHistory => 'ट्रिप इतिहास लोड करता आला नाही.';
+
+  @override
+  String get noTripsHereYet => 'इथे अजून कोणतेही ट्रिप नाहीत.';
+
+  @override
+  String get tripHistory => 'ट्रिप इतिहास';
+
+  @override
+  String get customerFallback => 'ग्राहक';
 }
