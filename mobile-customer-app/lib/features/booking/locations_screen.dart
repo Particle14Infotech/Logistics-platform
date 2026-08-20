@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/location_model.dart';
 import '../../providers/booking_provider.dart';
 import '../../widgets/places_autocomplete_field.dart';
@@ -60,11 +61,12 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
   }
 
   Future<void> _useCurrentLocationForPickup() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _locatingCurrentPosition = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        _showLocationError('Turn on location services to use your current location.');
+        _showLocationError(l10n.turnOnLocationServices);
         return;
       }
 
@@ -73,7 +75,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        _showLocationError('Location permission is required to use your current location.');
+        _showLocationError(l10n.locationPermissionRequired);
         return;
       }
 
@@ -82,14 +84,14 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
       );
       final details = await _placesService.reverseGeocode(position.latitude, position.longitude);
       if (details == null) {
-        _showLocationError('Could not determine your address. Try again.');
+        _showLocationError(l10n.couldNotDetermineAddressTryAgain);
         return;
       }
 
       _pickupController.text = details.address;
       _onPickupSelected(details);
     } catch (_) {
-      _showLocationError('Could not get your current location. Try again.');
+      _showLocationError(l10n.couldNotGetCurrentLocationTryAgain);
     } finally {
       if (mounted) setState(() => _locatingCurrentPosition = false);
     }
@@ -130,14 +132,15 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
   }
 
   Future<void> _continue() async {
+    final l10n = AppLocalizations.of(context)!;
     final pickupAddress = _pickupController.text.trim();
     final dropAddress = _dropController.text.trim();
     if (pickupAddress.isEmpty || dropAddress.isEmpty) {
-      setState(() => _error = 'Enter both a pickup and drop location.');
+      setState(() => _error = l10n.enterBothPickupAndDrop);
       return;
     }
     if (pickupAddress.toLowerCase() == dropAddress.toLowerCase()) {
-      setState(() => _error = 'Pickup and drop can\'t be the same place.');
+      setState(() => _error = l10n.pickupDropCannotBeSame);
       return;
     }
 
@@ -153,7 +156,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
     if (pickup == null || drop == null) {
       setState(() {
         _resolving = false;
-        _error = 'Could not verify one of these addresses. Pick a suggestion from the list, or use current location for pickup.';
+        _error = l10n.couldNotVerifyAddressPickSuggestion;
       });
       return;
     }
@@ -170,6 +173,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final showMap = MapsConfig.isConfigured && _pickup?.lat != null && _drop?.lat != null;
 
     // Safety net: this screen is also the redirect target for a few
@@ -190,7 +194,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
         }
       },
       child: Scaffold(
-      appBar: AppBar(title: const Text('Where to?')),
+      appBar: AppBar(title: Text(l10n.whereTo)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -199,7 +203,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
             children: [
               PlacesAutocompleteField(
                 controller: _pickupController,
-                label: 'Pickup location',
+                label: l10n.pickupLocation,
                 icon: Icons.trip_origin,
                 iconColor: Colors.green,
                 onPlaceSelected: _onPickupSelected,
@@ -209,7 +213,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
               const SizedBox(height: 12),
               PlacesAutocompleteField(
                 controller: _dropController,
-                label: 'Drop location',
+                label: l10n.dropLocation,
                 icon: Icons.location_on,
                 iconColor: Colors.red,
                 onPlaceSelected: _onDropSelected,
@@ -243,7 +247,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
                 onPressed: _resolving ? null : _continue,
                 child: _resolving
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Continue'),
+                    : Text(l10n.continueLabel),
               ),
             ],
           ),

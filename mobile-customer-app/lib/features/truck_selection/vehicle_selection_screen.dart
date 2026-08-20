@@ -3,17 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/vehicle_category_model.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/vehicle_config_provider.dart';
 
-const _kBodyTypeLabels = {
-  'bike': 'Bike',
-  'auto': 'Auto',
-  'open': 'Open',
-  'container': 'Container',
-  'trailer': 'Trailer',
-};
+Map<String, String> _bodyTypeLabels(AppLocalizations l10n) => {
+      'bike': l10n.bodyTypeBike,
+      'auto': l10n.bodyTypeAuto,
+      'open': l10n.bodyTypeOpen,
+      'container': l10n.bodyTypeContainer,
+      'trailer': l10n.bodyTypeTrailer,
+    };
 
 // Step 2 of booking: pick a vehicle category (SRS 3.1.4 Truck Selection).
 // Body-type filter chips + an optional cargo-weight filter, then a list of
@@ -81,24 +82,25 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
   }
 
   Future<void> _promptWeightFilter() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: _weightFilterKg?.toStringAsFixed(0) ?? '');
     final result = await showDialog<double?>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Filter by cargo weight'),
+        title: Text(l10n.filterByCargoWeight),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(labelText: 'Weight (kg)', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: l10n.weightKgFieldLabel, border: const OutlineInputBorder()),
         ),
         actions: [
           if (_weightFilterKg != null)
-            TextButton(onPressed: () => Navigator.pop(context, -1.0), child: const Text('Clear')),
-          TextButton(onPressed: () => Navigator.pop(context, null), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, -1.0), child: Text(l10n.clear)),
+          TextButton(onPressed: () => Navigator.pop(context, null), child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(context, double.tryParse(controller.text.trim())),
-            child: const Text('Apply'),
+            child: Text(l10n.apply),
           ),
         ],
       ),
@@ -116,23 +118,25 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final bodyTypeLabels = _bodyTypeLabels(l10n);
     final categoriesAsync = ref.watch(vehicleCategoriesProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Select Vehicle')),
+      appBar: AppBar(title: Text(l10n.selectVehicle)),
       body: SafeArea(
         child: categoriesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Could not load vehicle types. Check your connection and try again.', textAlign: TextAlign.center),
+              child: Text(l10n.couldNotLoadVehicleTypes, textAlign: TextAlign.center),
             ),
           ),
           data: (categories) {
             if (categories.isEmpty) {
-              return const Center(child: Text('No vehicle types are available right now.'));
+              return Center(child: Text(l10n.noVehicleTypesAvailable));
             }
             // Preserve catalog (sortOrder) order for the filter chips, not
             // an alphabetical re-sort - matches how the admin arranged them.
@@ -163,7 +167,7 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
                         if (i == 0) {
                           return ActionChip(
                             avatar: Icon(Icons.scale_outlined, size: 16, color: _weightFilterKg != null ? Colors.white : AppTheme.primary),
-                            label: Text(_weightFilterKg != null ? '${_weightFilterKg!.toStringAsFixed(0)} kg' : 'Weight'),
+                            label: Text(_weightFilterKg != null ? l10n.weightKgChipValue(_weightFilterKg!.toStringAsFixed(0)) : l10n.weightFilterChipLabel),
                             backgroundColor: _weightFilterKg != null ? AppTheme.primary : Colors.white,
                             labelStyle: TextStyle(color: _weightFilterKg != null ? Colors.white : AppTheme.textDark),
                             shape: StadiumBorder(side: BorderSide(color: _weightFilterKg != null ? AppTheme.primary : AppTheme.borderColor)),
@@ -173,7 +177,7 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
                         final bt = bodyTypes[i - 1];
                         final isSelected = _bodyType == bt;
                         return ChoiceChip(
-                          label: Text(_kBodyTypeLabels[bt] ?? bt),
+                          label: Text(bodyTypeLabels[bt] ?? bt),
                           selected: isSelected,
                           onSelected: (_) => setState(() => _bodyType = bt),
                           selectedColor: AppTheme.primary,
@@ -187,7 +191,7 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
                 ),
                 Expanded(
                   child: filtered.isEmpty
-                      ? const Center(child: Text('No vehicles match this weight in this category.'))
+                      ? Center(child: Text(l10n.noVehiclesMatchThisWeight))
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: filtered.length,
@@ -248,7 +252,7 @@ class _VehicleSelectionScreenState extends ConsumerState<VehicleSelectionScreen>
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: _selected == null ? null : _continue,
-                      child: const Text('Continue'),
+                      child: Text(l10n.continueLabel),
                     ),
                   ),
                 ),

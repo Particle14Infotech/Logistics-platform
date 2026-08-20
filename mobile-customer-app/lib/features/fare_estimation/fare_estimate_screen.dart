@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/vehicle_config_provider.dart';
 
@@ -48,7 +49,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
       ref.read(bookingDraftProvider.notifier).reset();
       if (mounted) context.pushReplacement('/booking/confirmation/${order.id}');
     } catch (e) {
-      setState(() => _error = 'Could not confirm this booking. Try again.');
+      setState(() => _error = AppLocalizations.of(context)!.couldNotConfirmBookingTryAgain);
     } finally {
       if (mounted) setState(() => _confirming = false);
     }
@@ -56,21 +57,22 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final draft = ref.watch(bookingDraftProvider);
     final estimate = draft.estimate;
 
     if (estimate == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Price Summary')),
+        appBar: AppBar(title: Text(l10n.priceSummary)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('No estimate found for this booking.', textAlign: TextAlign.center),
+                Text(l10n.noEstimateFoundForBooking, textAlign: TextAlign.center),
                 const SizedBox(height: 16),
-                FilledButton(onPressed: () => context.go('/booking/locations'), child: const Text('Start a new booking')),
+                FilledButton(onPressed: () => context.go('/booking/locations'), child: Text(l10n.startNewBooking)),
               ],
             ),
           ),
@@ -82,7 +84,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Price Summary')),
+      appBar: AppBar(title: Text(l10n.priceSummary)),
       body: SafeArea(
         child: Column(
           children: [
@@ -95,7 +97,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _DetailRow(
-                            label: 'Vehicle',
+                            label: l10n.vehicleLabel,
                             value: ref
                                     .watch(vehicleCategoriesProvider)
                                     .valueOrNull
@@ -104,9 +106,9 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                                     ?.displayTitle ??
                                 draft.vehicleType?.replaceAll('_', ' ') ??
                                 '—'),
-                        _DetailRow(label: 'Distance', value: '${estimate.distanceKm} km'),
-                        if (draft.goodsType.isNotEmpty) _DetailRow(label: 'Goods Type', value: draft.goodsType),
-                        if (draft.weightKg != null) _DetailRow(label: 'Weight', value: '${draft.weightKg} kg'),
+                        _DetailRow(label: l10n.distanceLabel, value: '${estimate.distanceKm} km'),
+                        if (draft.goodsType.isNotEmpty) _DetailRow(label: l10n.goodsType, value: draft.goodsType),
+                        if (draft.weightKg != null) _DetailRow(label: l10n.weightLabel, value: '${draft.weightKg} kg'),
                       ],
                     ),
                   ),
@@ -115,22 +117,22 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Fare Breakdown', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+                        Text(l10n.fareBreakdown, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
                         const SizedBox(height: 12),
-                        _FareRow(label: 'Base Fare', value: breakdown['baseFare']),
-                        _FareRow(label: 'Distance Charge', value: breakdown['distanceCharge']),
-                        if ((breakdown['weightCharge'] as num? ?? 0) > 0) _FareRow(label: 'Weight Charge', value: breakdown['weightCharge']),
-                        if (breakdown['surgeApplied'] == true) _FareRow(label: 'Surge (${breakdown['surgeMultiplier']}x)', value: null, highlight: true),
+                        _FareRow(label: l10n.baseFare, value: breakdown['baseFare']),
+                        _FareRow(label: l10n.distanceCharge, value: breakdown['distanceCharge']),
+                        if ((breakdown['weightCharge'] as num? ?? 0) > 0) _FareRow(label: l10n.weightCharge, value: breakdown['weightCharge']),
+                        if (breakdown['surgeApplied'] == true) _FareRow(label: l10n.surgeMultiplierLabel('${breakdown['surgeMultiplier']}'), value: null, highlight: true),
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Total Amount', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
+                            Text(l10n.totalAmount, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
                             Text('₹${estimate.estimatedPrice}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.primary)),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text('Final amount may vary slightly', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                        Text(l10n.finalAmountMayVarySlightly, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
                       ],
                     ),
                   ),
@@ -157,7 +159,7 @@ class _FareEstimateScreenState extends ConsumerState<FareEstimateScreen> {
                     onPressed: _confirming ? null : _confirmBooking,
                     child: _confirming
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Confirm Booking'),
+                        : Text(l10n.confirmBooking),
                   ),
                 ],
               ),
@@ -239,18 +241,19 @@ class _PaymentMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final remaining = price - advanceAmount;
     return _InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Payment Method', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+          Text(l10n.paymentMethod, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
           const SizedBox(height: 10),
           _PaymentOptionTile(
-            title: 'Pay Online',
+            title: l10n.payOnline,
             subtitle: _requiresAdvance
-                ? '₹$advanceAmount due now online, remaining ₹$remaining due online near delivery'
-                : 'Pay the full amount now via card/UPI',
+                ? l10n.payOnlineAdvanceSubtitle('$advanceAmount', '$remaining')
+                : l10n.payOnlineFullSubtitle,
             icon: Icons.credit_card_outlined,
             value: 'online',
             groupValue: selected,
@@ -258,10 +261,10 @@ class _PaymentMethodCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _PaymentOptionTile(
-            title: 'Cash on Delivery',
+            title: l10n.cashOnDelivery,
             subtitle: _requiresAdvance
-                ? '₹$advanceAmount due now online, remaining ₹$remaining in cash at delivery'
-                : 'Pay the full amount in cash at delivery',
+                ? l10n.codAdvanceSubtitle('$advanceAmount', '$remaining')
+                : l10n.codFullSubtitle,
             icon: Icons.payments_outlined,
             value: 'cod',
             groupValue: selected,

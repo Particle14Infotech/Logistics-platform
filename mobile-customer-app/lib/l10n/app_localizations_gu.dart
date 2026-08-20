@@ -544,4 +544,308 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get noFaqsAvailable => 'હાલમાં કોઈ FAQ ઉપલબ્ધ નથી.';
+
+  @override
+  String get turnOnLocationServices =>
+      'તમારા હાલના સ્થાનનો ઉપયોગ કરવા માટે લોકેશન સેવાઓ ચાલુ કરો.';
+
+  @override
+  String get locationPermissionRequired =>
+      'તમારા હાલના સ્થાનનો ઉપયોગ કરવા માટે લોકેશન પરવાનગી જરૂરી છે.';
+
+  @override
+  String get couldNotDetermineAddressTryAgain =>
+      'તમારું સરનામું નક્કી કરી શકાયું નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get couldNotGetCurrentLocationTryAgain =>
+      'તમારું હાલનું સ્થાન મળી શક્યું નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get enterBothPickupAndDrop => 'પિકઅપ અને ડ્રોપ બંને સ્થાનો દાખલ કરો.';
+
+  @override
+  String get pickupDropCannotBeSame => 'પિકઅપ અને ડ્રોપ એક જ જગ્યા ન હોઈ શકે.';
+
+  @override
+  String get couldNotVerifyAddressPickSuggestion =>
+      'આમાંથી એક સરનામું ચકાસી શકાયું નહીં. યાદીમાંથી સૂચન પસંદ કરો, અથવા પિકઅપ માટે હાલનું સ્થાન વાપરો.';
+
+  @override
+  String get whereTo => 'ક્યાં જવું છે?';
+
+  @override
+  String get pickupLocation => 'પિકઅપ સ્થાન';
+
+  @override
+  String get dropLocation => 'ડ્રોપ સ્થાન';
+
+  @override
+  String get continueLabel => 'ચાલુ રાખો';
+
+  @override
+  String get bookingConfirmed => 'બુકિંગ કન્ફર્મ થયું!';
+
+  @override
+  String get shipmentBookedSuccessfully =>
+      'તમારું શિપમેન્ટ સફળતાપૂર્વક બુક થયું છે.';
+
+  @override
+  String get estimatedPrice => 'અંદાજિત કિંમત';
+
+  @override
+  String payAdvanceNowCashAtDelivery(String advance, String remaining) {
+    return 'હમણાં ₹$advance અને ડિલિવરી પર રોકડમાં ₹$remaining ચૂકવો';
+  }
+
+  @override
+  String payCashAtDeliveryNoAdvance(String amount) {
+    return 'ડિલિવરી પર રોકડમાં ₹$amount ચૂકવો - કોઈ એડવાન્સ જરૂરી નથી';
+  }
+
+  @override
+  String payAdvanceNowRemainingOnlineNearDelivery(
+      String advance, String remaining) {
+    return 'હમણાં ₹$advance ચૂકવો, બાકીના ₹$remaining ડિલિવરી સમયે ઓનલાઇન ચૂકવવાના છે';
+  }
+
+  @override
+  String get trackShipment => 'શિપમેન્ટ ટ્રેક કરો';
+
+  @override
+  String get trackShipmentAvailableOnceAdvanceConfirmed =>
+      'તમારી એડવાન્સ ચુકવણી કન્ફર્મ થયા પછી શિપમેન્ટ ટ્રેક કરવાનું ઉપલબ્ધ થશે.';
+
+  @override
+  String get backToHome => 'હોમ પર પાછા જાઓ';
+
+  @override
+  String get bodyTypeBike => 'બાઇક';
+
+  @override
+  String get bodyTypeAuto => 'ઓટો';
+
+  @override
+  String get bodyTypeOpen => 'ખુલ્લું';
+
+  @override
+  String get bodyTypeContainer => 'કન્ટેનર';
+
+  @override
+  String get bodyTypeTrailer => 'ટ્રેલર';
+
+  @override
+  String get filterByCargoWeight => 'કાર્ગો વજન દ્વારા ફિલ્ટર કરો';
+
+  @override
+  String get weightKgFieldLabel => 'વજન (કિગ્રા)';
+
+  @override
+  String get weightFilterChipLabel => 'વજન';
+
+  @override
+  String weightKgChipValue(String weight) {
+    return '$weight કિગ્રા';
+  }
+
+  @override
+  String get clear => 'સાફ કરો';
+
+  @override
+  String get apply => 'લાગુ કરો';
+
+  @override
+  String get selectVehicle => 'વાહન પસંદ કરો';
+
+  @override
+  String get couldNotLoadVehicleTypes =>
+      'વાહન પ્રકારો લોડ કરી શકાયા નહીં. તમારું કનેક્શન તપાસો અને ફરી પ્રયાસ કરો.';
+
+  @override
+  String get noVehicleTypesAvailable => 'હાલમાં કોઈ વાહન પ્રકારો ઉપલબ્ધ નથી.';
+
+  @override
+  String get noVehiclesMatchThisWeight =>
+      'આ કેટેગરીમાં આ વજન સાથે મેળ ખાતું કોઈ વાહન નથી.';
+
+  @override
+  String get goodsTypeGeneralCargo => 'સામાન્ય કાર્ગો';
+
+  @override
+  String get goodsTypeFurniture => 'ફર્નિચર';
+
+  @override
+  String get goodsTypeElectronics => 'ઇલેક્ટ્રોનિક્સ';
+
+  @override
+  String get goodsTypeFoodGroceries => 'ખોરાક અને કરિયાણું';
+
+  @override
+  String get goodsTypeDocuments => 'દસ્તાવેજો';
+
+  @override
+  String get goodsTypeIndustrialEquipment => 'ઔદ્યોગિક સાધનો';
+
+  @override
+  String get goodsTypeOther => 'અન્ય';
+
+  @override
+  String get enterValidWeightKg => 'કિગ્રામાં માન્ય વજન દાખલ કરો.';
+
+  @override
+  String vehicleCanCarryUpTo(String name, String maxWeight) {
+    return '$name મહત્તમ $maxWeightકિગ્રા સુધી લઈ જઈ શકે છે - મોટું વાહન પસંદ કરો અથવા વજન ઘટાડો.';
+  }
+
+  @override
+  String get couldNotGetFareEstimateTryAgain =>
+      'ભાડાનો અંદાજ મળી શક્યો નહીં. તમારું કનેક્શન તપાસો અને ફરી પ્રયાસ કરો.';
+
+  @override
+  String get loadDetails => 'લોડ વિગતો';
+
+  @override
+  String get goodsType => 'માલનો પ્રકાર';
+
+  @override
+  String get fragile => 'નાજુક';
+
+  @override
+  String get fragileSubtitle => 'હેન્ડલિંગ દરમિયાન વધારાની કાળજી';
+
+  @override
+  String get addInsurance => 'વીમો ઉમેરો';
+
+  @override
+  String get addInsuranceSubtitle => 'પરિવહનમાં નુકસાન અથવા હાનિને આવરી લે છે';
+
+  @override
+  String get receiverDetails => 'પ્રાપ્તકર્તાની વિગતો';
+
+  @override
+  String get receiverDetailsSubtitle =>
+      'વૈકલ્પિક - તમારા ઇન્વોઇસ/વેબિલમાં ભરવામાં આવે છે';
+
+  @override
+  String get receiversName => 'પ્રાપ્તકર્તાનું નામ';
+
+  @override
+  String get receiversPhone => 'પ્રાપ્તકર્તાનો ફોન';
+
+  @override
+  String get receiversGstinOptional => 'પ્રાપ્તકર્તાનું GSTIN (વૈકલ્પિક)';
+
+  @override
+  String get getFareEstimate => 'ભાડાનો અંદાજ મેળવો';
+
+  @override
+  String get couldNotConfirmBookingTryAgain =>
+      'આ બુકિંગ કન્ફર્મ કરી શકાયું નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get priceSummary => 'કિંમત સારાંશ';
+
+  @override
+  String get noEstimateFoundForBooking => 'આ બુકિંગ માટે કોઈ અંદાજ મળ્યો નથી.';
+
+  @override
+  String get startNewBooking => 'નવું બુકિંગ શરૂ કરો';
+
+  @override
+  String get vehicleLabel => 'વાહન';
+
+  @override
+  String get distanceLabel => 'અંતર';
+
+  @override
+  String get weightLabel => 'વજન';
+
+  @override
+  String get fareBreakdown => 'ભાડાની વિગતો';
+
+  @override
+  String get baseFare => 'મૂળ ભાડું';
+
+  @override
+  String get distanceCharge => 'અંતર શુલ્ક';
+
+  @override
+  String get weightCharge => 'વજન શુલ્ક';
+
+  @override
+  String surgeMultiplierLabel(String multiplier) {
+    return 'સર્જ (${multiplier}x)';
+  }
+
+  @override
+  String get totalAmount => 'કુલ રકમ';
+
+  @override
+  String get finalAmountMayVarySlightly => 'અંતિમ રકમ થોડી અલગ હોઈ શકે છે';
+
+  @override
+  String get confirmBooking => 'બુકિંગ કન્ફર્મ કરો';
+
+  @override
+  String get paymentMethod => 'ચુકવણી પદ્ધતિ';
+
+  @override
+  String get payOnline => 'ઓનલાઇન ચૂકવો';
+
+  @override
+  String payOnlineAdvanceSubtitle(String advance, String remaining) {
+    return 'હમણાં ઓનલાઇન ₹$advance બાકી, બાકીના ₹$remaining ડિલિવરી સમયે ઓનલાઇન બાકી';
+  }
+
+  @override
+  String get payOnlineFullSubtitle => 'કાર્ડ/UPI દ્વારા હમણાં પૂરી રકમ ચૂકવો';
+
+  @override
+  String get cashOnDelivery => 'ડિલિવરી પર રોકડ ચુકવણી';
+
+  @override
+  String codAdvanceSubtitle(String advance, String remaining) {
+    return 'હમણાં ઓનલાઇન ₹$advance બાકી, બાકીના ₹$remaining ડિલિવરી પર રોકડમાં';
+  }
+
+  @override
+  String get codFullSubtitle => 'ડિલિવરી પર રોકડમાં પૂરી રકમ ચૂકવો';
+
+  @override
+  String get enterBothPickupDropLocations =>
+      'પિકઅપ અને ડ્રોપ બંને સ્થાનો દાખલ કરો.';
+
+  @override
+  String get selectAVehicleType => 'એક વાહન પ્રકાર પસંદ કરો.';
+
+  @override
+  String vehicleCanCarryUpToShort(String name, String maxWeight) {
+    return '$name મહત્તમ $maxWeight કિગ્રા સુધી લઈ જઈ શકે છે.';
+  }
+
+  @override
+  String get couldNotCalculatePriceTryAgain =>
+      'કિંમતની ગણતરી કરી શકાઈ નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get vehicleTypeLabel => 'વાહન પ્રકાર';
+
+  @override
+  String get couldNotLoadVehicleTypesShort =>
+      'વાહન પ્રકારો લોડ કરી શકાયા નહીં.';
+
+  @override
+  String get weightKgOptionalHint => 'વજન (કિગ્રા) - વૈકલ્પિક';
+
+  @override
+  String get calculate => 'ગણતરી કરો';
+
+  @override
+  String get recalculate => 'ફરી ગણતરી કરો';
+
+  @override
+  String get estimatedFare => 'અંદાજિત ભાડું';
+
+  @override
+  String get thisIsOnlyEstimateNotBooking => 'આ ફક્ત એક અંદાજ છે - બુકિંગ નથી.';
 }

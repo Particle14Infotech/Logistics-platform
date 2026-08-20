@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/vehicle_config_provider.dart';
 
+// Canonical English values - stored on the order/waybill and shown as-is in
+// admin/enterprise (English-only) later, so these keys never change with the
+// UI locale. Only the on-screen dropdown label is translated (see
+// _goodsTypeLabel below).
 const _kGoodsTypes = ['General cargo', 'Furniture', 'Electronics', 'Food & groceries', 'Documents', 'Industrial equipment', 'Other'];
+
+String _goodsTypeLabel(String value, AppLocalizations l10n) => switch (value) {
+      'General cargo' => l10n.goodsTypeGeneralCargo,
+      'Furniture' => l10n.goodsTypeFurniture,
+      'Electronics' => l10n.goodsTypeElectronics,
+      'Food & groceries' => l10n.goodsTypeFoodGroceries,
+      'Documents' => l10n.goodsTypeDocuments,
+      'Industrial equipment' => l10n.goodsTypeIndustrialEquipment,
+      _ => l10n.goodsTypeOther,
+    };
 
 // Step 3 of booking: goods type, weight, fragile/insurance toggles (SRS 3.1.5 Load Details).
 class LoadDetailsScreen extends ConsumerStatefulWidget {
@@ -64,9 +79,10 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
   }
 
   Future<void> _getEstimate() async {
+    final l10n = AppLocalizations.of(context)!;
     final weight = double.tryParse(_weightController.text.trim());
     if (weight == null || weight <= 0) {
-      setState(() => _error = 'Enter a valid weight in kg.');
+      setState(() => _error = l10n.enterValidWeightKg);
       return;
     }
 
@@ -75,7 +91,7 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
     final vehicle = categories?.where((c) => c.vehicleType == draft.vehicleType).firstOrNull;
     if (vehicle != null && weight > vehicle.maxWeightKg) {
       setState(() => _error =
-          '${vehicle.name} can carry up to ${vehicle.maxWeightKg}kg - choose a bigger vehicle or reduce the weight.');
+          l10n.vehicleCanCarryUpTo(vehicle.name, '${vehicle.maxWeightKg}'));
       return;
     }
 
@@ -105,7 +121,7 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
       // push, not pushReplacement - see locations_screen.dart's _continue().
       if (mounted) context.push('/booking/estimate');
     } catch (e) {
-      setState(() => _error = 'Could not get a fare estimate. Check your connection and try again.');
+      setState(() => _error = l10n.couldNotGetFareEstimateTryAgain);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -113,41 +129,42 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Load details')),
+      appBar: AppBar(title: Text(l10n.loadDetails)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             DropdownButtonFormField<String>(
               initialValue: _goodsType,
-              decoration: const InputDecoration(labelText: 'Goods type', border: OutlineInputBorder()),
-              items: _kGoodsTypes.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+              decoration: InputDecoration(labelText: l10n.goodsType, border: const OutlineInputBorder()),
+              items: _kGoodsTypes.map((g) => DropdownMenuItem(value: g, child: Text(_goodsTypeLabel(g, l10n)))).toList(),
               onChanged: (v) => setState(() => _goodsType = v ?? _goodsType),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _weightController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Weight (kg)', border: OutlineInputBorder(), suffixText: 'kg'),
+              decoration: InputDecoration(labelText: l10n.weightKgFieldLabel, border: const OutlineInputBorder(), suffixText: 'kg'),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
-              title: const Text('Fragile'),
-              subtitle: const Text('Extra care during handling'),
+              title: Text(l10n.fragile),
+              subtitle: Text(l10n.fragileSubtitle),
               value: _isFragile,
               onChanged: (v) => setState(() => _isFragile = v),
             ),
             SwitchListTile(
-              title: const Text('Add insurance'),
-              subtitle: const Text('Covers loss or damage in transit'),
+              title: Text(l10n.addInsurance),
+              subtitle: Text(l10n.addInsuranceSubtitle),
               value: _insuranceOpted,
               onChanged: (v) => setState(() => _insuranceOpted = v),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
-              title: const Text('Receiver details'),
-              subtitle: const Text('Optional - filled into your invoice/waybill'),
+              title: Text(l10n.receiverDetails),
+              subtitle: Text(l10n.receiverDetailsSubtitle),
               value: _showReceiverDetails,
               onChanged: (v) => setState(() => _showReceiverDetails = v),
             ),
@@ -155,18 +172,18 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _consigneeNameController,
-                decoration: const InputDecoration(labelText: "Receiver's name", border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: l10n.receiversName, border: const OutlineInputBorder()),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _consigneePhoneController,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: "Receiver's phone", border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: l10n.receiversPhone, border: const OutlineInputBorder()),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _consigneeGstinController,
-                decoration: const InputDecoration(labelText: "Receiver's GSTIN (optional)", border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: l10n.receiversGstinOptional, border: const OutlineInputBorder()),
               ),
             ],
             if (_error != null) ...[
@@ -178,7 +195,7 @@ class _LoadDetailsScreenState extends ConsumerState<LoadDetailsScreen> {
               onPressed: _loading ? null : _getEstimate,
               child: _loading
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Get fare estimate'),
+                  : Text(l10n.getFareEstimate),
             ),
           ],
         ),

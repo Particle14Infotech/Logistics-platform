@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/booking_provider.dart';
 import '../../models/order_model.dart';
 import '../../widgets/pay_now_button.dart';
@@ -41,6 +42,7 @@ class _BookingConfirmationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final order = _order;
     return PopScope(
       // The wizard screens behind this one (Locations/Vehicle/Details) are
@@ -71,7 +73,7 @@ class _BookingConfirmationScreenState
                     const Icon(Icons.check, size: 48, color: AppTheme.success),
               ),
               const SizedBox(height: 24),
-              Text('Booking Confirmed!',
+              Text(l10n.bookingConfirmed,
                   style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -79,7 +81,7 @@ class _BookingConfirmationScreenState
                   textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text(
-                "Your shipment has been successfully booked.",
+                l10n.shipmentBookedSuccessfully,
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: Colors.grey.shade500),
                 textAlign: TextAlign.center,
@@ -122,7 +124,7 @@ class _BookingConfirmationScreenState
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Estimated Price',
+                            Text(l10n.estimatedPrice,
                                 style: GoogleFonts.poppins(
                                     fontSize: 13, color: Colors.grey.shade500)),
                             Text('₹${order.price}',
@@ -136,15 +138,17 @@ class _BookingConfirmationScreenState
                           const SizedBox(height: 4),
                           Text(
                             order.advanceAmount > 0
-                                ? 'Pay ₹${order.advanceAmount} now, ₹${order.price - order.advanceAmount} in cash at delivery'
-                                : 'Pay ₹${order.price} in cash at delivery - no advance required',
+                                ? l10n.payAdvanceNowCashAtDelivery(
+                                    '${order.advanceAmount}', '${order.price - order.advanceAmount}')
+                                : l10n.payCashAtDeliveryNoAdvance('${order.price}'),
                             style: GoogleFonts.poppins(
                                 fontSize: 11, color: Colors.grey.shade500),
                           ),
                         ] else if (order.advanceAmount > 0) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Pay ₹${order.advanceAmount} now, remaining ₹${order.price - order.advanceAmount} due online near delivery',
+                            l10n.payAdvanceNowRemainingOnlineNearDelivery(
+                                '${order.advanceAmount}', '${order.price - order.advanceAmount}'),
                             style: GoogleFonts.poppins(
                                 fontSize: 11, color: Colors.grey.shade500),
                           ),
@@ -194,13 +198,13 @@ class _BookingConfirmationScreenState
                     // outright instead of returning here.
                     onPressed: () =>
                         context.push('/booking/detail/${widget.orderId}'),
-                    child: const Text('Track Shipment'),
+                    child: Text(l10n.trackShipment),
                   ),
                 ),
                 const SizedBox(height: 8),
               ] else ...[
                 Text(
-                  'Track Shipment will be available once your advance payment is confirmed.',
+                  l10n.trackShipmentAvailableOnceAdvanceConfirmed,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
                 ),
@@ -210,7 +214,7 @@ class _BookingConfirmationScreenState
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () => context.go('/home'),
-                  child: const Text('Back to Home'),
+                  child: Text(l10n.backToHome),
                 ),
               ),
             ],

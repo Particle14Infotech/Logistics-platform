@@ -542,4 +542,310 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noFaqsAvailable => 'No FAQs available right now.';
+
+  @override
+  String get turnOnLocationServices =>
+      'Turn on location services to use your current location.';
+
+  @override
+  String get locationPermissionRequired =>
+      'Location permission is required to use your current location.';
+
+  @override
+  String get couldNotDetermineAddressTryAgain =>
+      'Could not determine your address. Try again.';
+
+  @override
+  String get couldNotGetCurrentLocationTryAgain =>
+      'Could not get your current location. Try again.';
+
+  @override
+  String get enterBothPickupAndDrop => 'Enter both a pickup and drop location.';
+
+  @override
+  String get pickupDropCannotBeSame =>
+      'Pickup and drop can\'t be the same place.';
+
+  @override
+  String get couldNotVerifyAddressPickSuggestion =>
+      'Could not verify one of these addresses. Pick a suggestion from the list, or use current location for pickup.';
+
+  @override
+  String get whereTo => 'Where to?';
+
+  @override
+  String get pickupLocation => 'Pickup location';
+
+  @override
+  String get dropLocation => 'Drop location';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get bookingConfirmed => 'Booking Confirmed!';
+
+  @override
+  String get shipmentBookedSuccessfully =>
+      'Your shipment has been successfully booked.';
+
+  @override
+  String get estimatedPrice => 'Estimated Price';
+
+  @override
+  String payAdvanceNowCashAtDelivery(String advance, String remaining) {
+    return 'Pay ₹$advance now, ₹$remaining in cash at delivery';
+  }
+
+  @override
+  String payCashAtDeliveryNoAdvance(String amount) {
+    return 'Pay ₹$amount in cash at delivery - no advance required';
+  }
+
+  @override
+  String payAdvanceNowRemainingOnlineNearDelivery(
+      String advance, String remaining) {
+    return 'Pay ₹$advance now, remaining ₹$remaining due online near delivery';
+  }
+
+  @override
+  String get trackShipment => 'Track Shipment';
+
+  @override
+  String get trackShipmentAvailableOnceAdvanceConfirmed =>
+      'Track Shipment will be available once your advance payment is confirmed.';
+
+  @override
+  String get backToHome => 'Back to Home';
+
+  @override
+  String get bodyTypeBike => 'Bike';
+
+  @override
+  String get bodyTypeAuto => 'Auto';
+
+  @override
+  String get bodyTypeOpen => 'Open';
+
+  @override
+  String get bodyTypeContainer => 'Container';
+
+  @override
+  String get bodyTypeTrailer => 'Trailer';
+
+  @override
+  String get filterByCargoWeight => 'Filter by cargo weight';
+
+  @override
+  String get weightKgFieldLabel => 'Weight (kg)';
+
+  @override
+  String get weightFilterChipLabel => 'Weight';
+
+  @override
+  String weightKgChipValue(String weight) {
+    return '$weight kg';
+  }
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get selectVehicle => 'Select Vehicle';
+
+  @override
+  String get couldNotLoadVehicleTypes =>
+      'Could not load vehicle types. Check your connection and try again.';
+
+  @override
+  String get noVehicleTypesAvailable =>
+      'No vehicle types are available right now.';
+
+  @override
+  String get noVehiclesMatchThisWeight =>
+      'No vehicles match this weight in this category.';
+
+  @override
+  String get goodsTypeGeneralCargo => 'General cargo';
+
+  @override
+  String get goodsTypeFurniture => 'Furniture';
+
+  @override
+  String get goodsTypeElectronics => 'Electronics';
+
+  @override
+  String get goodsTypeFoodGroceries => 'Food & groceries';
+
+  @override
+  String get goodsTypeDocuments => 'Documents';
+
+  @override
+  String get goodsTypeIndustrialEquipment => 'Industrial equipment';
+
+  @override
+  String get goodsTypeOther => 'Other';
+
+  @override
+  String get enterValidWeightKg => 'Enter a valid weight in kg.';
+
+  @override
+  String vehicleCanCarryUpTo(String name, String maxWeight) {
+    return '$name can carry up to ${maxWeight}kg - choose a bigger vehicle or reduce the weight.';
+  }
+
+  @override
+  String get couldNotGetFareEstimateTryAgain =>
+      'Could not get a fare estimate. Check your connection and try again.';
+
+  @override
+  String get loadDetails => 'Load details';
+
+  @override
+  String get goodsType => 'Goods type';
+
+  @override
+  String get fragile => 'Fragile';
+
+  @override
+  String get fragileSubtitle => 'Extra care during handling';
+
+  @override
+  String get addInsurance => 'Add insurance';
+
+  @override
+  String get addInsuranceSubtitle => 'Covers loss or damage in transit';
+
+  @override
+  String get receiverDetails => 'Receiver details';
+
+  @override
+  String get receiverDetailsSubtitle =>
+      'Optional - filled into your invoice/waybill';
+
+  @override
+  String get receiversName => 'Receiver\'s name';
+
+  @override
+  String get receiversPhone => 'Receiver\'s phone';
+
+  @override
+  String get receiversGstinOptional => 'Receiver\'s GSTIN (optional)';
+
+  @override
+  String get getFareEstimate => 'Get fare estimate';
+
+  @override
+  String get couldNotConfirmBookingTryAgain =>
+      'Could not confirm this booking. Try again.';
+
+  @override
+  String get priceSummary => 'Price Summary';
+
+  @override
+  String get noEstimateFoundForBooking => 'No estimate found for this booking.';
+
+  @override
+  String get startNewBooking => 'Start a new booking';
+
+  @override
+  String get vehicleLabel => 'Vehicle';
+
+  @override
+  String get distanceLabel => 'Distance';
+
+  @override
+  String get weightLabel => 'Weight';
+
+  @override
+  String get fareBreakdown => 'Fare Breakdown';
+
+  @override
+  String get baseFare => 'Base Fare';
+
+  @override
+  String get distanceCharge => 'Distance Charge';
+
+  @override
+  String get weightCharge => 'Weight Charge';
+
+  @override
+  String surgeMultiplierLabel(String multiplier) {
+    return 'Surge (${multiplier}x)';
+  }
+
+  @override
+  String get totalAmount => 'Total Amount';
+
+  @override
+  String get finalAmountMayVarySlightly => 'Final amount may vary slightly';
+
+  @override
+  String get confirmBooking => 'Confirm Booking';
+
+  @override
+  String get paymentMethod => 'Payment Method';
+
+  @override
+  String get payOnline => 'Pay Online';
+
+  @override
+  String payOnlineAdvanceSubtitle(String advance, String remaining) {
+    return '₹$advance due now online, remaining ₹$remaining due online near delivery';
+  }
+
+  @override
+  String get payOnlineFullSubtitle => 'Pay the full amount now via card/UPI';
+
+  @override
+  String get cashOnDelivery => 'Cash on Delivery';
+
+  @override
+  String codAdvanceSubtitle(String advance, String remaining) {
+    return '₹$advance due now online, remaining ₹$remaining in cash at delivery';
+  }
+
+  @override
+  String get codFullSubtitle => 'Pay the full amount in cash at delivery';
+
+  @override
+  String get enterBothPickupDropLocations =>
+      'Enter both pickup and drop locations.';
+
+  @override
+  String get selectAVehicleType => 'Select a vehicle type.';
+
+  @override
+  String vehicleCanCarryUpToShort(String name, String maxWeight) {
+    return '$name can carry up to $maxWeight kg.';
+  }
+
+  @override
+  String get couldNotCalculatePriceTryAgain =>
+      'Could not calculate a price. Try again.';
+
+  @override
+  String get vehicleTypeLabel => 'Vehicle type';
+
+  @override
+  String get couldNotLoadVehicleTypesShort => 'Could not load vehicle types.';
+
+  @override
+  String get weightKgOptionalHint => 'Weight (kg) - optional';
+
+  @override
+  String get calculate => 'Calculate';
+
+  @override
+  String get recalculate => 'Recalculate';
+
+  @override
+  String get estimatedFare => 'Estimated Fare';
+
+  @override
+  String get thisIsOnlyEstimateNotBooking =>
+      'This is only an estimate - not a booking.';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/location_model.dart';
 import '../../models/vehicle_category_model.dart';
 import '../../providers/booking_provider.dart';
@@ -54,17 +55,18 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
   }
 
   Future<void> _calculate() async {
+    final l10n = AppLocalizations.of(context)!;
     // Manually-typed addresses without picking a suggestion still work -
     // same fallback locations_screen.dart relies on - just without lat/lng.
     final pickup = _pickup ?? (_pickupController.text.trim().isNotEmpty ? LocationModel(address: _pickupController.text.trim()) : null);
     final drop = _drop ?? (_dropController.text.trim().isNotEmpty ? LocationModel(address: _dropController.text.trim()) : null);
 
     if (pickup == null || drop == null) {
-      setState(() => _error = 'Enter both pickup and drop locations.');
+      setState(() => _error = l10n.enterBothPickupDropLocations);
       return;
     }
     if (_vehicleType == null) {
-      setState(() => _error = 'Select a vehicle type.');
+      setState(() => _error = l10n.selectAVehicleType);
       return;
     }
 
@@ -72,7 +74,7 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
     final categories = ref.read(vehicleCategoriesProvider).valueOrNull ?? [];
     final vehicle = categories.firstWhere((c) => c.vehicleType == _vehicleType);
     if (weight != null && weight > vehicle.maxWeightKg) {
-      setState(() => _error = '${vehicle.name} can carry up to ${vehicle.maxWeightKg} kg.');
+      setState(() => _error = l10n.vehicleCanCarryUpToShort(vehicle.name, '${vehicle.maxWeightKg}'));
       return;
     }
 
@@ -90,7 +92,7 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
           );
       if (mounted) setState(() => _result = estimate);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not calculate a price. Try again.');
+      if (mounted) setState(() => _error = l10n.couldNotCalculatePriceTryAgain);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -98,17 +100,18 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final categoriesAsync = ref.watch(vehicleCategoriesProvider);
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Price Calculator')),
+      appBar: AppBar(title: Text(l10n.priceCalculator)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             PlacesAutocompleteField(
               controller: _pickupController,
-              label: 'Pickup location',
+              label: l10n.pickupLocation,
               icon: Icons.trip_origin,
               iconColor: Colors.green,
               onPlaceSelected: _onPickupSelected,
@@ -116,17 +119,17 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
             const SizedBox(height: 12),
             PlacesAutocompleteField(
               controller: _dropController,
-              label: 'Drop location',
+              label: l10n.dropLocation,
               icon: Icons.location_on,
               iconColor: Colors.red,
               onPlaceSelected: _onDropSelected,
             ),
             const SizedBox(height: 20),
-            Text('Vehicle type', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+            Text(l10n.vehicleTypeLabel, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
             const SizedBox(height: 8),
             categoriesAsync.when(
               loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Center(child: CircularProgressIndicator())),
-              error: (err, _) => const Text('Could not load vehicle types.'),
+              error: (err, _) => Text(l10n.couldNotLoadVehicleTypesShort),
               data: (categories) => Column(
                 children: categories.map((v) {
                   final selected = _vehicleType == v.vehicleType;
@@ -154,10 +157,10 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
             TextField(
               controller: _weightController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Weight (kg) - optional',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.scale_outlined),
+              decoration: InputDecoration(
+                labelText: l10n.weightKgOptionalHint,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.scale_outlined),
               ),
             ),
             const SizedBox(height: 20),
@@ -165,7 +168,7 @@ class _PriceCalculatorScreenState extends ConsumerState<PriceCalculatorScreen> {
               onPressed: _loading ? null : _calculate,
               child: _loading
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(_result == null ? 'Calculate' : 'Recalculate'),
+                  : Text(_result == null ? l10n.calculate : l10n.recalculate),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -188,6 +191,7 @@ class _EstimateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final breakdown = estimate.breakdown;
     return Card(
       elevation: 0,
@@ -197,23 +201,23 @@ class _EstimateCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Estimated Fare', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+            Text(l10n.estimatedFare, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
             const SizedBox(height: 12),
-            _row('Distance', '${estimate.distanceKm} km'),
-            _row('Base Fare', '₹${breakdown['baseFare'] ?? 0}'),
-            _row('Distance Charge', '₹${breakdown['distanceCharge'] ?? 0}'),
-            if ((breakdown['weightCharge'] as num? ?? 0) > 0) _row('Weight Charge', '₹${breakdown['weightCharge']}'),
-            if (breakdown['surgeApplied'] == true) _row('Surge (${breakdown['surgeMultiplier']}x)', '', highlight: true),
+            _row(l10n.distanceLabel, '${estimate.distanceKm} km'),
+            _row(l10n.baseFare, '₹${breakdown['baseFare'] ?? 0}'),
+            _row(l10n.distanceCharge, '₹${breakdown['distanceCharge'] ?? 0}'),
+            if ((breakdown['weightCharge'] as num? ?? 0) > 0) _row(l10n.weightCharge, '₹${breakdown['weightCharge']}'),
+            if (breakdown['surgeApplied'] == true) _row(l10n.surgeMultiplierLabel('${breakdown['surgeMultiplier']}'), '', highlight: true),
             const Divider(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total Amount', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
+                Text(l10n.totalAmount, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
                 Text('₹${estimate.estimatedPrice}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 20, color: AppTheme.primary)),
               ],
             ),
             const SizedBox(height: 6),
-            Text('This is only an estimate - not a booking.', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+            Text(l10n.thisIsOnlyEstimateNotBooking, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
           ],
         ),
       ),

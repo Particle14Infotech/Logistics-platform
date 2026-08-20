@@ -1089,6 +1089,547 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No FAQs available right now.'**
   String get noFaqsAvailable;
+
+  /// No description provided for @turnOnLocationServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location services to use your current location.'**
+  String get turnOnLocationServices;
+
+  /// No description provided for @locationPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is required to use your current location.'**
+  String get locationPermissionRequired;
+
+  /// No description provided for @couldNotDetermineAddressTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not determine your address. Try again.'**
+  String get couldNotDetermineAddressTryAgain;
+
+  /// No description provided for @couldNotGetCurrentLocationTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get your current location. Try again.'**
+  String get couldNotGetCurrentLocationTryAgain;
+
+  /// No description provided for @enterBothPickupAndDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter both a pickup and drop location.'**
+  String get enterBothPickupAndDrop;
+
+  /// No description provided for @pickupDropCannotBeSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup and drop can\'t be the same place.'**
+  String get pickupDropCannotBeSame;
+
+  /// No description provided for @couldNotVerifyAddressPickSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not verify one of these addresses. Pick a suggestion from the list, or use current location for pickup.'**
+  String get couldNotVerifyAddressPickSuggestion;
+
+  /// No description provided for @whereTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Where to?'**
+  String get whereTo;
+
+  /// No description provided for @pickupLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup location'**
+  String get pickupLocation;
+
+  /// No description provided for @dropLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop location'**
+  String get dropLocation;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @bookingConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking Confirmed!'**
+  String get bookingConfirmed;
+
+  /// No description provided for @shipmentBookedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shipment has been successfully booked.'**
+  String get shipmentBookedSuccessfully;
+
+  /// No description provided for @estimatedPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Price'**
+  String get estimatedPrice;
+
+  /// No description provided for @payAdvanceNowCashAtDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay ₹{advance} now, ₹{remaining} in cash at delivery'**
+  String payAdvanceNowCashAtDelivery(String advance, String remaining);
+
+  /// No description provided for @payCashAtDeliveryNoAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay ₹{amount} in cash at delivery - no advance required'**
+  String payCashAtDeliveryNoAdvance(String amount);
+
+  /// No description provided for @payAdvanceNowRemainingOnlineNearDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay ₹{advance} now, remaining ₹{remaining} due online near delivery'**
+  String payAdvanceNowRemainingOnlineNearDelivery(
+      String advance, String remaining);
+
+  /// No description provided for @trackShipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Shipment'**
+  String get trackShipment;
+
+  /// No description provided for @trackShipmentAvailableOnceAdvanceConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Shipment will be available once your advance payment is confirmed.'**
+  String get trackShipmentAvailableOnceAdvanceConfirmed;
+
+  /// No description provided for @backToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get backToHome;
+
+  /// No description provided for @bodyTypeBike.
+  ///
+  /// In en, this message translates to:
+  /// **'Bike'**
+  String get bodyTypeBike;
+
+  /// No description provided for @bodyTypeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get bodyTypeAuto;
+
+  /// No description provided for @bodyTypeOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get bodyTypeOpen;
+
+  /// No description provided for @bodyTypeContainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Container'**
+  String get bodyTypeContainer;
+
+  /// No description provided for @bodyTypeTrailer.
+  ///
+  /// In en, this message translates to:
+  /// **'Trailer'**
+  String get bodyTypeTrailer;
+
+  /// No description provided for @filterByCargoWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by cargo weight'**
+  String get filterByCargoWeight;
+
+  /// No description provided for @weightKgFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get weightKgFieldLabel;
+
+  /// No description provided for @weightFilterChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightFilterChipLabel;
+
+  /// No description provided for @weightKgChipValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} kg'**
+  String weightKgChipValue(String weight);
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @selectVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Vehicle'**
+  String get selectVehicle;
+
+  /// No description provided for @couldNotLoadVehicleTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load vehicle types. Check your connection and try again.'**
+  String get couldNotLoadVehicleTypes;
+
+  /// No description provided for @noVehicleTypesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicle types are available right now.'**
+  String get noVehicleTypesAvailable;
+
+  /// No description provided for @noVehiclesMatchThisWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles match this weight in this category.'**
+  String get noVehiclesMatchThisWeight;
+
+  /// No description provided for @goodsTypeGeneralCargo.
+  ///
+  /// In en, this message translates to:
+  /// **'General cargo'**
+  String get goodsTypeGeneralCargo;
+
+  /// No description provided for @goodsTypeFurniture.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture'**
+  String get goodsTypeFurniture;
+
+  /// No description provided for @goodsTypeElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get goodsTypeElectronics;
+
+  /// No description provided for @goodsTypeFoodGroceries.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & groceries'**
+  String get goodsTypeFoodGroceries;
+
+  /// No description provided for @goodsTypeDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get goodsTypeDocuments;
+
+  /// No description provided for @goodsTypeIndustrialEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Industrial equipment'**
+  String get goodsTypeIndustrialEquipment;
+
+  /// No description provided for @goodsTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get goodsTypeOther;
+
+  /// No description provided for @enterValidWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid weight in kg.'**
+  String get enterValidWeightKg;
+
+  /// No description provided for @vehicleCanCarryUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can carry up to {maxWeight}kg - choose a bigger vehicle or reduce the weight.'**
+  String vehicleCanCarryUpTo(String name, String maxWeight);
+
+  /// No description provided for @couldNotGetFareEstimateTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get a fare estimate. Check your connection and try again.'**
+  String get couldNotGetFareEstimateTryAgain;
+
+  /// No description provided for @loadDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Load details'**
+  String get loadDetails;
+
+  /// No description provided for @goodsType.
+  ///
+  /// In en, this message translates to:
+  /// **'Goods type'**
+  String get goodsType;
+
+  /// No description provided for @fragile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fragile'**
+  String get fragile;
+
+  /// No description provided for @fragileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra care during handling'**
+  String get fragileSubtitle;
+
+  /// No description provided for @addInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Add insurance'**
+  String get addInsurance;
+
+  /// No description provided for @addInsuranceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers loss or damage in transit'**
+  String get addInsuranceSubtitle;
+
+  /// No description provided for @receiverDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver details'**
+  String get receiverDetails;
+
+  /// No description provided for @receiverDetailsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional - filled into your invoice/waybill'**
+  String get receiverDetailsSubtitle;
+
+  /// No description provided for @receiversName.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver\'s name'**
+  String get receiversName;
+
+  /// No description provided for @receiversPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver\'s phone'**
+  String get receiversPhone;
+
+  /// No description provided for @receiversGstinOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver\'s GSTIN (optional)'**
+  String get receiversGstinOptional;
+
+  /// No description provided for @getFareEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Get fare estimate'**
+  String get getFareEstimate;
+
+  /// No description provided for @couldNotConfirmBookingTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm this booking. Try again.'**
+  String get couldNotConfirmBookingTryAgain;
+
+  /// No description provided for @priceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Summary'**
+  String get priceSummary;
+
+  /// No description provided for @noEstimateFoundForBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'No estimate found for this booking.'**
+  String get noEstimateFoundForBooking;
+
+  /// No description provided for @startNewBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new booking'**
+  String get startNewBooking;
+
+  /// No description provided for @vehicleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get vehicleLabel;
+
+  /// No description provided for @distanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get distanceLabel;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// No description provided for @fareBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Fare Breakdown'**
+  String get fareBreakdown;
+
+  /// No description provided for @baseFare.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Fare'**
+  String get baseFare;
+
+  /// No description provided for @distanceCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance Charge'**
+  String get distanceCharge;
+
+  /// No description provided for @weightCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Charge'**
+  String get weightCharge;
+
+  /// No description provided for @surgeMultiplierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Surge ({multiplier}x)'**
+  String surgeMultiplierLabel(String multiplier);
+
+  /// No description provided for @totalAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Amount'**
+  String get totalAmount;
+
+  /// No description provided for @finalAmountMayVarySlightly.
+  ///
+  /// In en, this message translates to:
+  /// **'Final amount may vary slightly'**
+  String get finalAmountMayVarySlightly;
+
+  /// No description provided for @confirmBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Booking'**
+  String get confirmBooking;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethod;
+
+  /// No description provided for @payOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Online'**
+  String get payOnline;
+
+  /// No description provided for @payOnlineAdvanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'₹{advance} due now online, remaining ₹{remaining} due online near delivery'**
+  String payOnlineAdvanceSubtitle(String advance, String remaining);
+
+  /// No description provided for @payOnlineFullSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the full amount now via card/UPI'**
+  String get payOnlineFullSubtitle;
+
+  /// No description provided for @cashOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash on Delivery'**
+  String get cashOnDelivery;
+
+  /// No description provided for @codAdvanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'₹{advance} due now online, remaining ₹{remaining} in cash at delivery'**
+  String codAdvanceSubtitle(String advance, String remaining);
+
+  /// No description provided for @codFullSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the full amount in cash at delivery'**
+  String get codFullSubtitle;
+
+  /// No description provided for @enterBothPickupDropLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter both pickup and drop locations.'**
+  String get enterBothPickupDropLocations;
+
+  /// No description provided for @selectAVehicleType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a vehicle type.'**
+  String get selectAVehicleType;
+
+  /// No description provided for @vehicleCanCarryUpToShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can carry up to {maxWeight} kg.'**
+  String vehicleCanCarryUpToShort(String name, String maxWeight);
+
+  /// No description provided for @couldNotCalculatePriceTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not calculate a price. Try again.'**
+  String get couldNotCalculatePriceTryAgain;
+
+  /// No description provided for @vehicleTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle type'**
+  String get vehicleTypeLabel;
+
+  /// No description provided for @couldNotLoadVehicleTypesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load vehicle types.'**
+  String get couldNotLoadVehicleTypesShort;
+
+  /// No description provided for @weightKgOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg) - optional'**
+  String get weightKgOptionalHint;
+
+  /// No description provided for @calculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get calculate;
+
+  /// No description provided for @recalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate'**
+  String get recalculate;
+
+  /// No description provided for @estimatedFare.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Fare'**
+  String get estimatedFare;
+
+  /// No description provided for @thisIsOnlyEstimateNotBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'This is only an estimate - not a booking.'**
+  String get thisIsOnlyEstimateNotBooking;
 }
 
 class _AppLocalizationsDelegate
