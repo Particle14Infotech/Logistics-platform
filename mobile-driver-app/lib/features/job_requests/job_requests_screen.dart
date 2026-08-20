@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/driver_provider.dart';
 import '../../providers/vehicle_config_provider.dart';
 import '../../models/trip_model.dart';
@@ -17,7 +18,7 @@ class JobRequestsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Job requests')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.jobRequests)),
       body: const _FixedJobsTab(),
     );
   }
@@ -65,7 +66,9 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
       _knownJobIds = jobs.map((j) => j.id).toSet();
       setState(() => _jobs = jobs);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not load job requests.');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.couldNotLoadJobRequests);
+      }
     }
   }
 
@@ -104,7 +107,7 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
         // showing the same generic line regardless of what actually
         // went wrong.
         final serverMessage = e is DioException && e.response?.data is Map ? e.response?.data['message'] as String? : null;
-        setState(() => _error = serverMessage ?? 'This job is no longer available.');
+        setState(() => _error = serverMessage ?? AppLocalizations.of(context)!.jobNoLongerAvailable);
         _load();
       }
     } finally {
@@ -140,16 +143,17 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return RefreshIndicator(
       onRefresh: _load,
       child: _jobs == null
           ? (_error != null ? Center(child: Text(_error!)) : const Center(child: CircularProgressIndicator()))
           : _jobs!.isEmpty
               ? ListView(
-                  children: const [
+                  children: [
                     Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: Text('No jobs available right now. Pull to refresh.')),
+                      padding: const EdgeInsets.all(32),
+                      child: Center(child: Text(l10n.noJobsAvailablePullToRefresh)),
                     ),
                   ],
                 )
@@ -193,7 +197,7 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
                               Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.dropLocation.address))]),
                               if (job.weightKg != null) ...[
                                 const SizedBox(height: 4),
-                                Text('${job.goodsType ?? 'Cargo'} · ${job.weightKg} kg', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                Text('${job.goodsType ?? l10n.cargoFallback} · ${job.weightKg} kg', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                               ],
                               const SizedBox(height: 12),
                               Row(
@@ -201,7 +205,7 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
                                   Expanded(
                                     child: OutlinedButton(
                                       onPressed: acting ? null : () => _reject(job),
-                                      child: const Text('Pass'),
+                                      child: Text(l10n.pass),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -210,7 +214,7 @@ class _FixedJobsTabState extends ConsumerState<_FixedJobsTab> {
                                       onPressed: acting ? null : () => _accept(job),
                                       child: acting
                                           ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                          : const Text('Accept'),
+                                          : Text(l10n.accept),
                                     ),
                                   ),
                                 ],
@@ -235,8 +239,9 @@ class _JobDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Job Details')),
+      appBar: AppBar(title: Text(l10n.jobDetails)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -268,13 +273,13 @@ class _JobDetailScreen extends ConsumerWidget {
                     if (job.paymentMethod == 'cod') ...[
                       const SizedBox(height: 4),
                       Text(
-                        'Cash on Delivery - ₹${job.price - job.advanceAmount} to collect at drop-off',
+                        l10n.codCollectAtDropOff('${job.price - job.advanceAmount}'),
                         style: TextStyle(color: Colors.orange.shade800, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ] else if (job.advanceAmount > 0) ...[
                       const SizedBox(height: 4),
                       Text(
-                        'Online - ₹${job.advanceAmount} advance paid, remainder collected online near delivery',
+                        l10n.onlineAdvancePaidRemainderNearDelivery('${job.advanceAmount}'),
                         style: TextStyle(color: Colors.blue.shade800, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -283,10 +288,10 @@ class _JobDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Row(children: [const Icon(Icons.location_on, color: Colors.red, size: 18), const SizedBox(width: 8), Expanded(child: Text(job.dropLocation.address))]),
                     const Divider(height: 24),
-                    if (job.goodsType != null) _DetailRow(label: 'Goods', value: job.goodsType!),
-                    if (job.weightKg != null) _DetailRow(label: 'Weight', value: '${job.weightKg} kg'),
-                    if (job.distanceKm != null) _DetailRow(label: 'Distance', value: '${job.distanceKm!.toStringAsFixed(1)} km'),
-                    if (job.customerName != null) _DetailRow(label: 'Customer', value: job.customerName!),
+                    if (job.goodsType != null) _DetailRow(label: l10n.goodsLabel, value: job.goodsType!),
+                    if (job.weightKg != null) _DetailRow(label: l10n.weightLabel, value: '${job.weightKg} kg'),
+                    if (job.distanceKm != null) _DetailRow(label: l10n.distanceLabel, value: '${job.distanceKm!.toStringAsFixed(1)} km'),
+                    if (job.customerName != null) _DetailRow(label: l10n.customerLabel, value: job.customerName!),
                   ],
                 ),
               ),
@@ -302,14 +307,14 @@ class _JobDetailScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop('reject'),
-                  child: const Text('Pass'),
+                  child: Text(l10n.pass),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop('accept'),
-                  child: const Text('Accept'),
+                  child: Text(l10n.accept),
                 ),
               ),
             ],

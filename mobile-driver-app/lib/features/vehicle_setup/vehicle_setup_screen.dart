@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
 import '../../widgets/vehicle_category_field.dart';
@@ -63,8 +64,9 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   }
 
   Future<void> _submitVehicleDetails() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_vehicleType == null || _vehicleNumberController.text.trim().isEmpty || _licenseController.text.trim().isEmpty) {
-      setState(() => _error = 'Fill in all fields.');
+      setState(() => _error = l10n.fillInAllFields);
       return;
     }
     setState(() {
@@ -84,13 +86,12 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
       if (e.response?.statusCode == 403) {
         setState(() {
           _roleConflict = true;
-          _error = 'This phone number is already registered under a different role (e.g. as a customer). '
-              'Sign out and use a different phone number to sign up as a driver.';
+          _error = l10n.phoneAlreadyRegisteredDifferentRole;
         });
       } else if (e.response?.statusCode == 400 && (serverMessage?.contains('Invalid enterprise invite code') ?? false)) {
         setState(() {
           _roleConflict = false;
-          _error = "That enterprise code isn't valid. Check it with your company, or leave it blank to drive independently.";
+          _error = l10n.enterpriseCodeNotValid;
         });
       } else if (e.response?.statusCode == 400 && (serverMessage?.contains('already exists') ?? false)) {
         // A profile was already created for this account in an earlier
@@ -103,13 +104,13 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
       } else {
         setState(() {
           _roleConflict = false;
-          _error = 'Could not submit your details. Try again.';
+          _error = l10n.couldNotSubmitDetailsTryAgain;
         });
       }
     } catch (e) {
       setState(() {
         _roleConflict = false;
-        _error = 'Could not submit your details. Try again.';
+        _error = l10n.couldNotSubmitDetailsTryAgain;
       });
     } finally {
       setState(() => _submitting = false);
@@ -123,8 +124,9 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   }
 
   Future<void> _uploadAndFinish() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_selfieFile == null) {
-      setState(() => _error = 'Take a selfie to continue - this is required for identity verification.');
+      setState(() => _error = l10n.takeSelfieRequired);
       return;
     }
     setState(() {
@@ -136,7 +138,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
       ref.invalidate(driverProfileProvider);
       if (mounted) context.go('/splash');
     } catch (e) {
-      setState(() => _error = 'Could not upload your selfie. Try again.');
+      setState(() => _error = l10n.couldNotUploadSelfieTryAgain);
     } finally {
       if (mounted) setState(() => _uploadingSelfie = false);
     }
@@ -149,13 +151,14 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   }
 
   Widget _buildVehicleDetailsStep() {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Vehicle details')),
+      appBar: AppBar(title: Text(l10n.vehicleDetails)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text('Tell us about your vehicle to get started.'),
+            Text(l10n.tellUsAboutYourVehicle),
             const SizedBox(height: 16),
             VehicleCategoryField(
               value: _vehicleType,
@@ -165,21 +168,21 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
             TextField(
               controller: _vehicleNumberController,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(labelText: 'Vehicle registration number', hintText: 'e.g. DL 01 AB 1234', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.vehicleRegistrationNumber, hintText: l10n.vehicleRegistrationNumberHint, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _licenseController,
-              decoration: const InputDecoration(labelText: 'Driving license number', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.drivingLicenseNumber, border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _enterpriseCodeController,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(
-                labelText: 'Enterprise invite code (optional)',
-                hintText: 'e.g. ENT-A1B2C3D4 - only if a company gave you one',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.enterpriseInviteCodeOptional,
+                hintText: l10n.enterpriseInviteCodeHint,
+                border: const OutlineInputBorder(),
               ),
             ),
             if (_error != null) ...[
@@ -192,7 +195,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
                     await ref.read(authProvider.notifier).logout();
                     if (mounted) context.go('/role-selection');
                   },
-                  child: const Text('Sign out'),
+                  child: Text(l10n.signOut),
                 ),
               ],
             ],
@@ -201,7 +204,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
               onPressed: _submitting ? null : _submitVehicleDetails,
               child: _submitting
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
-                  : const Text('Continue'),
+                  : Text(l10n.continueLabel),
             ),
           ],
         ),
@@ -210,15 +213,16 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   }
 
   Widget _buildSelfieStep() {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify your identity'), automaticallyImplyLeading: false),
+      appBar: AppBar(title: Text(l10n.verifyYourIdentity), automaticallyImplyLeading: false),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              const Text(
-                'Take a clear selfie in good lighting. An admin reviews this alongside your documents before approving your account.',
+              Text(
+                l10n.selfieInstructions,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -241,7 +245,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
               TextButton.icon(
                 onPressed: _takeSelfie,
                 icon: const Icon(Icons.camera_alt),
-                label: Text(_selfieFile == null ? 'Take selfie' : 'Retake'),
+                label: Text(_selfieFile == null ? l10n.takeSelfie : l10n.retake),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -252,7 +256,7 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
                 onPressed: _uploadingSelfie ? null : _uploadAndFinish,
                 child: _uploadingSelfie
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
-                    : const Text('Submit for approval'),
+                    : Text(l10n.submitForApproval),
               ),
             ],
           ),

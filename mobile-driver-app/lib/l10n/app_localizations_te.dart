@@ -433,4 +433,112 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get customerFallback => 'కస్టమర్';
+
+  @override
+  String get fillInAllFields => 'అన్ని ఫీల్డ్‌లను పూరించండి.';
+
+  @override
+  String get phoneAlreadyRegisteredDifferentRole =>
+      'ఈ ఫోన్ నంబర్ ఇప్పటికే వేరే పాత్రలో నమోదు చేయబడింది (ఉదా. కస్టమర్‌గా). సైన్ అవుట్ చేసి డ్రైవర్‌గా సైన్ అప్ చేయడానికి వేరే ఫోన్ నంబర్‌ను ఉపయోగించండి.';
+
+  @override
+  String get enterpriseCodeNotValid =>
+      'ఆ ఎంటర్‌ప్రైజ్ కోడ్ చెల్లదు. మీ కంపెనీతో తనిఖీ చేయండి, లేదా స్వతంత్రంగా నడపడానికి దీన్ని ఖాళీగా వదలండి.';
+
+  @override
+  String get couldNotSubmitDetailsTryAgain =>
+      'మీ వివరాలను సమర్పించడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get takeSelfieRequired =>
+      'కొనసాగించడానికి సెల్ఫీ తీయండి - గుర్తింపు ధృవీకరణ కోసం ఇది అవసరం.';
+
+  @override
+  String get couldNotUploadSelfieTryAgain =>
+      'మీ సెల్ఫీని అప్‌లోడ్ చేయడం సాధ్యం కాలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get vehicleDetails => 'వాహన వివరాలు';
+
+  @override
+  String get tellUsAboutYourVehicle =>
+      'ప్రారంభించడానికి మీ వాహనం గురించి మాకు చెప్పండి.';
+
+  @override
+  String get vehicleRegistrationNumberHint => 'ఉదా. DL 01 AB 1234';
+
+  @override
+  String get drivingLicenseNumber => 'డ్రైవింగ్ లైసెన్స్ నంబర్';
+
+  @override
+  String get enterpriseInviteCodeOptional =>
+      'ఎంటర్‌ప్రైజ్ ఆహ్వాన కోడ్ (ఐచ్ఛికం)';
+
+  @override
+  String get enterpriseInviteCodeHint =>
+      'ఉదా. ENT-A1B2C3D4 - ఒక కంపెనీ మీకు ఇచ్చినట్లయితే మాత్రమే';
+
+  @override
+  String get continueLabel => 'కొనసాగించండి';
+
+  @override
+  String get verifyYourIdentity => 'మీ గుర్తింపును ధృవీకరించండి';
+
+  @override
+  String get selfieInstructions =>
+      'మంచి వెలుతురులో స్పష్టమైన సెల్ఫీ తీయండి. మీ ఖాతాను ఆమోదించే ముందు అడ్మిన్ మీ పత్రాలతో పాటు దీన్ని సమీక్షిస్తారు.';
+
+  @override
+  String get takeSelfie => 'సెల్ఫీ తీయండి';
+
+  @override
+  String get submitForApproval => 'ఆమోదం కోసం సమర్పించండి';
+
+  @override
+  String get jobRequests => 'జాబ్ అభ్యర్థనలు';
+
+  @override
+  String get couldNotLoadJobRequests =>
+      'జాబ్ అభ్యర్థనలను లోడ్ చేయడం సాధ్యం కాలేదు.';
+
+  @override
+  String get jobNoLongerAvailable => 'ఈ జాబ్ ఇకపై అందుబాటులో లేదు.';
+
+  @override
+  String get noJobsAvailablePullToRefresh =>
+      'ప్రస్తుతం జాబ్‌లు అందుబాటులో లేవు. రిఫ్రెష్ చేయడానికి లాగండి.';
+
+  @override
+  String get cargoFallback => 'సరుకు';
+
+  @override
+  String get pass => 'పాస్';
+
+  @override
+  String get accept => 'అంగీకరించండి';
+
+  @override
+  String get jobDetails => 'జాబ్ వివరాలు';
+
+  @override
+  String codCollectAtDropOff(String amount) {
+    return 'డెలివరీ వద్ద నగదు - డ్రాప్-ఆఫ్ వద్ద ₹$amount వసూలు చేయాలి';
+  }
+
+  @override
+  String onlineAdvancePaidRemainderNearDelivery(String amount) {
+    return 'ఆన్‌లైన్ - ₹$amount అడ్వాన్స్ చెల్లించబడింది, మిగిలినది డెలివరీ సమయంలో ఆన్‌లైన్‌లో వసూలు చేయబడుతుంది';
+  }
+
+  @override
+  String get goodsLabel => 'సరుకు';
+
+  @override
+  String get weightLabel => 'బరువు';
+
+  @override
+  String get distanceLabel => 'దూరం';
+
+  @override
+  String get customerLabel => 'కస్టమర్';
 }

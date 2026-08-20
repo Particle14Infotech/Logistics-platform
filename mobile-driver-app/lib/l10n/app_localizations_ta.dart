@@ -429,4 +429,111 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get customerFallback => 'வாடிக்கையாளர்';
+
+  @override
+  String get fillInAllFields => 'அனைத்து புலங்களையும் நிரப்பவும்.';
+
+  @override
+  String get phoneAlreadyRegisteredDifferentRole =>
+      'இந்த தொலைபேசி எண் ஏற்கனவே வேறு பாத்திரத்தில் பதிவு செய்யப்பட்டுள்ளது (எ.கா. வாடிக்கையாளராக). வெளியேறி டிரைவராக பதிவு செய்ய வேறு தொலைபேசி எண்ணைப் பயன்படுத்தவும்.';
+
+  @override
+  String get enterpriseCodeNotValid =>
+      'அந்த நிறுவன குறியீடு செல்லுபடியாகாது. உங்கள் நிறுவனத்துடன் சரிபார்க்கவும், அல்லது சுயாதீனமாக இயக்க அதை காலியாக விடவும்.';
+
+  @override
+  String get couldNotSubmitDetailsTryAgain =>
+      'உங்கள் விவரங்களை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get takeSelfieRequired =>
+      'தொடர ஒரு செல்ஃபி எடுக்கவும் - அடையாள சரிபார்ப்புக்கு இது அவசியம்.';
+
+  @override
+  String get couldNotUploadSelfieTryAgain =>
+      'உங்கள் செல்ஃபியை பதிவேற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get vehicleDetails => 'வாகன விவரங்கள்';
+
+  @override
+  String get tellUsAboutYourVehicle =>
+      'தொடங்குவதற்கு உங்கள் வாகனத்தைப் பற்றி எங்களிடம் சொல்லுங்கள்.';
+
+  @override
+  String get vehicleRegistrationNumberHint => 'எ.கா. DL 01 AB 1234';
+
+  @override
+  String get drivingLicenseNumber => 'ஓட்டுநர் உரிம எண்';
+
+  @override
+  String get enterpriseInviteCodeOptional =>
+      'நிறுவன அழைப்பு குறியீடு (விருப்பத்தேர்வு)';
+
+  @override
+  String get enterpriseInviteCodeHint =>
+      'எ.கா. ENT-A1B2C3D4 - ஒரு நிறுவனம் உங்களுக்கு ஒன்று கொடுத்திருந்தால் மட்டும்';
+
+  @override
+  String get continueLabel => 'தொடரவும்';
+
+  @override
+  String get verifyYourIdentity => 'உங்கள் அடையாளத்தை சரிபார்க்கவும்';
+
+  @override
+  String get selfieInstructions =>
+      'நல்ல வெளிச்சத்தில் தெளிவான செல்ஃபி எடுக்கவும். உங்கள் கணக்கை அங்கீகரிக்கும் முன் ஒரு நிர்வாகி உங்கள் ஆவணங்களுடன் இதை மதிப்பாய்வு செய்கிறார்.';
+
+  @override
+  String get takeSelfie => 'செல்ஃபி எடுக்கவும்';
+
+  @override
+  String get submitForApproval => 'ஒப்புதலுக்கு சமர்ப்பிக்கவும்';
+
+  @override
+  String get jobRequests => 'வேலை கோரிக்கைகள்';
+
+  @override
+  String get couldNotLoadJobRequests => 'வேலை கோரிக்கைகளை ஏற்ற முடியவில்லை.';
+
+  @override
+  String get jobNoLongerAvailable => 'இந்த வேலை இனி கிடைக்கவில்லை.';
+
+  @override
+  String get noJobsAvailablePullToRefresh =>
+      'தற்போது வேலைகள் எதுவும் இல்லை. புதுப்பிக்க இழுக்கவும்.';
+
+  @override
+  String get cargoFallback => 'சரக்கு';
+
+  @override
+  String get pass => 'தவிர்';
+
+  @override
+  String get accept => 'ஏற்றுக்கொள்';
+
+  @override
+  String get jobDetails => 'வேலை விவரங்கள்';
+
+  @override
+  String codCollectAtDropOff(String amount) {
+    return 'டெலிவரியில் பணம் - டிராப்-ஆஃப்பில் ₹$amount வசூலிக்க வேண்டும்';
+  }
+
+  @override
+  String onlineAdvancePaidRemainderNearDelivery(String amount) {
+    return 'ஆன்லைன் - ₹$amount முன்பணம் செலுத்தப்பட்டது, மீதமுள்ளது டெலிவரியின் போது ஆன்லைனில் வசூலிக்கப்படும்';
+  }
+
+  @override
+  String get goodsLabel => 'பொருட்கள்';
+
+  @override
+  String get weightLabel => 'எடை';
+
+  @override
+  String get distanceLabel => 'தூரம்';
+
+  @override
+  String get customerLabel => 'வாடிக்கையாளர்';
 }

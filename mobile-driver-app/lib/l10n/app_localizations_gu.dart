@@ -426,4 +426,111 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get customerFallback => 'ગ્રાહક';
+
+  @override
+  String get fillInAllFields => 'બધા ફીલ્ડ ભરો.';
+
+  @override
+  String get phoneAlreadyRegisteredDifferentRole =>
+      'આ ફોન નંબર પહેલેથી જ અલગ ભૂમિકા હેઠળ નોંધાયેલો છે (દા.ત. ગ્રાહક તરીકે). સાઇન આઉટ કરો અને ડ્રાઈવર તરીકે સાઇન અપ કરવા માટે અલગ ફોન નંબરનો ઉપયોગ કરો.';
+
+  @override
+  String get enterpriseCodeNotValid =>
+      'તે એન્ટરપ્રાઇઝ કોડ માન્ય નથી. તમારી કંપની સાથે તપાસો, અથવા સ્વતંત્ર રીતે ચલાવવા માટે તેને ખાલી છોડો.';
+
+  @override
+  String get couldNotSubmitDetailsTryAgain =>
+      'તમારી વિગતો સબમિટ કરી શકાઈ નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get takeSelfieRequired =>
+      'ચાલુ રાખવા માટે સેલ્ફી લો - ઓળખ ચકાસણી માટે આ જરૂરી છે.';
+
+  @override
+  String get couldNotUploadSelfieTryAgain =>
+      'તમારી સેલ્ફી અપલોડ કરી શકાઈ નહીં. ફરી પ્રયાસ કરો.';
+
+  @override
+  String get vehicleDetails => 'વાહન વિગતો';
+
+  @override
+  String get tellUsAboutYourVehicle =>
+      'શરૂ કરવા માટે અમને તમારા વાહન વિશે જણાવો.';
+
+  @override
+  String get vehicleRegistrationNumberHint => 'દા.ત. DL 01 AB 1234';
+
+  @override
+  String get drivingLicenseNumber => 'ડ્રાઇવિંગ લાઇસન્સ નંબર';
+
+  @override
+  String get enterpriseInviteCodeOptional =>
+      'એન્ટરપ્રાઇઝ આમંત્રણ કોડ (વૈકલ્પિક)';
+
+  @override
+  String get enterpriseInviteCodeHint =>
+      'દા.ત. ENT-A1B2C3D4 - ફક્ત જો કોઈ કંપનીએ તમને આપ્યો હોય તો';
+
+  @override
+  String get continueLabel => 'ચાલુ રાખો';
+
+  @override
+  String get verifyYourIdentity => 'તમારી ઓળખ ચકાસો';
+
+  @override
+  String get selfieInstructions =>
+      'સારા પ્રકાશમાં સ્પષ્ટ સેલ્ફી લો. તમારું ખાતું મંજૂર કરતા પહેલા એડમિન તમારા દસ્તાવેજો સાથે આની સમીક્ષા કરે છે.';
+
+  @override
+  String get takeSelfie => 'સેલ્ફી લો';
+
+  @override
+  String get submitForApproval => 'મંજૂરી માટે સબમિટ કરો';
+
+  @override
+  String get jobRequests => 'જોબ વિનંતીઓ';
+
+  @override
+  String get couldNotLoadJobRequests => 'જોબ વિનંતીઓ લોડ કરી શકાઈ નહીં.';
+
+  @override
+  String get jobNoLongerAvailable => 'આ જોબ હવે ઉપલબ્ધ નથી.';
+
+  @override
+  String get noJobsAvailablePullToRefresh =>
+      'હાલમાં કોઈ જોબ ઉપલબ્ધ નથી. રિફ્રેશ કરવા માટે નીચે ખેંચો.';
+
+  @override
+  String get cargoFallback => 'કાર્ગો';
+
+  @override
+  String get pass => 'છોડો';
+
+  @override
+  String get accept => 'સ્વીકારો';
+
+  @override
+  String get jobDetails => 'જોબ વિગતો';
+
+  @override
+  String codCollectAtDropOff(String amount) {
+    return 'ડિલિવરી પર રોકડ - ડ્રોપ-ઓફ પર ₹$amount એકત્રિત કરવાના છે';
+  }
+
+  @override
+  String onlineAdvancePaidRemainderNearDelivery(String amount) {
+    return 'ઓનલાઇન - ₹$amount એડવાન્સ ચૂકવાયું, બાકીનું ડિલિવરી સમયે ઓનલાઇન એકત્રિત કરવામાં આવશે';
+  }
+
+  @override
+  String get goodsLabel => 'માલ';
+
+  @override
+  String get weightLabel => 'વજન';
+
+  @override
+  String get distanceLabel => 'અંતર';
+
+  @override
+  String get customerLabel => 'ગ્રાહક';
 }

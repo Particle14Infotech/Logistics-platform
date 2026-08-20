@@ -427,4 +427,111 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerFallback => 'Customer';
+
+  @override
+  String get fillInAllFields => 'Fill in all fields.';
+
+  @override
+  String get phoneAlreadyRegisteredDifferentRole =>
+      'This phone number is already registered under a different role (e.g. as a customer). Sign out and use a different phone number to sign up as a driver.';
+
+  @override
+  String get enterpriseCodeNotValid =>
+      'That enterprise code isn\'t valid. Check it with your company, or leave it blank to drive independently.';
+
+  @override
+  String get couldNotSubmitDetailsTryAgain =>
+      'Could not submit your details. Try again.';
+
+  @override
+  String get takeSelfieRequired =>
+      'Take a selfie to continue - this is required for identity verification.';
+
+  @override
+  String get couldNotUploadSelfieTryAgain =>
+      'Could not upload your selfie. Try again.';
+
+  @override
+  String get vehicleDetails => 'Vehicle details';
+
+  @override
+  String get tellUsAboutYourVehicle =>
+      'Tell us about your vehicle to get started.';
+
+  @override
+  String get vehicleRegistrationNumberHint => 'e.g. DL 01 AB 1234';
+
+  @override
+  String get drivingLicenseNumber => 'Driving license number';
+
+  @override
+  String get enterpriseInviteCodeOptional =>
+      'Enterprise invite code (optional)';
+
+  @override
+  String get enterpriseInviteCodeHint =>
+      'e.g. ENT-A1B2C3D4 - only if a company gave you one';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get verifyYourIdentity => 'Verify your identity';
+
+  @override
+  String get selfieInstructions =>
+      'Take a clear selfie in good lighting. An admin reviews this alongside your documents before approving your account.';
+
+  @override
+  String get takeSelfie => 'Take selfie';
+
+  @override
+  String get submitForApproval => 'Submit for approval';
+
+  @override
+  String get jobRequests => 'Job requests';
+
+  @override
+  String get couldNotLoadJobRequests => 'Could not load job requests.';
+
+  @override
+  String get jobNoLongerAvailable => 'This job is no longer available.';
+
+  @override
+  String get noJobsAvailablePullToRefresh =>
+      'No jobs available right now. Pull to refresh.';
+
+  @override
+  String get cargoFallback => 'Cargo';
+
+  @override
+  String get pass => 'Pass';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get jobDetails => 'Job Details';
+
+  @override
+  String codCollectAtDropOff(String amount) {
+    return 'Cash on Delivery - ₹$amount to collect at drop-off';
+  }
+
+  @override
+  String onlineAdvancePaidRemainderNearDelivery(String amount) {
+    return 'Online - ₹$amount advance paid, remainder collected online near delivery';
+  }
+
+  @override
+  String get goodsLabel => 'Goods';
+
+  @override
+  String get weightLabel => 'Weight';
+
+  @override
+  String get distanceLabel => 'Distance';
+
+  @override
+  String get customerLabel => 'Customer';
 }

@@ -891,6 +891,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer'**
   String get customerFallback;
+
+  /// No description provided for @fillInAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in all fields.'**
+  String get fillInAllFields;
+
+  /// No description provided for @phoneAlreadyRegisteredDifferentRole.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone number is already registered under a different role (e.g. as a customer). Sign out and use a different phone number to sign up as a driver.'**
+  String get phoneAlreadyRegisteredDifferentRole;
+
+  /// No description provided for @enterpriseCodeNotValid.
+  ///
+  /// In en, this message translates to:
+  /// **'That enterprise code isn\'t valid. Check it with your company, or leave it blank to drive independently.'**
+  String get enterpriseCodeNotValid;
+
+  /// No description provided for @couldNotSubmitDetailsTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit your details. Try again.'**
+  String get couldNotSubmitDetailsTryAgain;
+
+  /// No description provided for @takeSelfieRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a selfie to continue - this is required for identity verification.'**
+  String get takeSelfieRequired;
+
+  /// No description provided for @couldNotUploadSelfieTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload your selfie. Try again.'**
+  String get couldNotUploadSelfieTryAgain;
+
+  /// No description provided for @vehicleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle details'**
+  String get vehicleDetails;
+
+  /// No description provided for @tellUsAboutYourVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about your vehicle to get started.'**
+  String get tellUsAboutYourVehicle;
+
+  /// No description provided for @vehicleRegistrationNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. DL 01 AB 1234'**
+  String get vehicleRegistrationNumberHint;
+
+  /// No description provided for @drivingLicenseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving license number'**
+  String get drivingLicenseNumber;
+
+  /// No description provided for @enterpriseInviteCodeOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Enterprise invite code (optional)'**
+  String get enterpriseInviteCodeOptional;
+
+  /// No description provided for @enterpriseInviteCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. ENT-A1B2C3D4 - only if a company gave you one'**
+  String get enterpriseInviteCodeHint;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @verifyYourIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity'**
+  String get verifyYourIdentity;
+
+  /// No description provided for @selfieInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a clear selfie in good lighting. An admin reviews this alongside your documents before approving your account.'**
+  String get selfieInstructions;
+
+  /// No description provided for @takeSelfie.
+  ///
+  /// In en, this message translates to:
+  /// **'Take selfie'**
+  String get takeSelfie;
+
+  /// No description provided for @submitForApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for approval'**
+  String get submitForApproval;
+
+  /// No description provided for @jobRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Job requests'**
+  String get jobRequests;
+
+  /// No description provided for @couldNotLoadJobRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load job requests.'**
+  String get couldNotLoadJobRequests;
+
+  /// No description provided for @jobNoLongerAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This job is no longer available.'**
+  String get jobNoLongerAvailable;
+
+  /// No description provided for @noJobsAvailablePullToRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs available right now. Pull to refresh.'**
+  String get noJobsAvailablePullToRefresh;
+
+  /// No description provided for @cargoFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Cargo'**
+  String get cargoFallback;
+
+  /// No description provided for @pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get pass;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @jobDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Job Details'**
+  String get jobDetails;
+
+  /// No description provided for @codCollectAtDropOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash on Delivery - ₹{amount} to collect at drop-off'**
+  String codCollectAtDropOff(String amount);
+
+  /// No description provided for @onlineAdvancePaidRemainderNearDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Online - ₹{amount} advance paid, remainder collected online near delivery'**
+  String onlineAdvancePaidRemainderNearDelivery(String amount);
+
+  /// No description provided for @goodsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goods'**
+  String get goodsLabel;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weightLabel;
+
+  /// No description provided for @distanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get distanceLabel;
+
+  /// No description provided for @customerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerLabel;
 }
 
 class _AppLocalizationsDelegate
