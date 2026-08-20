@@ -1,0 +1,27 @@
+{
+  "@@locale": "mr",
+  "appTitle": "राहमित्र ड्रायव्हर",
+
+  "cancel": "रद्द करा",
+  "save": "जतन करा",
+  "signOut": "साइन आउट करा",
+  "language": "भाषा",
+
+  "profile": "प्रोफाइल",
+  "fullName": "पूर्ण नाव",
+  "noNameSet": "नाव सेट केलेले नाही",
+  "nameCannotBeEmpty": "नाव रिकामे असू शकत नाही.",
+  "couldNotSaveChangesTryAgain": "बदल जतन करता आले नाहीत. पुन्हा प्रयत्न करा.",
+  "signOutQuestion": "साइन आउट करायचे?",
+  "signOutBody": "सुरू ठेवण्यासाठी तुम्हाला पुन्हा लॉग इन करावे लागेल.",
+  "chooseVehicleTypeAndNumber": "वाहन प्रकार निवडा आणि वाहन क्रमांक टाका.",
+  "vehicleUpdatedPendingReapproval": "वाहन अपडेट झाले - अ‍ॅडमिनद्वारे पुन्हा मंजुरी प्रलंबित आहे.",
+  "vehicleRegistrationNumber": "वाहन नोंदणी क्रमांक",
+  "myDocuments": "माझी कागदपत्रे",
+  "bankDetails": "बँक तपशील",
+  "notifications": "सूचना",
+  "notificationSettings": "सूचना सेटिंग्ज",
+  "changePassword": "पासवर्ड बदला",
+  "helpAndSupport": "मदत आणि समर्थन",
+  "about": "अ‍ॅपबद्दल"
+}

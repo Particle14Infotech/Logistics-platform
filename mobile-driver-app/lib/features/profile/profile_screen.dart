@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/vehicle_category_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/driver_provider.dart';
@@ -41,9 +42,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Name cannot be empty.');
+      setState(() => _error = l10n.nameCannotBeEmpty);
       return;
     }
     setState(() {
@@ -60,16 +62,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           );
       if (mounted) setState(() => _editing = false);
     } catch (e) {
-      setState(() => _error = 'Could not save changes. Try again.');
+      setState(() => _error = l10n.couldNotSaveChangesTryAgain);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
   Future<void> _saveVehicle() async {
+    final l10n = AppLocalizations.of(context)!;
     final vehicleNumber = _vehicleNumberController.text.trim();
     if (_vehicleType == null || vehicleNumber.isEmpty) {
-      setState(() => _vehicleError = 'Choose a vehicle type and enter a vehicle number.');
+      setState(() => _vehicleError = l10n.chooseVehicleTypeAndNumber);
       return;
     }
     setState(() {
@@ -85,25 +88,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         setState(() => _editingVehicle = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vehicle updated - pending re-approval by admin.')),
+          SnackBar(content: Text(l10n.vehicleUpdatedPendingReapproval)),
         );
       }
     } catch (e) {
-      setState(() => _vehicleError = 'Could not save changes. Try again.');
+      setState(() => _vehicleError = l10n.couldNotSaveChangesTryAgain);
     } finally {
       if (mounted) setState(() => _savingVehicle = false);
     }
   }
 
   Future<void> _confirmSignOut() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text("You'll need to log in again to continue."),
+        title: Text(l10n.signOutQuestion),
+        content: Text(l10n.signOutBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.signOut)),
         ],
       ),
     );
@@ -114,11 +118,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
     final profileAsync = ref.watch(driverProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text(l10n.profile)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -143,7 +148,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     TextField(
                       controller: _nameController,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(labelText: 'Full name', border: OutlineInputBorder()),
+                      decoration: InputDecoration(labelText: l10n.fullName, border: const OutlineInputBorder()),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 8),
@@ -152,14 +157,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(child: OutlinedButton(onPressed: _saving ? null : () => setState(() => _editing = false), child: const Text('Cancel'))),
+                        Expanded(child: OutlinedButton(onPressed: _saving ? null : () => setState(() => _editing = false), child: Text(l10n.cancel))),
                         const SizedBox(width: 8),
                         Expanded(
                           child: FilledButton(
                             onPressed: _saving ? null : _save,
                             child: _saving
                                 ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
-                                : const Text('Save'),
+                                : Text(l10n.save),
                           ),
                         ),
                       ],
@@ -168,7 +173,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(user?.name ?? 'No name set', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                        Text(user?.name ?? l10n.noNameSet, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
                         IconButton(
                           icon: const Icon(Icons.edit_outlined),
                           onPressed: () {
@@ -206,7 +211,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             TextField(
                               controller: _vehicleNumberController,
                               textCapitalization: TextCapitalization.characters,
-                              decoration: const InputDecoration(labelText: 'Vehicle registration number', border: OutlineInputBorder()),
+                              decoration: InputDecoration(labelText: l10n.vehicleRegistrationNumber, border: const OutlineInputBorder()),
                             ),
                             if (_vehicleError != null) ...[
                               const SizedBox(height: 8),
@@ -218,7 +223,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 Expanded(
                                   child: OutlinedButton(
                                     onPressed: _savingVehicle ? null : () => setState(() => _editingVehicle = false),
-                                    child: const Text('Cancel'),
+                                    child: Text(l10n.cancel),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -227,7 +232,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     onPressed: _savingVehicle ? null : _saveVehicle,
                                     child: _savingVehicle
                                         ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
-                                        : const Text('Save'),
+                                        : Text(l10n.save),
                                   ),
                                 ),
                               ],
@@ -271,18 +276,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
           ),
           const SizedBox(height: 8),
-          _ProfileRow(icon: Icons.folder_shared_outlined, label: 'My Documents', onTap: () => context.push('/documents')),
-          _ProfileRow(icon: Icons.account_balance_outlined, label: 'Bank Details', onTap: () => context.push('/profile/bank-details')),
-          _ProfileRow(icon: Icons.notifications, label: 'Notifications', onTap: () => context.push('/notifications')),
-          _ProfileRow(icon: Icons.notifications_outlined, label: 'Notification Settings', onTap: () => context.push('/profile/notifications')),
-          _ProfileRow(icon: Icons.password_outlined, label: 'Change Password', onTap: () => context.push('/profile/change-password')),
-          _ProfileRow(icon: Icons.help_outline, label: 'Help & Support', onTap: () => context.push('/profile/help-support')),
-          _ProfileRow(icon: Icons.info_outline, label: 'About', onTap: () => context.push('/profile/about')),
+          _ProfileRow(icon: Icons.folder_shared_outlined, label: l10n.myDocuments, onTap: () => context.push('/documents')),
+          _ProfileRow(icon: Icons.account_balance_outlined, label: l10n.bankDetails, onTap: () => context.push('/profile/bank-details')),
+          _ProfileRow(icon: Icons.notifications, label: l10n.notifications, onTap: () => context.push('/notifications')),
+          _ProfileRow(icon: Icons.notifications_outlined, label: l10n.notificationSettings, onTap: () => context.push('/profile/notifications')),
+          _ProfileRow(icon: Icons.language, label: l10n.language, onTap: () => context.push('/profile/language')),
+          _ProfileRow(icon: Icons.password_outlined, label: l10n.changePassword, onTap: () => context.push('/profile/change-password')),
+          _ProfileRow(icon: Icons.help_outline, label: l10n.helpAndSupport, onTap: () => context.push('/profile/help-support')),
+          _ProfileRow(icon: Icons.info_outline, label: l10n.about, onTap: () => context.push('/profile/about')),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Sign out', style: TextStyle(color: Colors.red)),
+              title: Text(l10n.signOut, style: const TextStyle(color: Colors.red)),
               onTap: _confirmSignOut,
             ),
           ),

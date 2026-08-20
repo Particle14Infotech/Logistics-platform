@@ -1,0 +1,28 @@
+{
+  "@@locale": "en",
+  "appTitle": "RaahMitr Driver",
+  "@appTitle": {"description": "App name, shown in the OS task switcher etc."},
+
+  "cancel": "Cancel",
+  "save": "Save",
+  "signOut": "Sign out",
+  "language": "Language",
+
+  "profile": "Profile",
+  "fullName": "Full name",
+  "noNameSet": "No name set",
+  "nameCannotBeEmpty": "Name cannot be empty.",
+  "couldNotSaveChangesTryAgain": "Could not save changes. Try again.",
+  "signOutQuestion": "Sign out?",
+  "signOutBody": "You'll need to log in again to continue.",
+  "chooseVehicleTypeAndNumber": "Choose a vehicle type and enter a vehicle number.",
+  "vehicleUpdatedPendingReapproval": "Vehicle updated - pending re-approval by admin.",
+  "vehicleRegistrationNumber": "Vehicle registration number",
+  "myDocuments": "My Documents",
+  "bankDetails": "Bank Details",
+  "notifications": "Notifications",
+  "notificationSettings": "Notification Settings",
+  "changePassword": "Change Password",
+  "helpAndSupport": "Help & Support",
+  "about": "About"
+}

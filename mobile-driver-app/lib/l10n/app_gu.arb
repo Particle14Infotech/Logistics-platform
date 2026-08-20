@@ -1,0 +1,27 @@
+{
+  "@@locale": "gu",
+  "appTitle": "રાહમિત્ર ડ્રાઇવર",
+
+  "cancel": "રદ કરો",
+  "save": "સાચવો",
+  "signOut": "સાઇન આઉટ કરો",
+  "language": "ભાષા",
+
+  "profile": "પ્રોફાઇલ",
+  "fullName": "પૂરું નામ",
+  "noNameSet": "કોઈ નામ સેટ નથી",
+  "nameCannotBeEmpty": "નામ ખાલી હોઈ શકે નહીં.",
+  "couldNotSaveChangesTryAgain": "ફેરફારો સાચવી શકાયા નહીં. ફરી પ્રયાસ કરો.",
+  "signOutQuestion": "સાઇન આઉટ કરવું છે?",
+  "signOutBody": "ચાલુ રાખવા માટે તમારે ફરીથી લોગ ઇન કરવું પડશે.",
+  "chooseVehicleTypeAndNumber": "વાહન પ્રકાર પસંદ કરો અને વાહન નંબર દાખલ કરો.",
+  "vehicleUpdatedPendingReapproval": "વાહન અપડેટ થયું - એડમિન દ્વારા ફરીથી મંજૂરી બાકી છે.",
+  "vehicleRegistrationNumber": "વાહન નોંધણી નંબર",
+  "myDocuments": "મારા દસ્તાવેજો",
+  "bankDetails": "બેંક વિગતો",
+  "notifications": "સૂચનાઓ",
+  "notificationSettings": "સૂચના સેટિંગ્સ",
+  "changePassword": "પાસવર્ડ બદલો",
+  "helpAndSupport": "સહાય અને સપોર્ટ",
+  "about": "એપ્લિકેશન વિશે"
+}
