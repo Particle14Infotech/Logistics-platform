@@ -1072,4 +1072,26 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get useMyCurrentLocation => 'माझे सध्याचे स्थान वापरा';
+
+  @override
+  String get textSize => 'मजकूर आकार';
+
+  @override
+  String get textSizeScreenHint =>
+      'संपूर्ण अ‍ॅपमध्ये मजकूर किती मोठा दिसावा ते निवडा.';
+
+  @override
+  String get textSizeSmall => 'लहान';
+
+  @override
+  String get textSizeStandard => 'डीफॉल्ट';
+
+  @override
+  String get textSizeLarge => 'मोठा';
+
+  @override
+  String get textSizeExtraLarge => 'खूप मोठा';
+
+  @override
+  String get textSizeSampleText => 'हा एक नमुना मजकूर आहे';
 }

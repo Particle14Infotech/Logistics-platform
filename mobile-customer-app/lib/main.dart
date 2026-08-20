@@ -4,10 +4,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/constants/app_languages.dart';
+import 'core/constants/text_size_options.dart';
 import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
+import 'providers/text_scale_provider.dart';
 import 'routes/app_router.dart';
 
 Future<void> main() async {
@@ -43,6 +45,7 @@ class CustomerApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final locale = ref.watch(localeProvider);
+    final textSizeKey = ref.watch(textSizeProvider);
     return MaterialApp.router(
       title: 'Logistics - Customer',
       debugShowCheckedModeBanner: false,
@@ -55,6 +58,16 @@ class CustomerApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: kSupportedLanguages.map((l) => Locale(l.code)),
+      // Applies the user's chosen text-size preference app-wide - every
+      // Text widget below here reads this ambient TextScaler unless it
+      // explicitly opts out, so this one override covers the whole app
+      // without touching each screen individually.
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(textScaleForKey(textSizeKey)),
+        ),
+        child: child!,
+      ),
       routerConfig: router,
     );
   }

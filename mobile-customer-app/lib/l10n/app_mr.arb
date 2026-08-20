@@ -344,5 +344,13 @@
   "payRemainingAmount": "उर्वरित रक्कम भरा",
   "payAdvance": "अ‍ॅडव्हान्स भरा",
   "payNow": "आत्ता पेमेंट करा",
-  "useMyCurrentLocation": "माझे सध्याचे स्थान वापरा"
+  "useMyCurrentLocation": "माझे सध्याचे स्थान वापरा",
+
+  "textSize": "मजकूर आकार",
+  "textSizeScreenHint": "संपूर्ण अ‍ॅपमध्ये मजकूर किती मोठा दिसावा ते निवडा.",
+  "textSizeSmall": "लहान",
+  "textSizeStandard": "डीफॉल्ट",
+  "textSizeLarge": "मोठा",
+  "textSizeExtraLarge": "खूप मोठा",
+  "textSizeSampleText": "हा एक नमुना मजकूर आहे"
 }

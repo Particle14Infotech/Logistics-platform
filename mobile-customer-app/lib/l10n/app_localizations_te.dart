@@ -1092,4 +1092,26 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get useMyCurrentLocation => 'నా ప్రస్తుత స్థానాన్ని ఉపయోగించండి';
+
+  @override
+  String get textSize => 'టెక్స్ట్ పరిమాణం';
+
+  @override
+  String get textSizeScreenHint =>
+      'యాప్ మొత్తంలో టెక్స్ట్ ఎంత పెద్దదిగా కనిపించాలో ఎంచుకోండి.';
+
+  @override
+  String get textSizeSmall => 'చిన్నది';
+
+  @override
+  String get textSizeStandard => 'డిఫాల్ట్';
+
+  @override
+  String get textSizeLarge => 'పెద్దది';
+
+  @override
+  String get textSizeExtraLarge => 'మరింత పెద్దది';
+
+  @override
+  String get textSizeSampleText => 'ఇది ఒక నమూనా వచనం';
 }

@@ -1062,4 +1062,26 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get useMyCurrentLocation => 'મારું હાલનું સ્થાન વાપરો';
+
+  @override
+  String get textSize => 'ટેક્સ્ટ કદ';
+
+  @override
+  String get textSizeScreenHint =>
+      'સમગ્ર એપમાં ટેક્સ્ટ કેટલો મોટો દેખાય તે પસંદ કરો.';
+
+  @override
+  String get textSizeSmall => 'નાનું';
+
+  @override
+  String get textSizeStandard => 'ડિફોલ્ટ';
+
+  @override
+  String get textSizeLarge => 'મોટું';
+
+  @override
+  String get textSizeExtraLarge => 'વધુ મોટું';
+
+  @override
+  String get textSizeSampleText => 'આ એક નમૂના ટેક્સ્ટ છે';
 }

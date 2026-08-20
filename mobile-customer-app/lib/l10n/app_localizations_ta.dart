@@ -1087,4 +1087,26 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get useMyCurrentLocation =>
       'எனது தற்போதைய இருப்பிடத்தைப் பயன்படுத்தவும்';
+
+  @override
+  String get textSize => 'எழுத்து அளவு';
+
+  @override
+  String get textSizeScreenHint =>
+      'ஆப் முழுவதும் எழுத்து எவ்வளவு பெரியதாகத் தெரிய வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get textSizeSmall => 'சிறியது';
+
+  @override
+  String get textSizeStandard => 'இயல்புநிலை';
+
+  @override
+  String get textSizeLarge => 'பெரியது';
+
+  @override
+  String get textSizeExtraLarge => 'மிகப் பெரியது';
+
+  @override
+  String get textSizeSampleText => 'இது ஒரு மாதிரி உரை';
 }

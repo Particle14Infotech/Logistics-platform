@@ -154,6 +154,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _ProfileRow(icon: Icons.notifications, label: l10n.notifications, onTap: () => context.push('/notifications')),
           _ProfileRow(icon: Icons.notifications_outlined, label: l10n.notificationSettings, onTap: () => context.push('/profile/notifications')),
           _ProfileRow(icon: Icons.language, label: l10n.language, onTap: () => context.push('/profile/language')),
+          _ProfileRow(icon: Icons.text_fields, label: l10n.textSize, onTap: () => context.push('/profile/text-size')),
           _ProfileRow(icon: Icons.password_outlined, label: l10n.changePassword, onTap: () => context.push('/profile/change-password')),
           _ProfileRow(icon: Icons.help_outline, label: l10n.helpAndSupport, onTap: () => context.push('/profile/help-support')),
           _ProfileRow(icon: Icons.info_outline, label: l10n.about, onTap: () => context.push('/profile/about')),

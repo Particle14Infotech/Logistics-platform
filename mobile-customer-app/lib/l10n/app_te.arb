@@ -344,5 +344,13 @@
   "payRemainingAmount": "మిగిలిన మొత్తాన్ని చెల్లించండి",
   "payAdvance": "అడ్వాన్స్ చెల్లించండి",
   "payNow": "ఇప్పుడే చెల్లించండి",
-  "useMyCurrentLocation": "నా ప్రస్తుత స్థానాన్ని ఉపయోగించండి"
+  "useMyCurrentLocation": "నా ప్రస్తుత స్థానాన్ని ఉపయోగించండి",
+
+  "textSize": "టెక్స్ట్ పరిమాణం",
+  "textSizeScreenHint": "యాప్ మొత్తంలో టెక్స్ట్ ఎంత పెద్దదిగా కనిపించాలో ఎంచుకోండి.",
+  "textSizeSmall": "చిన్నది",
+  "textSizeStandard": "డిఫాల్ట్",
+  "textSizeLarge": "పెద్దది",
+  "textSizeExtraLarge": "మరింత పెద్దది",
+  "textSizeSampleText": "ఇది ఒక నమూనా వచనం"
 }

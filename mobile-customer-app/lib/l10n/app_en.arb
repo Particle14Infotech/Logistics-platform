@@ -365,5 +365,13 @@
   "payRemainingAmount": "Pay Remaining Amount",
   "payAdvance": "Pay Advance",
   "payNow": "Pay Now",
-  "useMyCurrentLocation": "Use my current location"
+  "useMyCurrentLocation": "Use my current location",
+
+  "textSize": "Text Size",
+  "textSizeScreenHint": "Choose how large text appears throughout the app.",
+  "textSizeSmall": "Small",
+  "textSizeStandard": "Default",
+  "textSizeLarge": "Large",
+  "textSizeExtraLarge": "Extra Large",
+  "textSizeSampleText": "The quick brown fox"
 }

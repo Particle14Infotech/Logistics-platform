@@ -344,5 +344,13 @@
   "payRemainingAmount": "शेष राशि का भुगतान करें",
   "payAdvance": "एडवांस भुगतान करें",
   "payNow": "अभी भुगतान करें",
-  "useMyCurrentLocation": "मेरा वर्तमान स्थान उपयोग करें"
+  "useMyCurrentLocation": "मेरा वर्तमान स्थान उपयोग करें",
+
+  "textSize": "टेक्स्ट का आकार",
+  "textSizeScreenHint": "चुनें कि पूरे ऐप में टेक्स्ट कितना बड़ा दिखाई दे।",
+  "textSizeSmall": "छोटा",
+  "textSizeStandard": "डिफ़ॉल्ट",
+  "textSizeLarge": "बड़ा",
+  "textSizeExtraLarge": "अतिरिक्त बड़ा",
+  "textSizeSampleText": "यह एक नमूना पाठ है"
 }
