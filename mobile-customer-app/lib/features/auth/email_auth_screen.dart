@@ -415,7 +415,11 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                 )
               else ...[
                 const SizedBox(height: 24),
-                Image.asset('assets/images/logo.png', width: 90, height: 90, fit: BoxFit.contain),
+                // cacheWidth/Height - logo.png is a 1609x1526 source, decoded at that
+                // full size by default even though it only ever renders this small
+                // (same bitmap-downsampling pattern already fixed for the vehicle
+                // images in price_calculator_screen.dart / vehicle_selection_screen.dart).
+                Image.asset('assets/images/logo.png', width: 90, height: 90, fit: BoxFit.contain, cacheWidth: 270, cacheHeight: 270),
                 const SizedBox(height: 16),
               ],
               Text(
