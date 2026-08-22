@@ -42,7 +42,11 @@ class SplashScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/images/logo.png', width: 160, height: 160),
+              // cacheWidth/Height - see vehicle_category_field.dart's comment on the
+              // same pattern (logo.png is a 500x436 source, decoded at that full size
+              // by default even though it only ever renders this small - Play Console
+              // flagged this exact call site for bitmap downsampling).
+              Image.asset('assets/images/logo.png', width: 160, height: 160, cacheWidth: 480, cacheHeight: 480),
               const SizedBox(height: 32),
               if (hasError) ...[
                 Icon(isRoleMismatch ? Icons.person_off_outlined : Icons.wifi_off, color: Colors.white, size: 32),

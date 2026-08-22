@@ -23,7 +23,11 @@ class RoleSelectionScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset('assets/images/logo.png', width: 100, height: 100),
+              // cacheWidth/Height - see vehicle_category_field.dart's comment on the
+              // same pattern (logo.png is a 500x436 source, decoded at that full size
+              // by default even though it only ever renders this small - Play Console
+              // flagged this exact call site for bitmap downsampling).
+              Image.asset('assets/images/logo.png', width: 100, height: 100, cacheWidth: 300, cacheHeight: 300),
               const SizedBox(height: 16),
               Text(l10n.howWillYouUseTheApp, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
               const SizedBox(height: 32),

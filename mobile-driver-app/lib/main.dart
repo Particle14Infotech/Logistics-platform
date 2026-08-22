@@ -21,15 +21,24 @@ Future<void> main() async {
   // the OS enforces edge-to-edge regardless) - Play Console flagged
   // "Edge-to-edge may not display for all users" without this, since
   // relying on implicit/default behavior renders inconsistently across
-  // Android versions and OEM skins rather than deterministically. Status/
-  // nav bar set transparent with dark icons to match this app's light
-  // background (AppTheme.cream) - every screen already wraps content in
-  // SafeArea, so this only changes what's drawn *behind* that content.
+  // Android versions and OEM skins rather than deterministically. Every
+  // screen already wraps content in SafeArea, so this only changes what's
+  // drawn *behind* that content. Native-level opt-in also added in
+  // MainActivity.kt, since this call alone only takes effect once Dart
+  // starts running - it doesn't cover the native launch window shown
+  // before Flutter's first frame.
+  //
+  // Deliberately NOT setting statusBarColor/systemNavigationBarColor here:
+  // Android 15+ deprecated Window.setStatusBarColor/setNavigationBarColor
+  // (the native calls this Dart API maps to) as part of the same
+  // edge-to-edge changes, which is exactly what Play Console's "Your app
+  // uses deprecated APIs or parameters for edge-to-edge" flagged. Bars
+  // render transparent by default once edge-to-edge is enabled natively -
+  // only icon brightness needs setting here, which uses a separate,
+  // non-deprecated mechanism.
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.transparent,
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
   try {
